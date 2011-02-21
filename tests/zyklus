@@ -1,0 +1,16 @@
+class A {
+	B hallo;
+}
+class B {
+	C hallo;
+}
+class C {
+	D hallo;
+}
+class D {
+	E hallo;
+}
+class E {
+	A hallo;
+	int hi;
+}
