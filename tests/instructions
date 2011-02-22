@@ -17,6 +17,6 @@ int main() {
 int hallo;
 hallo=5+7;
 int test;
-test = 7*9;
+test = 8*9;
 hallo;
 }

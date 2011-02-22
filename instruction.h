@@ -9,8 +9,6 @@ public:
 	virtual ~Instruction() {}
 	virtual void find() = 0;
 	virtual Type *resulttype() = 0;
-	virtual void printRPN(FILE *file) = 0;
-	virtual void printRPNclear(FILE *file) = 0;
 };
 
 class BinaryOperatorInstruction : public Instruction {
@@ -21,8 +19,6 @@ public:
 	BinaryOperatorInstruction(char _op, Instruction *_a, Instruction *_b);
 	void find();
 	Type* resulttype();
-	void printRPN(FILE* file);
-	void printRPNclear(FILE* file);
 };
 
 class IntegerConstantInstruction : public Instruction {
@@ -32,8 +28,6 @@ public:
 	IntegerConstantInstruction(int _co);
 	void find();
 	Type* resulttype();
-	void printRPN(FILE* file);
-	void printRPNclear(FILE* file);
 };
 
 class PrintInstruction : public Instruction {
@@ -43,8 +37,6 @@ public:
 	PrintInstruction(Instruction* _a);
 	void find();
 	Type* resulttype();
-	void printRPN(FILE* file);
-	void printRPNclear(FILE* file) { a->printRPNclear(file); }
 };
 
 class DeclarationInstruction : public Instruction {
@@ -56,8 +48,6 @@ public:
 	DeclarationInstruction(TypePointer *_type, string *_name);
 	void find();
 	Type* resulttype();
-	void printRPN(FILE* file);
-	void printRPNclear(FILE* file) {}
 };
 
 class SetInstruction : public Instruction {
@@ -69,8 +59,6 @@ public:
 	SetInstruction(string *_name, Instruction *_a);
 	void find();
 	Type* resulttype();
-	void printRPN(FILE* file);
-	void printRPNclear(FILE* file) {}
 };
 
 class VariableInstruction : public Instruction {
@@ -81,8 +69,6 @@ public:
 	VariableInstruction(string *_name);
 	void find();
 	Type* resulttype();
-	void printRPN(FILE* file);
-	void printRPNclear(FILE* file);
 };
 
 class BlockInstruction : public Instruction {
@@ -92,8 +78,6 @@ public:
 public:
 	void find();
 	Type* resulttype();
-	void printRPN(FILE* file);
-	void printRPNclear(FILE* file) {}
 };
 
 #endif

@@ -78,6 +78,11 @@ int main() {
 			default:
 				fprintf(stderr, "Unknown command '%c'!\n", op);
 		}
+		printf("%s: ", codepos);
+		for (int i = 0; i < stack.size(); i++) {
+			printf("%d ", stack[i]);
+		}
+		printf("\n");
 		codepos += strlen(codepos)+1;
 	}
 	if (stack.size() != 0)

@@ -50,7 +50,8 @@ outerstatement:
 	else
 		ParseResult::self()->functions[*$2] = dec;
 	$7->find();
-	$7->printRPN(stdout);
+	//$7->printRPN(stdout);
+	ParseRes->output();
 }
 	| CLASS IDENTIFIER '{' classcontents '}' {
 	ClassType *type = new ClassType($4);
