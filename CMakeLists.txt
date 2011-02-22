@@ -6,7 +6,7 @@ include (bison.cmake)
 add_flex_files(lexer.flex)
 add_bison_files(parser.y)
 
-set(CPPFILES
+set(COMPILER_CPPFILES
 	main.cpp
 	type.cpp
 	parseresult.cpp
@@ -15,6 +15,11 @@ set(CPPFILES
 	flex_lexer.cpp
 )
 
-add_executable(programmiersprache3 ${CPPFILES})
+set(VM_CPPFILES
+	virtualmachine.cpp
+)
 
-target_link_libraries(programmiersprache3 fl)
+add_executable(compiler ${COMPILER_CPPFILES})
+add_executable(vm ${VM_CPPFILES})
+
+target_link_libraries(compiler fl)

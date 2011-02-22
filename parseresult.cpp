@@ -15,3 +15,4 @@ ParseResult *global = new ParseResult();
 ParseResult* ParseRes {
 	return global;
 }
+

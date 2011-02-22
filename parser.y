@@ -32,7 +32,7 @@
 input: outerstatements {
 	for (vector<ClassType*>::iterator it = ParseResult::self()->classtypes.begin(); it != ParseResult::self()->classtypes.end(); it++) {
 		(*it)->find();
-		printf("%d\n", (*it)->size());
+		//printf("%d\n", (*it)->size());
 	}
 }
 
@@ -121,7 +121,7 @@ exp:
 	$$ = $2;
 }
 	| IDENTIFIER {
-	printf("id: %s\n", $1->c_str());
+	$$ = new VariableInstruction($1);
 }
 	| NUMBER {
 	$$ = new IntegerConstantInstruction($1);

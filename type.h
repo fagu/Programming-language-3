@@ -24,6 +24,7 @@ public:
 	void find();
 	Type & operator*();
 	Type * operator->();
+	Type * real();
 };
 
 class VariableDeclaration {

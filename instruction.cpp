@@ -1,9 +1,18 @@
+
+#include <stdio.h>
 #include "instruction.h"
 #include "parseresult.h"
 
 BinaryOperatorInstruction::BinaryOperatorInstruction(char _op, Instruction* _a, Instruction* _b) : op(_op), a(_a), b(_b) {
+}
+
+void BinaryOperatorInstruction::find() {
+	a->find();
+	b->find();
 	if (a->resulttype() != ParseRes->intType || b->resulttype() != ParseRes->intType)
 		fprintf(stderr, "Wrong type in binary operator!");
+	pos = ParseRes->firstemptypos;
+	ParseRes->firstemptypos += resulttype()->size();
 }
 
 Type* BinaryOperatorInstruction::resulttype() {
@@ -13,10 +22,21 @@ Type* BinaryOperatorInstruction::resulttype() {
 void BinaryOperatorInstruction::printRPN(FILE* file) {
 	a->printRPN(file);
 	b->printRPN(file);
-	fprintf(file, "B%c|", op);
+	fprintf(file, "A%d|%c%d;%d;%d|", resulttype()->size(), op, a->pos, b->pos, pos);
+}
+
+void BinaryOperatorInstruction::printRPNclear(FILE* file) {
+	fprintf(file, "A%d|", -resulttype()->size());
+	a->printRPNclear(file);
+	b->printRPNclear(file);
 }
 
 IntegerConstantInstruction::IntegerConstantInstruction(int _co) : co(_co) {
+}
+
+void IntegerConstantInstruction::find() {
+	pos = ParseRes->firstemptypos;
+	ParseRes->firstemptypos += resulttype()->size();
 }
 
 Type* IntegerConstantInstruction::resulttype() {
@@ -24,12 +44,20 @@ Type* IntegerConstantInstruction::resulttype() {
 }
 
 void IntegerConstantInstruction::printRPN(FILE* file) {
-	fprintf(file, "C%d|", co);
+	fprintf(file, "A%d|I%d;%d|", resulttype()->size(), co, pos);
+}
+
+void IntegerConstantInstruction::printRPNclear(FILE* file) {
+	fprintf(file, "A%d|", -resulttype()->size());
 }
 
 PrintInstruction::PrintInstruction(Instruction* _a) : a(_a) {
-	if (a->resulttype() != ParseRes->intType)
-		fprintf(stderr, "Wrong type in print function!");
+}
+
+void PrintInstruction::find() {
+	a->find();
+	//if (a->resulttype() != ParseRes->intType)
+	//	fprintf(stderr, "Wrong type in print function!");
 }
 
 Type* PrintInstruction::resulttype() {
@@ -38,7 +66,7 @@ Type* PrintInstruction::resulttype() {
 
 void PrintInstruction::printRPN(FILE* file) {
 	a->printRPN(file);
-	fprintf(file, "P|");
+	fprintf(file, "P%d;%d|", a->pos, a->resulttype()->size());
 }
 
 DeclarationInstruction::DeclarationInstruction(TypePointer* _type, string* _name): type(_type), name(_name) {
@@ -58,7 +86,7 @@ Type* DeclarationInstruction::resulttype() {
 }
 
 void DeclarationInstruction::printRPN(FILE* file) {
-	fprintf(file, "D%d|", (*type)->size());
+	fprintf(file, "A%d|", (*type)->size());
 }
 
 SetInstruction::SetInstruction(string* _name, Instruction* _a): name(_name), a(_a) {
@@ -68,6 +96,9 @@ void SetInstruction::find() {
 	if (!ParseRes->vars[*name])
 		fprintf(stderr, "Variable '%s' does not exist!\n", name->c_str());
 	dec = ParseRes->vars[*name];
+	a->find();
+	if (dec->type->real() != a->resulttype())
+		fprintf(stderr, "Types do not match!\n");
 }
 
 Type* SetInstruction::resulttype() {
@@ -76,7 +107,28 @@ Type* SetInstruction::resulttype() {
 
 void SetInstruction::printRPN(FILE* file) {
 	a->printRPN(file);
-	fprintf(file, "S%d|", dec->pos);
+	fprintf(file, "C%d;%d;%d|", a->pos, a->resulttype()->size(), dec->pos);
+	a->printRPNclear(file);
+}
+
+VariableInstruction::VariableInstruction(string* _name): name(_name) {
+}
+
+void VariableInstruction::find() {
+	if (!ParseRes->vars[*name])
+		fprintf(stderr, "Variable '%s' does not exist!\n", name->c_str());
+	dec = ParseRes->vars[*name];
+	pos = dec->pos;
+}
+
+Type* VariableInstruction::resulttype() {
+	return dec->type->real();
+}
+
+void VariableInstruction::printRPN(FILE* file) {
+}
+
+void VariableInstruction::printRPNclear(FILE* file) {
 }
 
 void BlockInstruction::find() {
@@ -87,7 +139,7 @@ void BlockInstruction::find() {
 	varsize = ParseRes->firstemptypos;
 	while(ParseRes->varstack.size() > sizebefore) {
 		ParseRes->vars.erase(ParseRes->vars.find(*ParseRes->varstack.top()->name));
-		ParseRes->firstemptypos = ParseRes->varstack.top()->pos;
+		ParseRes->firstemptypos -= (*ParseRes->varstack.top()->type)->size();
 		ParseRes->varstack.pop();
 	}
 	varsize -= ParseRes->firstemptypos;
@@ -100,7 +152,8 @@ Type* BlockInstruction::resulttype() {
 void BlockInstruction::printRPN(FILE* file) {
 	for (int i = 0; i < instructions.size(); i++) {
 		instructions[i]->printRPN(file);
+		instructions[i]->printRPNclear(file);
 		fprintf(file, "\n");
 	}
-	fprintf(file, "E%d|\n", varsize);
+	fprintf(file, "A%d|\n", -varsize);
 }

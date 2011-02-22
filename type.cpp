@@ -27,6 +27,10 @@ Type* TypePointer::operator->() {
 	return type;
 }
 
+Type* TypePointer::real() {
+	return type;
+}
+
 ClassType::ClassType(VariableDeclarations* _declarations) : declarations(_declarations), m_size(-1), infind(false) {
 }
 

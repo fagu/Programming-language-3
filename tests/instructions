@@ -14,6 +14,9 @@ class D {
 }
 
 int main() {
-A hallo;
-hallo=3*4+5*(6+7)+8*9;
+int hallo;
+hallo=5+7;
+int test;
+test = 7*9;
+hallo;
 }

@@ -7,6 +7,8 @@
 #include "instruction.h"
 
 class ParseResult {
+private:
+	
 public:
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;
@@ -17,6 +19,10 @@ public:
 	Type *voidType;
 	Type *intType;
 	Type *boolType;
+	
+	int alloc();
+	void need(int id);
+	
 	ParseResult();
 	static ParseResult *self();
 };

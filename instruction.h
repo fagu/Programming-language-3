@@ -1,15 +1,16 @@
 #ifndef INSTRUCTION_H
 #define INSTRUCTION_H
 
-#include <stdio.h>
 #include "type.h"
 
 class Instruction {
 public:
+	int pos;
 	virtual ~Instruction() {}
 	virtual void find() = 0;
 	virtual Type *resulttype() = 0;
 	virtual void printRPN(FILE *file) = 0;
+	virtual void printRPNclear(FILE *file) = 0;
 };
 
 class BinaryOperatorInstruction : public Instruction {
@@ -18,9 +19,10 @@ private:
 	Instruction *a, *b;
 public:
 	BinaryOperatorInstruction(char _op, Instruction *_a, Instruction *_b);
-	void find() { a->find(); b->find(); }
+	void find();
 	Type* resulttype();
 	void printRPN(FILE* file);
+	void printRPNclear(FILE* file);
 };
 
 class IntegerConstantInstruction : public Instruction {
@@ -28,9 +30,10 @@ private:
 	int co;
 public:
 	IntegerConstantInstruction(int _co);
-	void find() {}
+	void find();
 	Type* resulttype();
 	void printRPN(FILE* file);
+	void printRPNclear(FILE* file);
 };
 
 class PrintInstruction : public Instruction {
@@ -38,9 +41,10 @@ private:
 	Instruction *a;
 public:
 	PrintInstruction(Instruction* _a);
-	void find() { a->find(); }
+	void find();
 	Type* resulttype();
 	void printRPN(FILE* file);
+	void printRPNclear(FILE* file) { a->printRPNclear(file); }
 };
 
 class DeclarationInstruction : public Instruction {
@@ -53,6 +57,7 @@ public:
 	void find();
 	Type* resulttype();
 	void printRPN(FILE* file);
+	void printRPNclear(FILE* file) {}
 };
 
 class SetInstruction : public Instruction {
@@ -65,6 +70,19 @@ public:
 	void find();
 	Type* resulttype();
 	void printRPN(FILE* file);
+	void printRPNclear(FILE* file) {}
+};
+
+class VariableInstruction : public Instruction {
+private:
+	string *name;
+	DeclarationInstruction *dec;
+public:
+	VariableInstruction(string *_name);
+	void find();
+	Type* resulttype();
+	void printRPN(FILE* file);
+	void printRPNclear(FILE* file);
 };
 
 class BlockInstruction : public Instruction {
@@ -75,6 +93,7 @@ public:
 	void find();
 	Type* resulttype();
 	void printRPN(FILE* file);
+	void printRPNclear(FILE* file) {}
 };
 
 #endif
