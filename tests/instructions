@@ -16,7 +16,7 @@ int main() {
 //hi.hallo = new B;
 //hi.hallo.num = 5;
 //hi.hallo.num;
-if (5) {
+if (0) {
 7;
 }
 }

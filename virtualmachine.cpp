@@ -7,6 +7,8 @@ using namespace std;
 // TODO Buffer overflow
 char input[10000];
 
+vector<char*> stops;
+
 vector<int> stack;
 vector<int> hash;
 
@@ -26,9 +28,22 @@ int main() {
 	input[L] = '\0';
 	char *codepos = input;
 	while(*codepos != '\0') {
+		if (*codepos == 'M') {
+			int stop;
+			sscanf(codepos+1, "%d", &stop);
+			while(stops.size() <= stop)
+				stops.push_back(0);
+			stops[stop] = codepos;
+		}
+		codepos += strlen(codepos)+1;
+	}
+	
+	codepos = input;
+	while(*codepos != '\0') {
 		//printf("%s\n", codepos);
 		char op = *codepos;
 		int len, co, pos, posa, posb, posc;
+		char *nextcodepos = codepos + strlen(codepos)+1;
 		switch(op) {
 			case 'A':
 				sscanf(codepos+1, "%d", &len);
@@ -90,6 +105,13 @@ int main() {
 				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
 				stack[posc] = hash[stack[posa],posb];
 				break;
+			case 'J':
+				sscanf(codepos+1, "%d;%d", &posa, &posb);
+				if (stack[posa] == 0)
+					nextcodepos = stops[posb];
+				break;
+			case 'M':
+				break;
 			default:
 				fprintf(stderr, "Unknown command '%c'!\n", op);
 		}
@@ -98,7 +120,8 @@ int main() {
 			printf("%d ", stack[i]);
 		}
 		printf("\n");
-		codepos += strlen(codepos)+1;
+		//codepos += strlen(codepos)+1;
+		codepos = nextcodepos;
 	}
 	if (stack.size() != 0)
 		fprintf(stderr, "Too much on the stack!\n");

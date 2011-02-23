@@ -114,10 +114,10 @@ void ParseResult::output() {
 				}
 			}
 		}
-		while(lapos < la.size() && la[lapos].first <= i) {
+		/*while(lapos < la.size() && la[lapos].first <= i) {
 			unocc.push(realpos[la[lapos].second]);
 			lapos++;
-		}
+		}*/
 	}
 	printf("A%d|\n", spacestart);
 	for (int i = 0; i < instructions.size(); i++) {
@@ -143,9 +143,6 @@ void ParseResult::output() {
 			printf("J%d;%d|\n", realpos[in.a], in.b);
 		} else {
 			printf("%c%d;%d;%d|\n", in.typ, realpos[in.a], realpos[in.b], realpos[in.c]);
-		}
-		while(lapos < la.size() && la[lapos].first <= i) {
-			unocc.push(realpos[la[lapos].second]);
 		}
 	}
 	printf("A%d|\n", -spacestart);
