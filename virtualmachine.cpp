@@ -6,11 +6,17 @@ using namespace std;
 
 // TODO Buffer overflow
 char input[10000];
+int liste[50000];
 
-vector<char*> stops;
+vector<int> stops;
 
 vector<int> stack;
 vector<int> hash;
+
+char opcodes[] = {'A','I','+','-','*','/','%','C','P','R','S','G','J','j'};
+
+int anzahl[14];
+long long zeit[14];
 
 int main() {
 	int L;
@@ -26,27 +32,48 @@ int main() {
 			input[L] = c;
 	}
 	input[L] = '\0';
+	
+	int N = 0;
 	char *codepos = input;
 	while(*codepos != '\0') {
-		if (*codepos == 'M') {
+		char op = *codepos;
+		liste[N] = -1;
+		for (int i = 0; i < sizeof(opcodes)/sizeof(char); i++)
+			if (opcodes[i] == op)
+				liste[N] = i;
+		if (liste[N] == -1 && op != 'M')
+			fprintf(stderr, "Unknown command '%c'!\n", op);
+		if (op == 'A' || op == 'j') {
+			sscanf(codepos+1, "%d", &liste[N+1]);
+			N += 2;
+		} else if (op == 'I' || op == 'P' || op == 'R' || op == 'J') {
+			sscanf(codepos+1, "%d;%d", &liste[N+1], &liste[N+2]);
+			N += 3;
+		} else if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%' || op == 'C' || op == 'S' || op == 'G') {
+			sscanf(codepos+1, "%d;%d;%d", &liste[N+1], &liste[N+2], &liste[N+3]);
+			N += 4;
+		} else if (op == 'M') {
 			int stop;
 			sscanf(codepos+1, "%d", &stop);
 			while(stops.size() <= stop)
 				stops.push_back(0);
-			stops[stop] = codepos;
+			stops[stop] = N;
+		} else {
+			fprintf(stderr, "Unknown command '%c'!\n", op);
 		}
 		codepos += strlen(codepos)+1;
 	}
 	
-	codepos = input;
-	while(*codepos != '\0') {
-		//printf("%s\n", codepos);
-		char op = *codepos;
+	int aktpos = 0;
+	while(aktpos != N) {
+		int op = liste[aktpos];
+		
 		int len, co, pos, posa, posb, posc;
-		char *nextcodepos = codepos + strlen(codepos)+1;
+		int nextpos;
+		aktpos++;
 		switch(op) {
-			case 'A':
-				sscanf(codepos+1, "%d", &len);
+			case 0:
+				len = liste[aktpos];
 				if (len > 0) {
 					for (int i = 0; i < len; i++)
 						stack.push_back(0);
@@ -55,79 +82,90 @@ int main() {
 						stack.pop_back();
 					}
 				}
+				nextpos = aktpos+1;
 				break;
-			case 'I':
-				sscanf(codepos+1, "%d;%d", &co, &pos);
-				stack[pos] = co;
+			case 1:
+				co = liste[aktpos]; pos = liste[aktpos+1];
+				stack[liste[aktpos+1]] = liste[aktpos];
+				nextpos = aktpos+2;
 				break;
-			case '+':
-				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+			case 2:
+				posa = liste[aktpos]; posb = liste[aktpos+1]; posc = liste[aktpos+2];
 				stack[posc] = stack[posa]+stack[posb];
+				nextpos = aktpos+3;
 				break;
-			case '-':
-				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+			case 3:
+				posa = liste[aktpos]; posb = liste[aktpos+1]; posc = liste[aktpos+2];
 				stack[posc] = stack[posa]-stack[posb];
+				nextpos = aktpos+3;
 				break;
-			case '*':
-				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+			case 4:
+				posa = liste[aktpos]; posb = liste[aktpos+1]; posc = liste[aktpos+2];
 				stack[posc] = stack[posa]*stack[posb];
+				nextpos = aktpos+3;
 				break;
-			case '/':
-				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+			case 5:
+				posa = liste[aktpos]; posb = liste[aktpos+1]; posc = liste[aktpos+2];
 				stack[posc] = stack[posa]/stack[posb];
+				nextpos = aktpos+3;
 				break;
-			case '%':
-				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+			case 6:
+				posa = liste[aktpos]; posb = liste[aktpos+1]; posc = liste[aktpos+2];
 				stack[posc] = stack[posa]%stack[posb];
+				nextpos = aktpos+3;
 				break;
-			case 'C':
-				sscanf(codepos+1, "%d;%d;%d", &posa, &len, &posb);
+			case 7:
+				posa = liste[aktpos]; len = liste[aktpos+1]; posb = liste[aktpos+2];
 				for (int i = 0; i < len; i++)
 					stack[posb+i] = stack[posa+i];
+				nextpos = aktpos+3;
 				break;
-			case 'P':
-				sscanf(codepos+1, "%d;%d", &pos, &len);
+			case 8:
+				pos = liste[aktpos]; len = liste[aktpos+1];
 				for (int i = 0; i < len; i++)
 					printf("%d ", stack[pos+i]);
 				printf("\n");
+				nextpos = aktpos+2;
 				break;
-			case 'R':
-				sscanf(codepos+1, "%d;%d", &len, &pos);
+			case 9:
+				len = liste[aktpos]; pos = liste[aktpos+1];
 				stack[pos] = hash.size();
 				for (int i = 0; i < len; i++)
 					hash.push_back(0);
+				nextpos = aktpos+2;
 				break;
-			case 'S':
-				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+			case 10:
+				posa = liste[aktpos]; posb = liste[aktpos+1]; posc = liste[aktpos+2];
 				hash[stack[posb]+posc] = stack[posa];
+				nextpos = aktpos+3;
 				break;
-			case 'G':
-				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+			case 11:
+				posa = liste[aktpos]; posb = liste[aktpos+1]; posc = liste[aktpos+2];
 				stack[posc] = hash[stack[posa],posb];
+				nextpos = aktpos+3;
 				break;
-			case 'J':
-				sscanf(codepos+1, "%d;%d", &posa, &posb);
+			case 12:
+				posa = liste[aktpos]; posb = liste[aktpos+1];
 				if (stack[posa] == 0)
-					nextcodepos = stops[posb];
+					nextpos = stops[posb];
+				else
+					nextpos = aktpos+2;
 				break;
-			case 'j':
-				sscanf(codepos+1, "%d", &posa);
-				nextcodepos = stops[posa];
-				break;
-			case 'M':
+			case 13:
+				posa = liste[aktpos];
+				nextpos = stops[posa];
 				break;
 			default:
-				fprintf(stderr, "Unknown command '%c'!\n", op);
+				fprintf(stderr, "Unknown command %d!\n", op);
 		}
 		/*printf("%s: ", codepos);
 		for (int i = 0; i < stack.size(); i++) {
 			printf("%d ", stack[i]);
 		}
 		printf("\n");*/
-		//codepos += strlen(codepos)+1;
-		codepos = nextcodepos;
+		aktpos = nextpos;
 	}
 	if (stack.size() != 0)
-		fprintf(stderr, "Too much on the stack!\n");
+		fprintf(stderr, "Stack not cleared!\n");
 	return 0;
 }
