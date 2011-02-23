@@ -155,6 +155,24 @@ Type* IfInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
+WhileInstruction::WhileInstruction(Instruction* _cond, Instruction* _then) : cond(_cond), then(_then) {
+}
+
+void WhileInstruction::find() {
+	int start = ParseRes->newStop();
+	ParseRes->hereStop(start);
+	cond->find();
+	int end = ParseRes->newStop();
+	ParseRes->jumpIf(cond->pos, end);
+	then->find();
+	ParseRes->jump(start);
+	ParseRes->hereStop(end);
+}
+
+Type* WhileInstruction::resulttype() {
+	return ParseRes->voidType;
+}
+
 void BlockInstruction::find() {
 	int sizebefore = ParseRes->varstack.size();
 	for (int i = 0; i < instructions.size(); i++) {

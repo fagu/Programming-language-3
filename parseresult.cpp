@@ -91,6 +91,11 @@ void ParseResult::jumpIf(int cond, int stop) {
 	instructions.push_back(i);
 }
 
+void ParseResult::jump(int stop) {
+	instr i = {'j', 0, stop};
+	instructions.push_back(i);
+}
+
 void ParseResult::output() {
 	realpos.resize(lastneeded.size());
 	vector<pair<int,int> > la;
@@ -141,6 +146,8 @@ void ParseResult::output() {
 			printf("M%d|\n", in.a);
 		} else if (in.typ == 'J') {
 			printf("J%d;%d|\n", realpos[in.a], in.b);
+		} else if (in.typ == 'j') {
+			printf("j%d|\n", in.a);
 		} else {
 			printf("%c%d;%d;%d|\n", in.typ, realpos[in.a], realpos[in.b], realpos[in.c]);
 		}

@@ -10,7 +10,7 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token TRUE FALSE CLASS NEW IF
+%token TRUE FALSE CLASS NEW IF WHILE
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp statement;
@@ -87,6 +87,9 @@ statement:
 }
 	| IF '(' exp ')' statement {
 	$$ = new IfInstruction($3, $5);
+}
+	| WHILE '(' exp ')' statement {
+	$$ = new WhileInstruction($3, $5);
 }
 
 parameters:

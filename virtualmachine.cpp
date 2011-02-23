@@ -110,16 +110,20 @@ int main() {
 				if (stack[posa] == 0)
 					nextcodepos = stops[posb];
 				break;
+			case 'j':
+				sscanf(codepos+1, "%d", &posa);
+				nextcodepos = stops[posa];
+				break;
 			case 'M':
 				break;
 			default:
 				fprintf(stderr, "Unknown command '%c'!\n", op);
 		}
-		printf("%s: ", codepos);
+		/*printf("%s: ", codepos);
 		for (int i = 0; i < stack.size(); i++) {
 			printf("%d ", stack[i]);
 		}
-		printf("\n");
+		printf("\n");*/
 		//codepos += strlen(codepos)+1;
 		codepos = nextcodepos;
 	}

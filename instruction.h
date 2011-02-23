@@ -104,6 +104,16 @@ public:
 	Type* resulttype();
 };
 
+class WhileInstruction : public Instruction {
+private:
+	Instruction *cond;
+	Instruction *then;
+public:
+	WhileInstruction(Instruction *_cond, Instruction *_then);
+	void find();
+	Type* resulttype();
+};
+
 class BlockInstruction : public Instruction {
 public:
 	vector<Instruction*> instructions;

@@ -42,6 +42,7 @@ public:
 	int newStop();
 	void hereStop(int stop);
 	void jumpIf(int cond, int stop);
+	void jump(int stop);
 	
 	void output();
 	
