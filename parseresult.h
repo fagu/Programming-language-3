@@ -19,6 +19,7 @@ private:
 	vector<int> lastneeded;
 	vector<int> realpos;
 	vector<instr> instructions;
+	vector<int> stoppos;
 	void need(int id, int len);
 public:
 	vector<ClassType*> classtypes;
@@ -35,6 +36,12 @@ public:
 	void binaryoperate(char o, int a, int b, int c);
 	void intconst(int nr, int to);
 	void print(int from, int len);
+	void newRef(int len, int to);
+	void getSub(int from, int varid, int to);
+	void copySub(int from, int to, int varid);
+	int newStop();
+	void hereStop(int stop);
+	void jumpIf(int cond, int stop);
 	
 	void output();
 	

@@ -12,6 +12,8 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 "true" {return TRUE;}
 "false" {return FALSE;}
 "class" {return CLASS;}
+"new" {return NEW;}
+"if" {return IF;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);
@@ -23,7 +25,7 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 	return IDENTIFIER;
 }
 
-"#"[^\n]*"\n"     // Einzeilige Kommentare
+"//"[^\n]*"\n"     // Einzeilige Kommentare
 
 [ \t\n]+          // Whitespace
 

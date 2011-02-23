@@ -10,13 +10,14 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token TRUE FALSE CLASS
+%token TRUE FALSE CLASS NEW IF
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp statement;
 %type <statements> statements;
 %left '+' '-'
 %left '*' '/' '%'
+%left '.'
 %left '('
 %union {
 	string *name;
@@ -78,11 +79,14 @@ statement:
 	| IDENTIFIER IDENTIFIER ';' {
 	$$ = new DeclarationInstruction(new TypePointer($1), $2);
 }
-	| IDENTIFIER '=' exp ';' {
+	| exp '=' exp ';' {
 	$$ = new SetInstruction($1, $3);
 }
 	| '{' statements '}' {
 	$$ = $2;
+}
+	| IF '(' exp ')' statement {
+	$$ = new IfInstruction($3, $5);
 }
 
 parameters:
@@ -108,7 +112,10 @@ classcontents:
 	$$ = new VariableDeclarations();
 }
 	| classcontents classcontent {
-	$1->push_back($2);
+	//$1->push_back($2);
+	if ($1->count(*$2->name))
+		fprintf(stderr, "Multiple declaration of '%s'!\n", $2->name->c_str());
+	(*$1)[*$2->name] = $2;
 	$$ = $1;
 }
 
@@ -126,7 +133,11 @@ exp:
 }
 	| NUMBER {
 	$$ = new IntegerConstantInstruction($1);
-	//printf("zahl: %d\n", $1);
+}	| NEW IDENTIFIER {
+	$$ = new NewInstruction($2);
+}
+	| exp '.' IDENTIFIER {
+	$$ = new AccessInstruction($1, $3);
 }
 	| TRUE {
 	printf("bool: true\n");

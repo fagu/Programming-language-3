@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 class BlockInstruction;
 using namespace std;
@@ -12,6 +13,7 @@ public:
 	virtual ~Type() {}
 	virtual void find() {}
 	virtual int size()=0;
+	virtual char style()=0;
 };
 
 class TypePointer {
@@ -41,7 +43,7 @@ public:
 	}
 };
 
-typedef vector<VariableDeclaration*> VariableDeclarations;
+typedef map<string,VariableDeclaration*> VariableDeclarations;
 
 class ClassType : public Type {
 private:
@@ -53,6 +55,9 @@ public:
 	~ClassType();
 	void find();
 	int size();
+	int hashsize();
+	VariableDeclaration *var(const string &name);
+	char style() {return 'C';}
 };
 
 class PrimitiveType : public Type {
@@ -64,6 +69,7 @@ public:
 	int size() {
 		return m_size;
 	}
+	char style() {return 'P';}
 };
 
 class FunctionDeclaration {

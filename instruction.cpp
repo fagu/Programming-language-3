@@ -31,6 +31,24 @@ Type* IntegerConstantInstruction::resulttype() {
 	return ParseRes->intType;
 }
 
+NewInstruction::NewInstruction(string* _name) : name(_name) {
+}
+
+void NewInstruction::find() {
+	if (!ParseRes->types.count(*name))
+		fprintf(stderr, "Type '%s' does not exist!\n", name->c_str());
+	Type *t = ParseRes->types[*name];
+	if (t->style() != 'C')
+		fprintf(stderr, "Type '%s' is not a class!\n", name->c_str());
+	type = (ClassType*)t;
+	pos = ParseRes->alloc(1);
+	ParseRes->newRef(type->size(), type->hashsize());
+}
+
+Type* NewInstruction::resulttype() {
+	return type;
+}
+
 PrintInstruction::PrintInstruction(Instruction* _a) : a(_a) {
 }
 
@@ -43,7 +61,7 @@ Type* PrintInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-DeclarationInstruction::DeclarationInstruction(TypePointer* _type, string* _name): type(_type), name(_name) {
+DeclarationInstruction::DeclarationInstruction(TypePointer* _type, string* _name) : type(_type), name(_name) {
 }
 
 void DeclarationInstruction::find() {
@@ -58,17 +76,11 @@ Type* DeclarationInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-SetInstruction::SetInstruction(string* _name, Instruction* _a): name(_name), a(_a) {
+SetInstruction::SetInstruction(Instruction* _a, Instruction* _b): a(_a), b(_b) {
 }
 
 void SetInstruction::find() {
-	if (!ParseRes->vars[*name])
-		fprintf(stderr, "Variable '%s' does not exist!\n", name->c_str());
-	dec = ParseRes->vars[*name];
-	a->find();
-	if (dec->type->real() != a->resulttype())
-		fprintf(stderr, "Types do not match!\n");
-	ParseRes->copy(a->pos, a->resulttype()->size(), dec->pos);
+	a->findSet(b);
 }
 
 Type* SetInstruction::resulttype() {
@@ -87,6 +99,60 @@ void VariableInstruction::find() {
 
 Type* VariableInstruction::resulttype() {
 	return dec->type->real();
+}
+
+void VariableInstruction::findSet(Instruction* b) {
+	find();
+	b->find();
+	if (resulttype() != b->resulttype())
+		fprintf(stderr, "Types do not match!\n");
+	ParseRes->copy(b->pos, b->resulttype()->size(), pos);
+}
+
+AccessInstruction::AccessInstruction(Instruction* _a, string* _name): a(_a), name(_name) {
+}
+
+void AccessInstruction::find() {
+	a->find();
+	if (a->resulttype()->style() != 'C')
+		fprintf(stderr, "Expression is not a class!\n");
+	dec = ((ClassType*)a->resulttype())->var(*name);
+	if (!dec)
+		fprintf(stderr, "Class does not have a Variable called '%s'!\n", name->c_str());
+	pos = ParseRes->alloc(1);
+	ParseRes->getSub(a->pos, dec->pos, pos);
+}
+
+Type* AccessInstruction::resulttype() {
+	return dec->type->real();
+}
+
+void AccessInstruction::findSet(Instruction* b) {
+	a->find();
+	if (a->resulttype()->style() != 'C')
+		fprintf(stderr, "Expression is not a class!\n");
+	dec = ((ClassType*)a->resulttype())->var(*name);
+	if (!dec)
+		fprintf(stderr, "Class does not have a Variable called '%s'!\n", name->c_str());
+	b->find();
+	if (resulttype() != b->resulttype())
+		fprintf(stderr, "Types do not match!\n");
+	ParseRes->copySub(b->pos, a->pos, dec->pos);
+}
+
+IfInstruction::IfInstruction(Instruction* _cond, Instruction* _then) : cond(_cond), then(_then) {
+}
+
+void IfInstruction::find() {
+	cond->find();
+	int end = ParseRes->newStop();
+	ParseRes->jumpIf(cond->pos, end);
+	then->find();
+	ParseRes->hereStop(end);
+}
+
+Type* IfInstruction::resulttype() {
+	return ParseRes->voidType;
 }
 
 void BlockInstruction::find() {

@@ -2,21 +2,21 @@ class A {
 	B hallo;
 }
 class B {
-	C hallo;
-	D testo;
-}
-class C {
-	D hallo;
-	bool hi;
-}
-class D {
-	int test;
+	int num;
 }
 
 int main() {
-int hallo;
-hallo=5+7;
-int test;
-test = 8*9;
-hallo;
+//int hallo;
+//hallo=5+7;
+//int test;
+//test = 8*9;
+//hallo;
+//A hi;
+//hi = new A;
+//hi.hallo = new B;
+//hi.hallo.num = 5;
+//hi.hallo.num;
+if (5) {
+7;
+}
 }

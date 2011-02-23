@@ -36,8 +36,9 @@ ClassType::ClassType(VariableDeclarations* _declarations) : declarations(_declar
 
 ClassType::~ClassType() {
 	for (VariableDeclarations::iterator it = declarations->begin(); it != declarations->end(); it++) {
-		delete *it;
+		delete it->second;
 	}
+	delete declarations;
 }
 
 void ClassType::find() {
@@ -48,15 +49,24 @@ void ClassType::find() {
 	infind = true;
 	int size = 0;
 	for (VariableDeclarations::iterator it = declarations->begin(); it != declarations->end(); it++) {
-		(*it)->pos = size;
-		size += (*(*it)->type)->size();
+		it->second->pos = size;
+		size += (*it->second->type)->size();
 	}
 	m_size = size;
 	infind = false;
 }
 
 int ClassType::size() {
+	return 1;
+}
+
+int ClassType::hashsize() {
 	if (m_size == -1)
 		find();
 	return m_size;
 }
+
+VariableDeclaration* ClassType::var(const std::string& name) {
+	return (*declarations)[name];
+}
+

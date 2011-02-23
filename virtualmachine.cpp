@@ -8,6 +8,7 @@ using namespace std;
 char input[10000];
 
 vector<int> stack;
+vector<int> hash;
 
 int main() {
 	int L;
@@ -74,6 +75,20 @@ int main() {
 				for (int i = 0; i < len; i++)
 					printf("%d ", stack[pos+i]);
 				printf("\n");
+				break;
+			case 'R':
+				sscanf(codepos+1, "%d;%d", &len, &pos);
+				stack[pos] = hash.size();
+				for (int i = 0; i < len; i++)
+					hash.push_back(0);
+				break;
+			case 'S':
+				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+				hash[stack[posb]+posc] = stack[posa];
+				break;
+			case 'G':
+				sscanf(codepos+1, "%d;%d;%d", &posa, &posb, &posc);
+				stack[posc] = hash[stack[posa],posb];
 				break;
 			default:
 				fprintf(stderr, "Unknown command '%c'!\n", op);

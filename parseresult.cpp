@@ -22,7 +22,7 @@ int ParseResult::alloc(int len) {
 	for (int k = 0; k < len; k++) {
 		lastneeded.push_back(instructions.size());
 	}
-	instr i = {'A', len, lastneeded.size()-len, 0, 0};
+	instr i = {'A', len, lastneeded.size()-len};
 	instructions.push_back(i);
 	return lastneeded.size()-len;
 }
@@ -30,7 +30,7 @@ int ParseResult::alloc(int len) {
 void ParseResult::copy(int from, int len, int to) {
 	need(from, len);
 	need(to, len);
-	instr i = {'C', len, from, to, 0};
+	instr i = {'C', len, from, to};
 	instructions.push_back(i);
 }
 
@@ -51,6 +51,43 @@ void ParseResult::intconst(int nr, int to) {
 void ParseResult::print(int from, int len) {
 	need(from, len);
 	instr i = {'P', len, from};
+	instructions.push_back(i);
+}
+
+void ParseResult::newRef(int len, int to) {
+	need(to, 1);
+	instr i = {'R', len, to};
+	instructions.push_back(i);
+}
+
+void ParseResult::getSub(int from, int varid, int to) {
+	need(from, 1);
+	need(to, 1);
+	instr i = {'G', 0, from, varid, to};
+	instructions.push_back(i);
+}
+
+void ParseResult::copySub(int from, int to, int varid) {
+	need(from, 1);
+	need(to, 1);
+	instr i = {'S', 0, from, to, varid};
+	instructions.push_back(i);
+}
+
+int ParseResult::newStop() {
+	stoppos.push_back(-1);
+	return stoppos.size()-1;
+}
+
+void ParseResult::hereStop(int stop) {
+	stoppos[stop] = instructions.size()-1;
+	instr i = {'M', 0, stop};
+	instructions.push_back(i);
+}
+
+void ParseResult::jumpIf(int cond, int stop) {
+	need(cond, 1);
+	instr i = {'J', 0, cond, stop};
 	instructions.push_back(i);
 }
 
@@ -94,6 +131,16 @@ void ParseResult::output() {
 			}
 		} else if (in.typ == 'I') {
 			printf("I%d;%d|\n", in.a, realpos[in.b]);
+		} else if (in.typ == 'R') {
+			printf("R%d;%d|\n", realpos[in.a], in.len);
+		} else if (in.typ == 'G') {
+			printf("G%d;%d;%d|\n", realpos[in.a], in.b, realpos[in.c]);
+		} else if (in.typ == 'S') {
+			printf("S%d;%d;%d|\n", realpos[in.a], realpos[in.b], in.c);
+		} else if (in.typ == 'M') {
+			printf("M%d|\n", in.a);
+		} else if (in.typ == 'J') {
+			printf("J%d;%d|\n", realpos[in.a], in.b);
 		} else {
 			printf("%c%d;%d;%d|\n", in.typ, realpos[in.a], realpos[in.b], realpos[in.c]);
 		}
