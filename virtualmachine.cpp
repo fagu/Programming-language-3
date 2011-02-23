@@ -4,7 +4,7 @@
 #include <string.h>
 using namespace std;
 
-// TODO Buffer overflow
+// FIXME Buffer overflow
 char input[10000];
 int liste[50000];
 
@@ -14,6 +14,7 @@ vector<int> stack;
 vector<int> hash;
 
 char opcodes[] = {'A','I','+','-','*','/','%','C','P','R','S','G','J','j'};
+int oplength[] = { 1,  2,  3,  3,  3,  3,  3,  3,  2,  2,  3 , 3 , 2,  1 };
 
 int anzahl[14];
 long long zeit[14];
@@ -66,7 +67,7 @@ int main() {
 	
 	int aktpos = 0;
 	while(aktpos != N) {
-		int op = liste[aktpos];
+		char op = liste[aktpos];
 		
 		int len, co, pos, posa, posb, posc;
 		int nextpos;
@@ -128,7 +129,7 @@ int main() {
 				nextpos = aktpos+2;
 				break;
 			case 9:
-				len = liste[aktpos]; pos = liste[aktpos+1];
+				pos = liste[aktpos]; len = liste[aktpos+1];
 				stack[pos] = hash.size();
 				for (int i = 0; i < len; i++)
 					hash.push_back(0);
@@ -141,7 +142,7 @@ int main() {
 				break;
 			case 11:
 				posa = liste[aktpos]; posb = liste[aktpos+1]; posc = liste[aktpos+2];
-				stack[posc] = hash[stack[posa],posb];
+				stack[posc] = hash[stack[posa]+posb];
 				nextpos = aktpos+3;
 				break;
 			case 12:
@@ -158,9 +159,20 @@ int main() {
 			default:
 				fprintf(stderr, "Unknown command %d!\n", op);
 		}
-		/*printf("%s: ", codepos);
+		/*printf("%c (", opcodes[op]);
+		for (int i = 0; i < oplength[op]; i++) {
+			printf("%2d", liste[aktpos+i]);
+			if (i < oplength[op]-1)
+				printf(",");
+		}
+		printf("):\t ");
 		for (int i = 0; i < stack.size(); i++) {
 			printf("%d ", stack[i]);
+		}
+		printf("\n");
+		printf("   ");
+		for (int i = 0; i < hash.size(); i++) {
+			printf("%d ", hash[i]);
 		}
 		printf("\n");*/
 		aktpos = nextpos;

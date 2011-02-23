@@ -6,23 +6,15 @@ class B {
 }
 
 int main() {
-//int hallo;
-//hallo=5+7;
-//int test;
-//test = 8*9;
-//hallo;
-//A hi;
-//hi = new A;
-//hi.hallo = new B;
-//hi.hallo.num = 5;
-//hi.hallo.num;
-int sum;
-sum = 0;
+A hi;
+hi = new A;
+hi.hallo = new B;
+hi.hallo.num = 0;
 int i;
-i = 1000000;
+i = 10000000;
 while(i) {
-	sum = sum+i*i;
+	hi.hallo.num = hi.hallo.num+i*i;
 	i = i-1;
 }
-sum;
+hi.hallo.num;
 }

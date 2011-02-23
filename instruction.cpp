@@ -42,7 +42,7 @@ void NewInstruction::find() {
 		fprintf(stderr, "Type '%s' is not a class!\n", name->c_str());
 	type = (ClassType*)t;
 	pos = ParseRes->alloc(1);
-	ParseRes->newRef(type->size(), type->hashsize());
+	ParseRes->newRef(type->hashsize(), pos);
 }
 
 Type* NewInstruction::resulttype() {
