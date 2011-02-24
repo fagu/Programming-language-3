@@ -11,7 +11,7 @@ hi = new A;
 hi.hallo = new B;
 hi.hallo.num = 0;
 int i;
-i = 10000000;
+i = 1000000;
 while(i) {
 	hi.hallo.num = hi.hallo.num+i*i;
 	i = i-1;

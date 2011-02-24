@@ -1,0 +1,17 @@
+
+class A {
+	int x;
+	int y;
+}
+
+int test(int a, A b) {
+	b.x = a*2;
+	a;
+}
+
+int main() {
+	A c;
+	c = new A;
+	test(5, c);
+	c.x;
+}
