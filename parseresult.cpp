@@ -96,63 +96,93 @@ void ParseResult::jump(int stop) {
 	instructions.push_back(i);
 }
 
+void ParseResult::call(int func, const std::vector< int >& args) {
+	instr i = {'c', 0, func};
+	i.v = args;
+	instructions.push_back(i);
+}
+
 void ParseResult::output() {
-	realpos.resize(lastneeded.size());
-	vector<pair<int,int> > la;
-	for (int i = 0; i < lastneeded.size(); i++) {
-		la.push_back(make_pair(lastneeded[i], i));
-	}
-	sort(la.begin(), la.end());
-	int lapos = 0;
-	int spacestart = 0;
-	queue<int> unocc;
-	for (int i = 0; i < instructions.size(); i++) {
-		instr in = instructions[i];
-		if (in.typ == 'A') {
-			for (int k = 0; k < in.len; k++) {
-				if (unocc.empty()) {
-					realpos[in.a+k] = spacestart;
-					spacestart++;
-				} else {
-					realpos[in.a+k] = unocc.front();
-					unocc.pop();
+	int n = 0;
+	for (map<string,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++)
+		it->second->num = n++;
+	for (map<string,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
+		FunctionDeclaration *dec = it->second;
+		dec->find();
+		
+		printf("F%d;%d", dec->num, (int)dec->parameters->size());
+		for (int i = 0; i < dec->parameters->size(); i++) {
+			printf(";%d", (*dec->parameters)[i]->type->real()->size());
+		}
+		printf("|\n");
+		
+		realpos.resize(lastneeded.size());
+		vector<pair<int,int> > la;
+		for (int i = 0; i < lastneeded.size(); i++) {
+			la.push_back(make_pair(lastneeded[i], i));
+		}
+		sort(la.begin(), la.end());
+		int lapos = 0;
+		int spacestart = 0;
+		queue<int> unocc;
+		for (int i = 0; i < instructions.size(); i++) {
+			instr in = instructions[i];
+			if (in.typ == 'A') {
+				for (int k = 0; k < in.len; k++) {
+					if (unocc.empty()) {
+						realpos[in.a+k] = spacestart;
+						spacestart++;
+					} else {
+						realpos[in.a+k] = unocc.front();
+						unocc.pop();
+					}
 				}
 			}
+			/*while(lapos < la.size() && la[lapos].first <= i) {
+				unocc.push(realpos[la[lapos].second]);
+				lapos++;
+			}*/
 		}
-		/*while(lapos < la.size() && la[lapos].first <= i) {
-			unocc.push(realpos[la[lapos].second]);
-			lapos++;
-		}*/
-	}
-	printf("A%d|\n", spacestart);
-	for (int i = 0; i < instructions.size(); i++) {
-		instr in = instructions[i];
-		if (in.typ == 'A') {
-		} else if (in.typ == 'C') {
-			printf("C%d;%d;%d|\n", realpos[in.a], in.len, realpos[in.b]);
-		} else if (in.typ == 'P') {
-			for (int k = 0; k < in.len; k++) {
-				printf("P%d;1|\n", realpos[in.a+k]);
+		printf("A%d|\n", spacestart);
+		for (int i = 0; i < instructions.size(); i++) {
+			instr in = instructions[i];
+			if (in.typ == 'A') {
+			} else if (in.typ == 'C') {
+				printf("C%d;%d;%d|\n", realpos[in.a], in.len, realpos[in.b]);
+			} else if (in.typ == 'P') {
+				for (int k = 0; k < in.len; k++) {
+					printf("P%d;1|\n", realpos[in.a+k]);
+				}
+			} else if (in.typ == 'I') {
+				printf("I%d;%d|\n", in.a, realpos[in.b]);
+			} else if (in.typ == 'R') {
+				printf("R%d;%d|\n", realpos[in.a], in.len);
+			} else if (in.typ == 'G') {
+				printf("G%d;%d;%d|\n", realpos[in.a], in.b, realpos[in.c]);
+			} else if (in.typ == 'S') {
+				printf("S%d;%d;%d|\n", realpos[in.a], realpos[in.b], in.c);
+			} else if (in.typ == 'M') {
+				printf("M%d|\n", in.a);
+			} else if (in.typ == 'J') {
+				printf("J%d;%d|\n", realpos[in.a], in.b);
+			} else if (in.typ == 'j') {
+				printf("j%d|\n", in.a);
+			} else if (in.typ == 'c') {
+				printf("c%d", in.a);
+				for (int i = 0; i < in.v.size(); i++)
+					printf(";%d", realpos[in.v[i]]);
+				printf("|\n");
+			} else {
+				printf("%c%d;%d;%d|\n", in.typ, realpos[in.a], realpos[in.b], realpos[in.c]);
 			}
-		} else if (in.typ == 'I') {
-			printf("I%d;%d|\n", in.a, realpos[in.b]);
-		} else if (in.typ == 'R') {
-			printf("R%d;%d|\n", realpos[in.a], in.len);
-		} else if (in.typ == 'G') {
-			printf("G%d;%d;%d|\n", realpos[in.a], in.b, realpos[in.c]);
-		} else if (in.typ == 'S') {
-			printf("S%d;%d;%d|\n", realpos[in.a], realpos[in.b], in.c);
-		} else if (in.typ == 'M') {
-			printf("M%d|\n", in.a);
-		} else if (in.typ == 'J') {
-			printf("J%d;%d|\n", realpos[in.a], in.b);
-		} else if (in.typ == 'j') {
-			printf("j%d|\n", in.a);
-		} else {
-			printf("%c%d;%d;%d|\n", in.typ, realpos[in.a], realpos[in.b], realpos[in.c]);
 		}
+		printf("A%d|\n", -spacestart);
+		
+		lastneeded.clear();
+		realpos.clear();
+		instructions.clear();
+		stoppos.clear();
 	}
-	printf("A%d|\n", -spacestart);
 }
 
 ParseResult *global = new ParseResult();

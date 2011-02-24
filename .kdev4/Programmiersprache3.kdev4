@@ -11,5 +11,32 @@ CurrentInstallDir=
 Extra Arguments=
 ProjectRootRelative=./
 
+[Launch]
+Launch Configurations=Launch Configuration 0
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=compiler
+Type=Native Application
+
+[Launch][Launch Configuration 0][Data]
+Arguments=/home/fabian/programmieren/Programmiersprache3/tests/functions
+Debugger Shell=
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x02\x00\x00\x00&\x00P\x00r\x00o\x00g\x00r\x00a\x00m\x00m\x00i\x00e\x00r\x00s\x00p\x00r\x00a\x00c\x00h\x00e\x003\x00\x00\x00\x10\x00c\x00o\x00m\x00p\x00i\x00l\x00e\x00r)
+Dependency Action=Build
+Display Demangle Names=true
+Display Static Members=false
+EnvironmentGroup=default
+External Terminal=konsole --noclose --workdir %workdir -e %exe < build/functions
+GDB Path=
+Project Target=Programmiersprache3,compiler
+Remote GDB Config Script=
+Remote GDB Run Script=
+Remote GDB Shell Script=
+Use External Terminal=false
+Working Directory=
+isExecutable=false
+
 [Project]
 VersionControlSupport=kdevgit

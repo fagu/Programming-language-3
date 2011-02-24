@@ -3,6 +3,8 @@
 
 #include "type.h"
 
+class BlockInstruction;
+class BlockInstruction;
 class Instruction {
 public:
 	int pos;
@@ -97,9 +99,9 @@ public:
 class IfInstruction : public Instruction {
 private:
 	Instruction *cond;
-	Instruction *then;
+	BlockInstruction *then;
 public:
-	IfInstruction(Instruction *_cond, Instruction *_then);
+	IfInstruction(Instruction *_cond, BlockInstruction *_then);
 	void find();
 	Type* resulttype();
 };
@@ -107,9 +109,20 @@ public:
 class WhileInstruction : public Instruction {
 private:
 	Instruction *cond;
-	Instruction *then;
+	BlockInstruction *then;
 public:
-	WhileInstruction(Instruction *_cond, Instruction *_then);
+	WhileInstruction(Instruction *_cond, BlockInstruction *_then);
+	void find();
+	Type* resulttype();
+};
+
+class CallInstruction : public Instruction {
+private:
+	string *name;
+	FunctionDeclaration *dec;
+	vector<Instruction*> *arguments;
+public:
+	CallInstruction(string *_name, vector<Instruction*> *_arguments) : name(_name), arguments(_arguments) {}
 	void find();
 	Type* resulttype();
 };
@@ -119,6 +132,8 @@ public:
 	vector<Instruction*> instructions;
 	int varsize;
 public:
+	BlockInstruction() {}
+	BlockInstruction(Instruction* _i) {instructions.push_back(_i);}
 	void find();
 	Type* resulttype();
 };

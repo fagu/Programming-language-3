@@ -28,6 +28,8 @@ Type* TypePointer::operator->() {
 }
 
 Type* TypePointer::real() {
+	if (type == 0)
+		find();
 	return type;
 }
 
@@ -70,3 +72,14 @@ VariableDeclaration* ClassType::var(const std::string& name) {
 	return (*declarations)[name];
 }
 
+void FunctionDeclaration::find() {
+	int sizebefore = ParseRes->varstack.size();
+	for (int i = 0; i < parameters->size(); i++) {
+		(*parameters)[i]->find();
+	}
+	instructions->find();
+	while(ParseRes->varstack.size() > sizebefore) {
+		ParseRes->vars.erase(ParseRes->vars.find(*ParseRes->varstack.top()->name));
+		ParseRes->varstack.pop();
+	}
+}

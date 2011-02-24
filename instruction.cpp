@@ -140,7 +140,7 @@ void AccessInstruction::findSet(Instruction* b) {
 	ParseRes->copySub(b->pos, a->pos, dec->pos);
 }
 
-IfInstruction::IfInstruction(Instruction* _cond, Instruction* _then) : cond(_cond), then(_then) {
+IfInstruction::IfInstruction(Instruction* _cond, BlockInstruction* _then) : cond(_cond), then(_then) {
 }
 
 void IfInstruction::find() {
@@ -155,7 +155,7 @@ Type* IfInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-WhileInstruction::WhileInstruction(Instruction* _cond, Instruction* _then) : cond(_cond), then(_then) {
+WhileInstruction::WhileInstruction(Instruction* _cond, BlockInstruction* _then) : cond(_cond), then(_then) {
 }
 
 void WhileInstruction::find() {
@@ -170,6 +170,24 @@ void WhileInstruction::find() {
 }
 
 Type* WhileInstruction::resulttype() {
+	return ParseRes->voidType;
+}
+
+void CallInstruction::find() {
+	if (!ParseRes->functions.count(*name))
+		fprintf(stderr, "Function '%s' does not exist!\n", name->c_str());
+	dec = ParseRes->functions[*name];
+	if (dec->parameters->size() != arguments->size())
+		fprintf(stderr, "Function '%s' needs exactly %d instead of %d arguments!\n", name->c_str(), (int)dec->parameters->size(), (int)arguments->size());
+	vector<int> args;
+	for (int i = 0; i < arguments->size(); i++) {
+		(*arguments)[i]->find();
+		args.push_back((*arguments)[i]->pos);
+	}
+	ParseRes->call(dec->num, args);
+}
+
+Type* CallInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 

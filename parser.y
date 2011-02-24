@@ -15,6 +15,8 @@
 %type <classcontent> classcontent;
 %type <instruction> exp statement;
 %type <statements> statements;
+%type <params> parameters neparameters;
+%type <instructions> arguments nearguments;
 %left '+' '-'
 %left '*' '/' '%'
 %left '.'
@@ -26,6 +28,8 @@
 	VariableDeclaration *classcontent;
 	Instruction *instruction;
 	BlockInstruction *statements;
+	vector<DeclarationInstruction*> * params;
+	vector<Instruction*> *instructions;
 }
 
 %%
@@ -33,8 +37,8 @@
 input: outerstatements {
 	for (vector<ClassType*>::iterator it = ParseResult::self()->classtypes.begin(); it != ParseResult::self()->classtypes.end(); it++) {
 		(*it)->find();
-		//printf("%d\n", (*it)->size());
 	}
+	ParseRes->output();
 }
 
 outerstatements:
@@ -44,15 +48,12 @@ outerstatements:
 }
 
 outerstatement:
-	  IDENTIFIER IDENTIFIER '(' parameters ')' '{' statements '}' {
-	FunctionDeclaration *dec = new FunctionDeclaration($7);
+	  IDENTIFIER IDENTIFIER '(' parameters ')' statement {
+	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction($6));
 	if (ParseResult::self()->functions.count(*$2))
 		fprintf(stderr, "Multiple definition of function '%s'!\n", $2->c_str());
 	else
 		ParseResult::self()->functions[*$2] = dec;
-	$7->find();
-	//$7->printRPN(stdout);
-	ParseRes->output();
 }
 	| CLASS IDENTIFIER '{' classcontents '}' {
 	ClassType *type = new ClassType($4);
@@ -68,7 +69,6 @@ statements:
 	$$ = new BlockInstruction();
 }
 	| statements statement {
-	//$2->printRPN(stdout);
 	$$->instructions.push_back($2);
 }
 
@@ -86,28 +86,46 @@ statement:
 	$$ = $2;
 }
 	| IF '(' exp ')' statement {
-	$$ = new IfInstruction($3, $5);
+	$$ = new IfInstruction($3, new BlockInstruction($5));
 }
 	| WHILE '(' exp ')' statement {
-	$$ = new WhileInstruction($3, $5);
+	$$ = new WhileInstruction($3, new BlockInstruction($5));
 }
 
 parameters:
 	    {
-	//$$ = new vector<string*>();
+	$$ = new vector<DeclarationInstruction*>();
 }
 	| neparameters {
-	//$$ = $1;
+	$$ = $1;
 }
 
 neparameters:
-	  IDENTIFIER {
-	//$$ = new vector<string*>();
-	//$$->push_back($1);
+	  IDENTIFIER IDENTIFIER {
+	$$ = new vector<DeclarationInstruction*>();
+	$$->push_back(new DeclarationInstruction(new TypePointer($1), $2));
 }
-	| neparameters ',' IDENTIFIER {
-	//$1->push_back($3);
-	//$$ = $1;
+	| neparameters ',' IDENTIFIER IDENTIFIER {
+	$1->push_back(new DeclarationInstruction(new TypePointer($3), $4));
+	$$ = $1;
+}
+
+arguments:
+	    {
+	$$ = new vector<Instruction*>();
+}
+	| nearguments {
+	$$ = $1;
+}
+
+nearguments:
+	  exp {
+	$$ = new vector<Instruction*>();
+	$$->push_back($1);
+}
+	| nearguments ',' exp {
+	$1->push_back($3);
+	$$ = $1;
 }
 
 classcontents:
@@ -115,7 +133,6 @@ classcontents:
 	$$ = new VariableDeclarations();
 }
 	| classcontents classcontent {
-	//$1->push_back($2);
 	if ($1->count(*$2->name))
 		fprintf(stderr, "Multiple declaration of '%s'!\n", $2->name->c_str());
 	(*$1)[*$2->name] = $2;
@@ -147,6 +164,9 @@ exp:
 }
 	| FALSE {
 	printf("bool: false\n");
+}
+	| IDENTIFIER '(' arguments ')' {
+	$$ = new CallInstruction($1, $3);
 }
 	| exp '+' exp {
 	$$ = new BinaryOperatorInstruction('+', $1, $3);

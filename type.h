@@ -6,6 +6,7 @@
 #include <map>
 
 class BlockInstruction;
+class DeclarationInstruction;
 using namespace std;
 
 class Type {
@@ -76,8 +77,11 @@ class FunctionDeclaration {
 private:
 	BlockInstruction* instructions;
 public:
-	FunctionDeclaration(BlockInstruction* _instructions) : instructions(_instructions) {}
+	vector<DeclarationInstruction*> * parameters;
+	int num;
+	FunctionDeclaration(vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions) : parameters(_parameters), instructions(_instructions) {}
 	~FunctionDeclaration() {}
+	void find();
 };
 
 #endif

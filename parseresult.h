@@ -12,6 +12,7 @@ struct instr {
 	int a;
 	int b;
 	int c;
+	vector<int> v;
 };
 
 class ParseResult {
@@ -43,6 +44,7 @@ public:
 	void hereStop(int stop);
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
+	void call(int func, const vector<int> &args);
 	
 	void output();
 	
