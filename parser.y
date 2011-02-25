@@ -22,6 +22,7 @@
 %left EQ LE GE '<' '>' NE
 %left '+' '-'
 %left '*' '/' '%'
+%left NEG
 %left '.'
 %left '('
 %union {
@@ -222,6 +223,12 @@ exp:
 }
 	| exp OR exp {
 	$$ = new BinaryOperatorInstruction('O', $1, $3);
+}
+	| '+' exp %prec NEG {
+	$$ = new BinaryOperatorInstruction('+', new IntegerConstantInstruction(0), $2);
+}
+	| '-' exp %prec NEG {
+	$$ = new BinaryOperatorInstruction('-', new IntegerConstantInstruction(0), $2);
 }
 	| '!' exp {
 	$$ = new BinaryOperatorInstruction('~', $2, new IntegerConstantInstruction(0)); // TODO faster solution with unary operator
