@@ -23,8 +23,8 @@ struct stackentry {
 stack<stackentry> stac;
 vector<int> hash;
 
-char opcodes[] = {'A','I','+','-','*','/','%','C','P','R','S','G','J','j','c'};
-int oplength[] = { 1,  2,  3,  3,  3,  3,  3,  3,  2,  2,  3 , 3 , 2,  1 , 1 };
+char opcodes[] = {'A','I','+','-','*','/','%','C','P','R','S','G','J','j','c','=','<','>','(',')','~'};
+int oplength[] = { 1,  2,  3,  3,  3,  3,  3,  3,  2,  2,  3 , 3 , 2,  1 , 1 , 3 , 3 , 3 , 3 , 3 , 3 };
 
 int main(int argc, char *argv[]) {
 	if (argc >= 2)
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 				liste.back().push_back(0); liste.back().push_back(0);
 				sscanf(codepos+1, "%d;%d", &liste.back()[N+1], &liste.back()[N+2]);
 				N += 3;
-			} else if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%' || op == 'C' || op == 'S' || op == 'G') {
+			} else if (op == '+' || op == '-' || op == '*' || op == '/' || op == '%' || op == '=' || op == '<' || op == '>' || op == '(' || op == ')' || op == '~' || op == 'C' || op == 'S' || op == 'G') {
 				liste.back().push_back(0); liste.back().push_back(0); liste.back().push_back(0);
 				sscanf(codepos+1, "%d;%d;%d", &liste.back()[N+1], &liste.back()[N+2], &liste.back()[N+3]);
 				N += 4;
@@ -249,6 +249,36 @@ int main(int argc, char *argv[]) {
 					printf("\n");*/
 					se.aktpos++;
 					goto stackup;
+					break;
+				case 15:
+					posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
+					st[posc] = st[posa] == st[posb] ? 1 : 0;
+					nextpos = aktpos+3;
+					break;
+				case 16:
+					posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
+					st[posc] = st[posa] < st[posb] ? 1 : 0;
+					nextpos = aktpos+3;
+					break;
+				case 17:
+					posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
+					st[posc] = st[posa] > st[posb] ? 1 : 0;
+					nextpos = aktpos+3;
+					break;
+				case 18:
+					posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
+					st[posc] = st[posa] <= st[posb] ? 1 : 0;
+					nextpos = aktpos+3;
+					break;
+				case 19:
+					posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
+					st[posc] = st[posa] >= st[posb] ? 1 : 0;
+					nextpos = aktpos+3;
+					break;
+				case 20:
+					posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
+					st[posc] = st[posa] != st[posb] ? 1 : 0;
+					nextpos = aktpos+3;
 					break;
 				default:
 					fprintf(stderr, "Unknown command %d!\n", op);

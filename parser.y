@@ -10,13 +10,14 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token TRUE FALSE CLASS NEW IF WHILE FOR
+%token TRUE FALSE CLASS NEW IF WHILE FOR EQ LE GE NE
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp statement;
 %type <statements> statements;
 %type <params> parameters neparameters;
 %type <instructions> arguments nearguments;
+%left EQ LE GE '<' '>' NE
 %left '+' '-'
 %left '*' '/' '%'
 %left '.'
@@ -195,6 +196,24 @@ exp:
 }
 	| exp '%' exp {
 	$$ = new BinaryOperatorInstruction('%', $1, $3);
+}
+	| exp EQ exp {
+	$$ = new BinaryOperatorInstruction('=', $1, $3);
+}
+	| exp '<' exp {
+	$$ = new BinaryOperatorInstruction('<', $1, $3);
+}
+	| exp '>' exp {
+	$$ = new BinaryOperatorInstruction('>', $1, $3);
+}
+	| exp LE exp {
+	$$ = new BinaryOperatorInstruction('(', $1, $3);
+}
+	| exp GE exp {
+	$$ = new BinaryOperatorInstruction(')', $1, $3);
+}
+	| exp NE exp {
+	$$ = new BinaryOperatorInstruction('~', $1, $3);
 }
 
 %%

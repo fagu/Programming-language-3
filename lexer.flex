@@ -16,6 +16,10 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 "if" {return IF;}
 "while" {return WHILE;}
 "for" {return FOR;}
+"==" {return EQ;}
+"<=" {return LE;}
+">=" {return GE;}
+"!=" {return NE;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);
