@@ -79,6 +79,12 @@ statement:
 	| IDENTIFIER IDENTIFIER ';' {
 	$$ = new DeclarationInstruction(new TypePointer($1), $2);
 }
+	| IDENTIFIER IDENTIFIER '=' exp ';' {
+	vector<Instruction*> *i = new vector<Instruction*>();
+	i->push_back(new DeclarationInstruction(new TypePointer($1), $2));
+	i->push_back(new SetInstruction(new VariableInstruction($2), $4));
+	$$ = new CompoundInstruction(i);
+}
 	| exp '=' exp ';' {
 	$$ = new SetInstruction($1, $3);
 }

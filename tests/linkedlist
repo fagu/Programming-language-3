@@ -1,0 +1,36 @@
+
+class punkt {
+	int eintrag;
+	int hasnext;
+	punkt next;
+}
+
+void add(punkt p, int n) {
+	while(p.hasnext)
+		p = p.next;
+	punkt neu;
+	neu = new punkt;
+	neu.eintrag = n;
+	neu.hasnext = 0;
+	p.hasnext = 1;
+	p.next = neu;
+}
+
+void print(punkt p) {
+	while(p.hasnext) {
+		p = p.next;
+		p.eintrag;
+	}
+}
+
+void main() {
+	punkt list;
+	list = new punkt;
+	list.hasnext = 0;
+	int i = 10;
+	while(i) {
+		add(list, i);
+		i = i-1;
+	}
+	print(list);
+}

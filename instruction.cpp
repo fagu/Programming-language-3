@@ -205,3 +205,13 @@ void BlockInstruction::find() {
 Type* BlockInstruction::resulttype() {
 	return ParseRes->voidType;
 }
+
+void CompoundInstruction::find() {
+	for (int i = 0; i < instructions->size(); i++) {
+		(*instructions)[i]->find();
+	}
+}
+
+Type* CompoundInstruction::resulttype() {
+	return ParseRes->voidType;
+}

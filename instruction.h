@@ -138,4 +138,13 @@ public:
 	Type* resulttype();
 };
 
+class CompoundInstruction : public Instruction {
+private:
+	vector<Instruction*> * instructions;
+public:
+	CompoundInstruction(vector<Instruction*> *_instructions) : instructions(_instructions) {}
+	void find();
+	Type* resulttype();
+};
+
 #endif
