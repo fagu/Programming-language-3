@@ -20,6 +20,8 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 "<=" {return LE;}
 ">=" {return GE;}
 "!=" {return NE;}
+"&&" {return AND;}
+"||" {return OR;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);

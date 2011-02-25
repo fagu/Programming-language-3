@@ -17,6 +17,8 @@
 %type <statements> statements;
 %type <params> parameters neparameters;
 %type <instructions> arguments nearguments;
+%left AND OR
+%left '!'
 %left EQ LE GE '<' '>' NE
 %left '+' '-'
 %left '*' '/' '%'
@@ -214,6 +216,15 @@ exp:
 }
 	| exp NE exp {
 	$$ = new BinaryOperatorInstruction('~', $1, $3);
+}
+	| exp AND exp {
+	$$ = new BinaryOperatorInstruction('&', $1, $3);
+}
+	| exp OR exp {
+	$$ = new BinaryOperatorInstruction('O', $1, $3);
+}
+	| '!' exp {
+	$$ = new BinaryOperatorInstruction('~', $2, new IntegerConstantInstruction(0)); // TODO faster solution with unary operator
 }
 
 %%
