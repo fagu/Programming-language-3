@@ -110,7 +110,11 @@ void ParseResult::output() {
 		FunctionDeclaration *dec = it->second;
 		dec->find();
 		
-		printf("F%d", (int)dec->parameters->size());
+		if (it->first == "main")
+			printf("F");
+		else
+			printf("f");
+		printf("%d", (int)dec->parameters->size());
 		for (int i = 0; i < dec->parameters->size(); i++) {
 			printf(";%d", (*dec->parameters)[i]->type->real()->size());
 		}

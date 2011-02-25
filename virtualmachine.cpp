@@ -8,6 +8,7 @@ using namespace std;
 // FIXME Buffer overflow
 char input[10000];
 //int liste[50000];
+int mainfunc = -1;
 vector<vector<int> > liste;
 
 vector<vector<int> > stops;
@@ -54,7 +55,9 @@ int main(int argc, char *argv[]) {
 			while(stops.back().size() <= stop)
 				stops.back().push_back(0);
 			stops.back()[stop] = N;
-		} else if (op == 'F') {
+		} else if (op == 'F' || op == 'f') {
+			if (op == 'F')
+				mainfunc = liste.size();
 			liste.push_back(vector<int>());
 			stops.push_back(vector<int>());
 			argsizes.push_back(vector<int>());
@@ -123,11 +126,12 @@ int main(int argc, char *argv[]) {
 		codepos += strlen(codepos)+1;
 	}
 	
-	//int aktpos = 0;
-	//while(aktpos != N) {
+	if (mainfunc == -1)
+		fprintf(stderr, "No main function specified!\n");
+	
 	stac.push(stackentry());
 	stac.top().aktpos = 0;
-	stac.top().funcnum = 0;
+	stac.top().funcnum = mainfunc;
 	
 	while(!stac.empty()) {
 		stackentry & se = stac.top();
