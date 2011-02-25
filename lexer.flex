@@ -22,6 +22,8 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 "!=" {return NE;}
 "&&" {return AND;}
 "||" {return OR;}
+"++" {return PP;}
+"--" {return MM;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);

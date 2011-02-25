@@ -10,7 +10,7 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token TRUE FALSE CLASS NEW IF WHILE FOR EQ LE GE NE
+%token TRUE FALSE CLASS NEW IF WHILE FOR EQ LE GE NE PP MM
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp statement;
@@ -91,6 +91,12 @@ statement:
 }
 	| exp '=' exp ';' {
 	$$ = new SetInstruction($1, $3);
+}
+	| exp PP ';' {
+	$$ = new SetInstruction($1, new BinaryOperatorInstruction('+', $1, new IntegerConstantInstruction(1)));
+}
+	| exp MM ';' {
+	$$ = new SetInstruction($1, new BinaryOperatorInstruction('-', $1, new IntegerConstantInstruction(1)));
 }
 	| '{' statements '}' {
 	$$ = $2;
