@@ -10,7 +10,7 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token TRUE FALSE CLASS NEW IF WHILE
+%token TRUE FALSE CLASS NEW IF WHILE FOR
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp statement;
@@ -96,6 +96,13 @@ statement:
 }
 	| WHILE '(' exp ')' statement {
 	$$ = new WhileInstruction($3, new BlockInstruction($5));
+}
+	| FOR '(' statement exp ';' statement ')' statement {
+	BlockInstruction *a = new BlockInstruction($3);
+	BlockInstruction *b = new BlockInstruction($8);
+	b->instructions.push_back($6);
+	a->instructions.push_back(new WhileInstruction($4, b));
+	$$ = a;
 }
 
 parameters:

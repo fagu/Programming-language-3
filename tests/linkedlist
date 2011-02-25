@@ -8,8 +8,7 @@ class punkt {
 void add(punkt p, int n) {
 	while(p.hasnext)
 		p = p.next;
-	punkt neu;
-	neu = new punkt;
+	punkt neu = new punkt;
 	neu.eintrag = n;
 	neu.hasnext = 0;
 	p.hasnext = 1;
@@ -24,13 +23,9 @@ void print(punkt p) {
 }
 
 void main() {
-	punkt list;
-	list = new punkt;
+	punkt list = new punkt;
 	list.hasnext = 0;
-	int i = 10;
-	while(i) {
+	for (int i = 10; i; i = i-1;)
 		add(list, i);
-		i = i-1;
-	}
 	print(list);
 }

@@ -15,6 +15,7 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 "new" {return NEW;}
 "if" {return IF;}
 "while" {return WHILE;}
+"for" {return FOR;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);
