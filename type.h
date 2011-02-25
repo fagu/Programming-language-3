@@ -15,6 +15,7 @@ public:
 	virtual void find() {}
 	virtual int size()=0;
 	virtual char style()=0;
+	virtual bool convertibleTo(Type *t) {return t == this;};
 };
 
 class TypePointer {
@@ -71,6 +72,13 @@ public:
 		return m_size;
 	}
 	char style() {return 'P';}
+};
+
+class NullType : public Type {
+public:
+	int size() {return 1;}
+	char style() {return 'N';}
+	bool convertibleTo(Type* t) {return true;}
 };
 
 class FunctionDeclaration {

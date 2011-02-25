@@ -1,22 +1,20 @@
 
 class punkt {
 	int eintrag;
-	int hasnext;
 	punkt next;
 }
 
 void add(punkt p, int n) {
-	while(p.hasnext)
+	while(p.next)
 		p = p.next;
 	punkt neu = new punkt;
 	neu.eintrag = n;
-	neu.hasnext = 0;
-	p.hasnext = 1;
+	neu.next = null;
 	p.next = neu;
 }
 
 void print(punkt p) {
-	while(p.hasnext) {
+	while(p.next) {
 		p = p.next;
 		p.eintrag;
 	}
@@ -24,7 +22,7 @@ void print(punkt p) {
 
 void main() {
 	punkt list = new punkt;
-	list.hasnext = 0;
+	list.next = null;
 	for (int i = -10; i != 10; i++;)
 		add(list, i);
 	print(list);

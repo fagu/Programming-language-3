@@ -4,9 +4,11 @@
 #include "parseresult.h"
 
 ParseResult::ParseResult() {
+	nullType = new NullType;
 	voidType = new PrimitiveType(0);
 	intType = new PrimitiveType(1);
 	boolType = new PrimitiveType(1);
+	types["null"] = nullType;
 	types["void"] = voidType;
 	types["int"] = intType;
 	types["bool"] = boolType;

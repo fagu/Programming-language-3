@@ -129,6 +129,8 @@ int main(int argc, char *argv[]) {
 	if (mainfunc == -1)
 		fprintf(stderr, "No main function specified!\n");
 	
+	hash.push_back(0); // Phantom entry to ensure that every pointer is > 0
+	
 	stac.push(stackentry());
 	stac.top().aktpos = 0;
 	stac.top().funcnum = mainfunc;

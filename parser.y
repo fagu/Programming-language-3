@@ -10,7 +10,7 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token TRUE FALSE CLASS NEW IF WHILE FOR EQ LE GE NE PP MM
+%token NUL CLASS NEW IF WHILE FOR EQ LE GE NE PP MM
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp statement;
@@ -176,17 +176,15 @@ exp:
 }
 	| NUMBER {
 	$$ = new IntegerConstantInstruction($1);
-}	| NEW IDENTIFIER {
+}
+	| NUL {
+	$$ = new NullInstruction();
+}
+	| NEW IDENTIFIER {
 	$$ = new NewInstruction($2);
 }
 	| exp '.' IDENTIFIER {
 	$$ = new AccessInstruction($1, $3);
-}
-	| TRUE {
-	printf("bool: true\n");
-}
-	| FALSE {
-	printf("bool: false\n");
 }
 	| IDENTIFIER '(' arguments ')' {
 	$$ = new CallInstruction($1, $3);

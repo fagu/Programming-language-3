@@ -28,6 +28,7 @@ public:
 	map<string,FunctionDeclaration*> functions;
 	stack<DeclarationInstruction*> varstack;
 	map<string,DeclarationInstruction*> vars;
+	Type *nullType;
 	Type *voidType;
 	Type *intType;
 	Type *boolType;

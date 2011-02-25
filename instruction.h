@@ -33,6 +33,13 @@ public:
 	Type* resulttype();
 };
 
+class NullInstruction : public Instruction {
+public:
+	NullInstruction() {}
+	void find();
+	Type* resulttype();
+};
+
 class NewInstruction : public Instruction {
 private:
 	string *name;

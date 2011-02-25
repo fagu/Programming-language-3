@@ -31,6 +31,15 @@ Type* IntegerConstantInstruction::resulttype() {
 	return ParseRes->intType;
 }
 
+void NullInstruction::find() {
+	pos = ParseRes->alloc(1);
+	ParseRes->intconst(0, pos);
+}
+
+Type* NullInstruction::resulttype() {
+	return ParseRes->nullType;
+}
+
 NewInstruction::NewInstruction(string* _name) : name(_name) {
 }
 
@@ -104,7 +113,7 @@ Type* VariableInstruction::resulttype() {
 void VariableInstruction::findSet(Instruction* b) {
 	find();
 	b->find();
-	if (resulttype() != b->resulttype())
+	if (!b->resulttype()->convertibleTo(resulttype()))
 		fprintf(stderr, "Types do not match!\n");
 	ParseRes->copy(b->pos, b->resulttype()->size(), pos);
 }
@@ -135,7 +144,7 @@ void AccessInstruction::findSet(Instruction* b) {
 	if (!dec)
 		fprintf(stderr, "Class does not have a Variable called '%s'!\n", name->c_str());
 	b->find();
-	if (resulttype() != b->resulttype())
+	if (!b->resulttype()->convertibleTo(resulttype()))
 		fprintf(stderr, "Types do not match!\n");
 	ParseRes->copySub(b->pos, a->pos, dec->pos);
 }

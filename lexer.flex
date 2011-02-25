@@ -9,8 +9,7 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 
 %%
 
-"true" {return TRUE;}
-"false" {return FALSE;}
+"null" {return NUL;}
 "class" {return CLASS;}
 "new" {return NEW;}
 "if" {return IF;}
