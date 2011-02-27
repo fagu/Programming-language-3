@@ -20,10 +20,16 @@ void print(punkt p) {
 	}
 }
 
+void removestart(punkt p, int i) {
+	for (int k = 0; k < i; k++;)
+		p.next = p.next.next;
+}
+
 void main() {
 	punkt list = new punkt;
 	list.next = null;
 	for (int i = -10; i != 10; i++;)
 		add(list, i);
+	removestart(list, 3);
 	print(list);
 }

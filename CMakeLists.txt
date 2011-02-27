@@ -17,6 +17,7 @@ set(COMPILER_CPPFILES
 
 set(VM_CPPFILES
 	virtualmachine.cpp
+	garbagecollector.cpp
 )
 
 add_executable(compiler ${COMPILER_CPPFILES})
