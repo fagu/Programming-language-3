@@ -1,20 +1,7 @@
 class A {
-	B hallo;
-}
-class B {
-	int num;
+	int hallo;
 }
 
 int main() {
-A hi;
-hi = new A;
-hi.hallo = new B;
-hi.hallo.num = 0;
-int i;
-i = 1000000;
-while(i) {
-	hi.hallo.num = hi.hallo.num+i*i;
-	i = i-1;
-}
-hi.hallo.num;
+	A test = new A;
 }

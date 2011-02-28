@@ -4,9 +4,11 @@
 #include "virtualmachine.h"
 #include "garbagecollector.h"
 
+//#define PRINTHASH
+//#define PRINTSTACK
+
 // FIXME Buffer overflow
 char input[10000];
-//int liste[50000];
 int mainfunc = -1;
 vector<vector<int> > liste;
 
@@ -64,7 +66,6 @@ int main(int argc, char *argv[]) {
 			for (int i = 0; i < anzparams; i++) {
 				int s;
 				sscanf(npos, "%d", &s);
-				//printf("Farg %d\n", s);
 				argsizes.back().push_back(s);
 				npos += strlen(npos)+1;
 			}
@@ -103,7 +104,6 @@ int main(int argc, char *argv[]) {
 				for (int i = 0; npos != pos+1; i++) {
 					int s;
 					sscanf(npos, "%d", &s);
-					//printf("carg %d\n", s);
 					liste.back().push_back(s);
 					npos += strlen(npos)+1;
 					N++;
@@ -123,9 +123,6 @@ int main(int argc, char *argv[]) {
 	
 	stat.hash.push_back(0); // Phantom entry to ensure that every pointer is > 0
 	stat.hashispointer.push_back(false);
-	stat.cols.push_back(new collectable());
-	stat.cols.back()->len = 1;
-	stat.cols.back()->deleted = true;
 	
 	stat.stac.push_back(new stackentry());
 	stat.stac.back()->aktpos = 0;
@@ -214,16 +211,8 @@ int main(int argc, char *argv[]) {
 					break;
 				case 9:
 					pos = li[aktpos]; len = li[aktpos+1];
-					st[pos] = stat.hash.size();
+					st[pos] = alloc(len, stat);
 					ip[pos] = true;
-					for (int i = 0; i < len; i++) {
-						stat.hash.push_back(0);
-						stat.hashispointer.push_back(false);
-						stat.cols.push_back(new collectable());
-						stat.cols.back()->pos = stat.hash.size()-1;
-						stat.cols.back()->len = i == 0 ? len : 0;
-						stat.cols.back()->deleted = false;
-					}
 					nextpos = aktpos+2;
 					break;
 				case 10:
@@ -321,7 +310,8 @@ int main(int argc, char *argv[]) {
 					fprintf(stderr, "Unknown command %d!\n", op);
 					return 0;
 			}
-			/*printf("%d %c (", stat.stac.back()->funcnum, opcodes[op]);
+#ifdef PRINTSTACK
+			printf("%d %c (", stat.stac.back()->funcnum, opcodes[op]);
 			for (int i = 0; i < oplength[op]; i++) {
 				printf("%2d", li[aktpos+i]);
 				if (i < oplength[op]-1)
@@ -332,19 +322,19 @@ int main(int argc, char *argv[]) {
 				printf("%d ", st[i]);
 			}
 			printf("\n");
+#endif
+#ifdef PRINTHASH
 			printf("   ");
 			for (int i = 0; i < stat.hash.size(); i++) {
 				printf("%d ", stat.hash[i]);
 			}
-			printf("\n");*/
+			printf("\n");
+#endif
 			aktpos = nextpos;
 			gc(stat);
 		}
 		stat.stac.pop_back();
-		//se.aktpos = aktpos;
 stackup:	;
 	}
-	//if (stat.stac.size() != 0)
-	//	fprintf(stderr, "Stack not cleared!\n");
 	return 0;
 }
