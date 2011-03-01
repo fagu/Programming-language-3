@@ -103,6 +103,17 @@ public:
 	void findSet(Instruction* b);
 };
 
+class AccessArrayInstruction : public Instruction {
+private:
+	Instruction * a;
+	Instruction * b;
+public:
+	AccessArrayInstruction(Instruction * _a, Instruction * _b) : a(_a), b(_b) {}
+	void find();
+	Type* resulttype();
+	void findSet(Instruction* b);
+};
+
 class IfInstruction : public Instruction {
 private:
 	Instruction *cond;
@@ -130,6 +141,16 @@ private:
 	vector<Instruction*> *arguments;
 public:
 	CallInstruction(string *_name, vector<Instruction*> *_arguments) : name(_name), arguments(_arguments) {}
+	void find();
+	Type* resulttype();
+};
+
+class CreateArrayInstruction : public Instruction {
+private:
+	TypePointer * contenttype;
+	Instruction * size;
+public:
+	CreateArrayInstruction(TypePointer * _contenttype, Instruction *_size) : contenttype(_contenttype), size(_size) {}
 	void find();
 	Type* resulttype();
 };

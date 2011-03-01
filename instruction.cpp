@@ -149,6 +149,32 @@ void AccessInstruction::findSet(Instruction* b) {
 	ParseRes->copySub(b->pos, a->pos, dec->pos);
 }
 
+void AccessArrayInstruction::find() {
+	a->find();
+	b->find();
+	if (a->resulttype()->style() != 'A')
+		fprintf(stderr, "Expression is not an array!\n");
+	int unitsize = ((ArrayType*)a->resulttype())->contenttype->size();
+	pos = ParseRes->alloc(unitsize);
+	ParseRes->accessArray(unitsize, a->pos, b->pos, pos);
+}
+
+Type* AccessArrayInstruction::resulttype() {
+	return ((ArrayType*)a->resulttype())->contenttype;
+}
+
+void AccessArrayInstruction::findSet(Instruction* c) {
+	a->find();
+	b->find();
+	if (a->resulttype()->style() != 'A')
+		fprintf(stderr, "Expression is not an array!\n");
+	int unitsize = ((ArrayType*)a->resulttype())->contenttype->size();
+	c->find();
+	if (!c->resulttype()->convertibleTo(resulttype()))
+		fprintf(stderr, "Types do not match!\n");
+	ParseRes->setArray(unitsize, c->pos, a->pos, b->pos);
+}
+
 IfInstruction::IfInstruction(Instruction* _cond, BlockInstruction* _then) : cond(_cond), then(_then) {
 }
 
@@ -199,6 +225,16 @@ void CallInstruction::find() {
 
 Type* CallInstruction::resulttype() {
 	return dec->resulttype->real();
+}
+
+void CreateArrayInstruction::find() {
+	size->find();
+	pos = ParseRes->alloc(1);
+	ParseRes->newArray(contenttype->real()->size(), size->pos, pos);
+}
+
+Type* CreateArrayInstruction::resulttype() {
+	return contenttype->real()->arrayType();
 }
 
 void BlockInstruction::find() {

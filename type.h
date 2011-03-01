@@ -9,27 +9,50 @@ class BlockInstruction;
 class DeclarationInstruction;
 using namespace std;
 
+class ArrayType;
+
 class Type {
+private:
+	ArrayType * array;
 public:
+	Type() {array = 0;}
 	virtual ~Type() {}
 	virtual void find() {}
 	virtual int size()=0;
 	virtual char style()=0;
 	virtual bool convertibleTo(Type *t) {return t == this;};
+	ArrayType * arrayType();
 };
 
 class TypePointer {
-private:
-	string * name;
+protected:
 	Type * type;
 public:
-	TypePointer(string *_name) : name(_name), type(0) {}
-	TypePointer(Type * _type) : type(_type) {}
-	~TypePointer();
-	void find();
+	virtual ~TypePointer() {}
+	virtual void find() = 0;
 	Type & operator*();
 	Type * operator->();
 	Type * real();
+};
+
+class TypePointerId : public TypePointer {
+private:
+	string * name;
+public:
+	TypePointerId(string *_name) : name(_name) {type = 0;}
+	TypePointerId(Type * _type) {type=_type;}
+	~TypePointerId();
+	void find();
+};
+
+class TypePointerArray : public TypePointer {
+private:
+	TypePointer * contenttype;
+public:
+	TypePointerArray(TypePointer * _contenttype) : contenttype(_contenttype) {}
+	~TypePointerArray();
+	void find();
+	
 };
 
 class VariableDeclaration {
@@ -80,6 +103,16 @@ public:
 	int size() {return 1;}
 	char style() {return 'N';}
 	bool convertibleTo(Type* t) {return true;}
+};
+
+class ArrayType : public Type {
+	friend class Type;
+public:
+	Type * contenttype;
+	int size() {return 1;}
+	char style() {return 'A';}
+private:
+	ArrayType(Type * _contenttype) : contenttype(_contenttype) {}
 };
 
 class FunctionDeclaration {

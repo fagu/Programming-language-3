@@ -10,13 +10,14 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token NUL CLASS NEW IF WHILE FOR EQ LE GE NE PP MM
+%token NUL CLASS NEW IF WHILE FOR EQ LE GE NE PP MM ARRAY
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
-%type <instruction> exp statement;
+%type <instruction> exp narexp statement;
 %type <statements> statements;
 %type <params> parameters neparameters;
 %type <instructions> arguments nearguments;
+%type <type> type ttype;
 %left AND OR
 %left '!'
 %left EQ LE GE '<' '>' NE
@@ -24,7 +25,7 @@
 %left '*' '/' '%'
 %left NEG
 %left '.'
-%left '('
+%left '(' '[' '{'
 %union {
 	string *name;
 	int num;
@@ -34,7 +35,10 @@
 	BlockInstruction *statements;
 	vector<DeclarationInstruction*> * params;
 	vector<Instruction*> *instructions;
+	TypePointer * type;
 }
+
+%expect 2
 
 %%
 
@@ -52,8 +56,8 @@ outerstatements:
 }
 
 outerstatement:
-	  IDENTIFIER IDENTIFIER '(' parameters ')' statement {
-	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction($6), new TypePointer($1));
+	  type IDENTIFIER '(' parameters ')' statement {
+	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction($6), $1);
 	if (ParseResult::self()->functions.count(*$2))
 		fprintf(stderr, "Multiple definition of function '%s'!\n", $2->c_str());
 	else
@@ -80,12 +84,12 @@ statement:
 	  exp ';' {
 	$$ = new PrintInstruction($1);
 }
-	| IDENTIFIER IDENTIFIER ';' {
-	$$ = new DeclarationInstruction(new TypePointer($1), $2);
+	| type IDENTIFIER ';' {
+	$$ = new DeclarationInstruction($1, $2);
 }
-	| IDENTIFIER IDENTIFIER '=' exp ';' {
+	| type IDENTIFIER '=' exp ';' {
 	vector<Instruction*> *i = new vector<Instruction*>();
-	i->push_back(new DeclarationInstruction(new TypePointer($1), $2));
+	i->push_back(new DeclarationInstruction($1, $2));
 	i->push_back(new SetInstruction(new VariableInstruction($2), $4));
 	$$ = new CompoundInstruction(i);
 }
@@ -124,12 +128,12 @@ parameters:
 }
 
 neparameters:
-	  IDENTIFIER IDENTIFIER {
+	  type IDENTIFIER {
 	$$ = new vector<DeclarationInstruction*>();
-	$$->push_back(new DeclarationInstruction(new TypePointer($1), $2));
+	$$->push_back(new DeclarationInstruction($1, $2));
 }
-	| neparameters ',' IDENTIFIER IDENTIFIER {
-	$1->push_back(new DeclarationInstruction(new TypePointer($3), $4));
+	| neparameters ',' type IDENTIFIER {
+	$1->push_back(new DeclarationInstruction($3, $4));
 	$$ = $1;
 }
 
@@ -163,11 +167,24 @@ classcontents:
 }
 
 classcontent:
-	  IDENTIFIER IDENTIFIER ';' {
-	$$ = new VariableDeclaration($2, new TypePointer($1));
+	  type IDENTIFIER ';' {
+	$$ = new VariableDeclaration($2, $1);
 }
 
-exp:
+exp:      narexp {
+	$$ = $1;
+}
+	| NEW ttype '[' exp ']' {
+	$$ = new CreateArrayInstruction($2, $4);
+}
+	| NEW IDENTIFIER '[' exp ']' {
+	$$ = new CreateArrayInstruction(new TypePointerId($2), $4);
+}
+	| NEW IDENTIFIER {
+	$$ = new NewInstruction($2);
+}
+
+narexp:
 	  '(' exp ')' {
 	$$ = $2;
 }
@@ -180,8 +197,8 @@ exp:
 	| NUL {
 	$$ = new NullInstruction();
 }
-	| NEW IDENTIFIER {
-	$$ = new NewInstruction($2);
+	| narexp '[' exp ']' {
+	$$ = new AccessArrayInstruction($1, $3);
 }
 	| exp '.' IDENTIFIER {
 	$$ = new AccessInstruction($1, $3);
@@ -236,6 +253,19 @@ exp:
 }
 	| '!' exp {
 	$$ = new BinaryOperatorInstruction('~', $2, new IntegerConstantInstruction(0)); // TODO faster solution with unary operator
+}
+
+type:
+	  IDENTIFIER {
+	$$ = new TypePointerId($1);
+}
+	| ttype {
+	$$ = $1;
+}
+
+ttype:
+	  type ARRAY {
+	$$ = new TypePointerArray($1);
 }
 
 %%

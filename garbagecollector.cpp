@@ -14,7 +14,7 @@ void free(int i, state &st) {
 	int len = st.hash[i];
 	// 0 - FREE, 1 - ALLOCATED, 2 - UNREACHABLE
 	st.hash[i+1] = 0;
-	if (st.hash[i+4+len] == 0) { // next block is free too
+	if (i+4+len < st.hash.size() && st.hash[i+4+len] == 0) { // next block is free too
 		st.hash[i] += st.hash[i+3+len]+3;
 		len += st.hash[i+3+len]+3;
 		st.hash[i+2+len] = len;

@@ -23,6 +23,7 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 "||" {return OR;}
 "++" {return PP;}
 "--" {return MM;}
+"[]" {return ARRAY;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);

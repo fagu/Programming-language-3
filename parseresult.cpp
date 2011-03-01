@@ -62,6 +62,12 @@ void ParseResult::newRef(int len, int to) {
 	instructions.push_back(i);
 }
 
+void ParseResult::newArray(int unitsize, int sizepos, int to) {
+	need(sizepos, 1);
+	instr i = {'r', unitsize, sizepos, to};
+	instructions.push_back(i);
+}
+
 void ParseResult::getSub(int from, int varid, int to) {
 	need(from, 1);
 	need(to, 1);
@@ -73,6 +79,22 @@ void ParseResult::copySub(int from, int to, int varid) {
 	need(from, 1);
 	need(to, 1);
 	instr i = {'S', 0, from, to, varid};
+	instructions.push_back(i);
+}
+
+void ParseResult::accessArray(int unitsize, int from, int pos, int to) {
+	need(from, 1);
+	need(pos, 1);
+	need(to, unitsize);
+	instr i = {'x', unitsize, from, pos, to};
+	instructions.push_back(i);
+}
+
+void ParseResult::setArray(int unitsize, int from, int to, int pos) {
+	need(from, unitsize);
+	need(to, 1);
+	need(pos, 1);
+	instr i = {'X', unitsize, from, to, pos};
 	instructions.push_back(i);
 }
 
@@ -163,10 +185,16 @@ void ParseResult::output() {
 				printf("I%d;%d|\n", in.a, realpos[in.b]);
 			} else if (in.typ == 'R') {
 				printf("R%d;%d|\n", realpos[in.a], in.len);
+			} else if (in.typ == 'r') {
+				printf("r%d;%d;%d|\n", in.len, realpos[in.a], realpos[in.b]);
 			} else if (in.typ == 'G') {
 				printf("G%d;%d;%d|\n", realpos[in.a], in.b, realpos[in.c]);
 			} else if (in.typ == 'S') {
 				printf("S%d;%d;%d|\n", realpos[in.a], realpos[in.b], in.c);
+			} else if (in.typ == 'x') {
+				printf("x%d;%d;%d;%d|\n", in.len, realpos[in.a], realpos[in.b], realpos[in.c]);
+			} else if (in.typ == 'X') {
+				printf("X%d;%d;%d;%d|\n", in.len, realpos[in.a], realpos[in.b], realpos[in.c]);
 			} else if (in.typ == 'M') {
 				printf("M%d|\n", in.a);
 			} else if (in.typ == 'J') {

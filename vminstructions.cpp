@@ -43,12 +43,20 @@ INSTRUCTION('P',2,
 	nextpos = aktpos+2;
 )
 
-// Allocate on heap and save pointer
+// Allocate fixed amount on heap and save pointer
 INSTRUCTION('R',2,
 	pos = li[aktpos]; len = li[aktpos+1];
 	st[pos] = alloc(len, stat);
 	ip[pos] = true;
 	nextpos = aktpos+2;
+)
+
+// Allocate variable amount on heap and save pointer
+INSTRUCTION('r',3,
+	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2];
+	st[posb] = alloc(len*st[posa], stat);
+	ip[posb] = true;
+	nextpos = aktpos+3;
 )
 
 // Set on heap
@@ -65,6 +73,26 @@ INSTRUCTION('G',3,
 	st[posc] = stat.hash[st[posa]+posb];
 	ip[posc] = stat.hashispointer[st[posa]+posb];
 	nextpos = aktpos+3;
+)
+
+// Set on heap array
+INSTRUCTION('X',4,
+	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2]; posc = li[aktpos+3];
+	for (int i = 0; i < len; i++) {
+		stat.hash[st[posb]+len*st[posc]+i] = st[posa+i];
+		stat.hashispointer[st[posb]+len*st[posc]+i] = ip[posa+i];
+	}
+	nextpos = aktpos+4;
+)
+
+// Get from heap array
+INSTRUCTION('x',4,
+	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2]; posc = li[aktpos+3];
+	for (int i = 0; i < len; i++) {
+		st[posc+i] = stat.hash[st[posa]+len*st[posb]+i];
+		ip[posc+i] = stat.hashispointer[st[posa]+len*st[posb]+i];
+	}
+	nextpos = aktpos+4;
 )
 
 // Jump if

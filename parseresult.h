@@ -39,8 +39,11 @@ public:
 	void intconst(int nr, int to);
 	void print(int from, int len);
 	void newRef(int len, int to);
+	void newArray(int unitsize, int sizepos, int to);
 	void getSub(int from, int varid, int to);
 	void copySub(int from, int to, int varid);
+	void accessArray(int unitsize, int from, int pos, int to);
+	void setArray(int unitsize, int from, int to, int pos);
 	int newStop();
 	void hereStop(int stop);
 	void jumpIf(int cond, int stop);

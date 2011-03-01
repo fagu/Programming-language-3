@@ -129,6 +129,10 @@ int main(int argc, char *argv[]) {
 				liste.back().push_back(0); liste.back().push_back(0); liste.back().push_back(0);
 				sscanf(codepos+1, "%d;%d;%d", &liste.back()[N+1], &liste.back()[N+2], &liste.back()[N+3]);
 				N += 4;
+			} else if (oplength[liste.back()[N]] == 4) {
+				liste.back().push_back(0); liste.back().push_back(0); liste.back().push_back(0); liste.back().push_back(0);
+				sscanf(codepos+1, "%d;%d;%d;%d", &liste.back()[N+1], &liste.back()[N+2], &liste.back()[N+3], &liste.back()[N+4]);
+				N += 5;
 			} else {
 				fprintf(stderr, "Unknown command '%c'!\n", op);
 			}
@@ -146,6 +150,8 @@ int main(int argc, char *argv[]) {
 	stat.stac.back()->aktpos = 0;
 	stat.stac.back()->funcnum = mainfunc;
 	stat.stac.back()->copyresultto = -1;
+	
+	int nextgc = 1;
 	
 	while(!stat.stac.empty()) {
 		stackentry & se = *stat.stac[stat.stac.size()-1];
@@ -185,12 +191,15 @@ int main(int argc, char *argv[]) {
 #ifdef PRINTHASH
 			printf("   ");
 			for (int i = 0; i < stat.hash.size(); i++) {
-				printf("%d ", stat.hash[i]);
+				printf("%2d ", stat.hash[i]);
 			}
 			printf("\n");
 #endif
 			aktpos = nextpos;
-			gc(stat);
+			if (stat.hash.size() >= nextgc) {
+				gc(stat);
+				nextgc = stat.hash.size()*2;
+			}
 		}
 		if (se.copyresultto != -1) {
 			stackentry & nse = *stat.stac[stat.stac.size()-2];
