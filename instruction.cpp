@@ -193,11 +193,12 @@ void CallInstruction::find() {
 		(*arguments)[i]->find();
 		args.push_back((*arguments)[i]->pos);
 	}
-	ParseRes->call(dec->num, args);
+	pos = ParseRes->alloc((*dec->resulttype)->size());
+	ParseRes->call(dec->num, args, pos);
 }
 
 Type* CallInstruction::resulttype() {
-	return ParseRes->voidType;
+	return dec->resulttype->real();
 }
 
 void BlockInstruction::find() {

@@ -4,7 +4,7 @@ class punkt {
 	punkt next;
 }
 
-void add(punkt p, int n) {
+void push(punkt p, int n) {
 	while(p.next)
 		p = p.next;
 	punkt neu = new punkt;
@@ -25,11 +25,35 @@ void removestart(punkt p, int i) {
 		p.next = p.next.next;
 }
 
+void insert(punkt p, int i) {
+	punkt s = p.next;
+	punkt n = new punkt;
+	n.eintrag = i;
+	p.next = n;
+	n.next = s;
+}
+
+punkt at(punkt p, int i) {
+	for (int k = 0; k < i; k++;)
+		p = p.next;
+	return=p;
+}
+
+int size(punkt p) {
+	int s;
+	for(s = -1; p; s++;)
+		p = p.next;
+	return=s;
+}
+
 void main() {
 	punkt list = new punkt;
 	list.next = null;
 	for (int i = -10; i != 10; i++;)
-		add(list, i);
+		push(list, i);
 	removestart(list, 3);
+	insert(at(list,3), 20);
+	insert(at(list, size(list)), 21);
 	print(list);
+	size(list);
 }

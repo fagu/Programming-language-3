@@ -23,7 +23,8 @@ private:
 	string * name;
 	Type * type;
 public:
-	TypePointer(string *_name);
+	TypePointer(string *_name) : name(_name), type(0) {}
+	TypePointer(Type * _type) : type(_type) {}
 	~TypePointer();
 	void find();
 	Type & operator*();
@@ -85,11 +86,12 @@ class FunctionDeclaration {
 private:
 	BlockInstruction* instructions;
 public:
+	TypePointer * resulttype;
 	vector<DeclarationInstruction*> * parameters;
 	int num;
-	FunctionDeclaration(vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions) : parameters(_parameters), instructions(_instructions) {}
+	FunctionDeclaration(vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : parameters(_parameters), instructions(_instructions), resulttype(_resulttype) {}
 	~FunctionDeclaration() {}
-	void find();
+	int find();
 };
 
 #endif

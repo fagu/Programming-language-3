@@ -53,7 +53,7 @@ outerstatements:
 
 outerstatement:
 	  IDENTIFIER IDENTIFIER '(' parameters ')' statement {
-	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction($6));
+	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction($6), new TypePointer($1));
 	if (ParseResult::self()->functions.count(*$2))
 		fprintf(stderr, "Multiple definition of function '%s'!\n", $2->c_str());
 	else

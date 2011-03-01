@@ -45,7 +45,7 @@ public:
 	void hereStop(int stop);
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
-	void call(int func, const vector<int> &args);
+	void call(int func, const std::vector< int >& args, int resultpos);
 	
 	void output();
 	

@@ -1,4 +1,5 @@
 
+// Allocate on stack
 INSTRUCTION('A',1,
 	len = li[aktpos];
 	if (len > 0) {
@@ -15,6 +16,7 @@ INSTRUCTION('A',1,
 	nextpos = aktpos+1;
 )
 
+// Integer constant
 INSTRUCTION('I',2,
 	co = li[aktpos]; pos = li[aktpos+1];
 	st[li[aktpos+1]] = li[aktpos];
@@ -22,6 +24,7 @@ INSTRUCTION('I',2,
 	nextpos = aktpos+2;
 )
 
+// Copy on stack
 INSTRUCTION('C',3,
 	posa = li[aktpos]; len = li[aktpos+1]; posb = li[aktpos+2];
 	for (int i = 0; i < len; i++) {
@@ -31,6 +34,7 @@ INSTRUCTION('C',3,
 	nextpos = aktpos+3;
 )
 
+// Print
 INSTRUCTION('P',2,
 	pos = li[aktpos]; len = li[aktpos+1];
 	for (int i = 0; i < len; i++)
@@ -39,6 +43,7 @@ INSTRUCTION('P',2,
 	nextpos = aktpos+2;
 )
 
+// Allocate on heap and save pointer
 INSTRUCTION('R',2,
 	pos = li[aktpos]; len = li[aktpos+1];
 	st[pos] = alloc(len, stat);
@@ -46,6 +51,7 @@ INSTRUCTION('R',2,
 	nextpos = aktpos+2;
 )
 
+// Set on heap
 INSTRUCTION('S',3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	stat.hash[st[posb]+posc] = st[posa];
@@ -53,6 +59,7 @@ INSTRUCTION('S',3,
 	nextpos = aktpos+3;
 )
 
+// Get from heap
 INSTRUCTION('G',3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = stat.hash[st[posa]+posb];
@@ -60,6 +67,7 @@ INSTRUCTION('G',3,
 	nextpos = aktpos+3;
 )
 
+// Jump if
 INSTRUCTION('J',2,
 	posa = li[aktpos]; posb = li[aktpos+1];
 	if (st[posa] == 0)
@@ -68,21 +76,24 @@ INSTRUCTION('J',2,
 		nextpos = aktpos+2;
 )
 
+// Jump
 INSTRUCTION('j',1,
 	posa = li[aktpos];
 	nextpos = sto[posa];
 )
 
+// Call function
 INSTRUCTION('c',1,
-	co = li[aktpos];
+	co = li[aktpos]; pos = li[aktpos+1];
 	stat.stac.push_back(new stackentry());
 	stat.stac.back()->aktpos = 0;
 	stat.stac.back()->funcnum = co;
+	stat.stac.back()->copyresultto = pos;
 	se.aktpos = aktpos;
 	for (int i = 0; i < argsizes[co].size(); i++) {
 		for (int k = 0; k < argsizes[co][i]; k++) {
-			stat.stac.back()->regs.push_back(st[li[aktpos+i+1]+k]);
-			stat.stac.back()->ispointer.push_back(ip[li[aktpos+i+1]+k]);
+			stat.stac.back()->regs.push_back(st[li[aktpos+i+2]+k]);
+			stat.stac.back()->ispointer.push_back(ip[li[aktpos+i+2]+k]);
 		}
 		se.aktpos++;
 	}
@@ -90,7 +101,7 @@ INSTRUCTION('c',1,
 	for (int r = 0; r < stat.stac.back()->regs.size(); r++)
 		printf("%d ", stat.stac.back()->regs[r]);
 	printf("\n");*/
-	se.aktpos++;
+	se.aktpos+=2;
 	goto stackup;
 )
 

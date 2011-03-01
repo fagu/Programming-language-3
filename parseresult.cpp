@@ -98,8 +98,8 @@ void ParseResult::jump(int stop) {
 	instructions.push_back(i);
 }
 
-void ParseResult::call(int func, const std::vector< int >& args) {
-	instr i = {'c', 0, func};
+void ParseResult::call(int func, const std::vector< int >& args, int resultpos) {
+	instr i = {'c', 0, func, resultpos};
 	i.v = args;
 	instructions.push_back(i);
 }
@@ -110,13 +110,13 @@ void ParseResult::output() {
 		it->second->num = n++;
 	for (map<string,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
 		FunctionDeclaration *dec = it->second;
-		dec->find();
+		int retpos = dec->find();
 		
 		if (it->first == "main")
 			printf("F");
 		else
 			printf("f");
-		printf("%d", (int)dec->parameters->size());
+		printf("%d;%d;%d", retpos, (*dec->resulttype)->size(), (int)dec->parameters->size());
 		for (int i = 0; i < dec->parameters->size(); i++) {
 			printf(";%d", (*dec->parameters)[i]->type->real()->size());
 		}
@@ -174,7 +174,7 @@ void ParseResult::output() {
 			} else if (in.typ == 'j') {
 				printf("j%d|\n", in.a);
 			} else if (in.typ == 'c') {
-				printf("c%d", in.a);
+				printf("c%d;%d", in.a, in.b);
 				for (int i = 0; i < in.v.size(); i++)
 					printf(";%d", realpos[in.v[i]]);
 				printf("|\n");

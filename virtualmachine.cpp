@@ -11,6 +11,8 @@
 // FIXME Buffer overflow
 char input[10000];
 int mainfunc = -1;
+vector<int> resultpos;
+vector<int> resultsize;
 vector<vector<int> > liste;
 
 vector<vector<int> > stops;
@@ -66,12 +68,17 @@ int main(int argc, char *argv[]) {
 			argsizes.push_back(vector<int>());
 			N = 0;
 			int anzparams;
+			int rp, rs;
+			sscanf(codepos+1, "%d;%d;%d", &rp, &rs, &anzparams);
+			resultpos.push_back(rp);
+			resultsize.push_back(rs);
 			char *pos;
 			for (pos = codepos; *pos != '\0'; pos++)
 				if (*pos == ';')
 					*pos = '\0';
-			sscanf(codepos+1, "%d", &anzparams);
 			char *npos = codepos+strlen(codepos)+1;
+			npos = npos+strlen(npos)+1;
+			npos = npos+strlen(npos)+1;
 			for (int i = 0; i < anzparams; i++) {
 				int s;
 				sscanf(npos, "%d", &s);
@@ -89,15 +96,17 @@ int main(int argc, char *argv[]) {
 			if (liste.back()[N] == -1)
 				fprintf(stderr, "Unknown command '%c'!\n", op);
 			if (op == 'c') {
-				int func;
+				int func, resultpos;
+				sscanf(codepos+1, "%d;%d", &func, &resultpos);
+				liste.back().push_back(func);
+				liste.back().push_back(resultpos);
+				N += 3;
 				char *pos;
 				for (pos = codepos; *pos != '\0'; pos++)
 					if (*pos == ';')
 						*pos = '\0';
-				sscanf(codepos+1, "%d", &func);
-				liste.back().push_back(func);
-				N += 2;
 				char *npos = codepos+strlen(codepos)+1;
+				npos = npos+strlen(npos)+1;
 				for (int i = 0; npos != pos+1; i++) {
 					int s;
 					sscanf(npos, "%d", &s);
@@ -136,6 +145,7 @@ int main(int argc, char *argv[]) {
 	stat.stac.push_back(new stackentry());
 	stat.stac.back()->aktpos = 0;
 	stat.stac.back()->funcnum = mainfunc;
+	stat.stac.back()->copyresultto = -1;
 	
 	while(!stat.stac.empty()) {
 		stackentry & se = *stat.stac[stat.stac.size()-1];
@@ -181,6 +191,12 @@ int main(int argc, char *argv[]) {
 #endif
 			aktpos = nextpos;
 			gc(stat);
+		}
+		if (se.copyresultto != -1) {
+			stackentry & nse = *stat.stac[stat.stac.size()-2];
+			for (int i = 0; i < resultsize[se.funcnum]; i++) {
+				nse.regs[se.copyresultto+i] = se.regs[resultpos[se.funcnum]+i];
+			}
 		}
 		stat.stac.pop_back();
 stackup:	;

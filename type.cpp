@@ -2,14 +2,13 @@
 #include "type.h"
 #include "parseresult.h"
 
-TypePointer::TypePointer(string* _name) : name(_name), type(0) {
-}
-
 TypePointer::~TypePointer() {
 	delete name;
 }
 
 void TypePointer::find() {
+	if (type)
+		return;
 	type = ParseRes->types[*name];
 	if (type == 0)
 		fprintf(stderr, "Type '%s' not known!\n", name->c_str());
@@ -72,14 +71,17 @@ VariableDeclaration* ClassType::var(const std::string& name) {
 	return (*declarations)[name];
 }
 
-void FunctionDeclaration::find() {
+int FunctionDeclaration::find() {
 	int sizebefore = ParseRes->varstack.size();
 	for (int i = 0; i < parameters->size(); i++) {
 		(*parameters)[i]->find();
 	}
+	DeclarationInstruction * returndec = new DeclarationInstruction(resulttype, new string("return"));
+	returndec->find();
 	instructions->find();
 	while(ParseRes->varstack.size() > sizebefore) {
 		ParseRes->vars.erase(ParseRes->vars.find(*ParseRes->varstack.top()->name));
 		ParseRes->varstack.pop();
 	}
+	return returndec->pos;
 }

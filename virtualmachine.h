@@ -12,6 +12,7 @@ struct stackentry {
 	int aktpos;
 	vector<int> regs;
 	vector<bool> ispointer;
+	int copyresultto;
 };
 
 struct state {
