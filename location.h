@@ -15,4 +15,6 @@ Location operator+(const Location &a, const Location &b);
 
 #define printerr(format, ...) do { fprintf(stderr, "%d.%d-%d.%d: " format, loc.first_line, loc.first_column, loc.last_line, loc.last_column, ##__VA_ARGS__); ParseRes->haserror = true; } while(0)
 
+#define printsyntaxerr(loc, format, ...) do { fprintf(stderr, "%d.%d-%d.%d: " format, loc.first_line, loc.first_column, loc.last_line, loc.last_column, ##__VA_ARGS__); ParseRes->haserror = true; } while(0)
+
 #endif // LOCATION_H

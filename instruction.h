@@ -178,4 +178,11 @@ public:
 	Type* resulttype();
 };
 
+class EmptyInstruction : public Instruction {
+public:
+	EmptyInstruction(Location _loc) : Instruction(_loc) {}
+	void find();
+	Type* resulttype();
+};
+
 #endif

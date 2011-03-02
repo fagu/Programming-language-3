@@ -58,7 +58,7 @@ outerstatement:
 	  type IDENTIFIER '(' parameters ')' statement {
 	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction(@6, $6), $1);
 	if (ParseResult::self()->functions.count(*$2))
-		fprintf(stderr, "Multiple definition of function '%s'!\n", $2->c_str());
+		printsyntaxerr(@$, "Multiple definition of function '%s'!\n", $2->c_str());
 	else
 		ParseResult::self()->functions[*$2] = dec;
 }
@@ -66,7 +66,7 @@ outerstatement:
 	ClassType *type = new ClassType(@$, $2, $4);
 	ParseResult::self()->classtypes.push_back(type);
 	if (ParseResult::self()->types.count(*$2))
-		fprintf(stderr, "Multiple definition of type '%s'!\n", $2->c_str());
+		printsyntaxerr(@$, "Multiple definition of type '%s'!\n", $2->c_str());
 	else
 		ParseResult::self()->types[*$2] = type;
 }
@@ -118,6 +118,10 @@ statement:
 	b->instructions.push_back($6);
 	a->instructions.push_back(new WhileInstruction(@$, $4, b));
 	$$ = a;
+}
+	| error ';' {
+	printsyntaxerr(@$, "syntax error\n");
+	$$ = new EmptyInstruction(@$);
 }
 
 parameters:
@@ -272,5 +276,5 @@ ttype:
 %%
 
 void yyerror (char const *s) {
-	fprintf (stderr, "%s\n", s);
+	//fprintf (stderr, "%s\n", s);
 }

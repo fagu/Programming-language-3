@@ -231,3 +231,10 @@ void CompoundInstruction::find() {
 Type* CompoundInstruction::resulttype() {
 	return ParseRes->voidType;
 }
+
+void EmptyInstruction::find() {
+}
+
+Type* EmptyInstruction::resulttype() {
+	return ParseRes->voidType;
+}
