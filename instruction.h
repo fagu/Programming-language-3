@@ -1,13 +1,16 @@
 #ifndef INSTRUCTION_H
 #define INSTRUCTION_H
 
+#include "location.h"
 #include "type.h"
 
 class BlockInstruction;
 class BlockInstruction;
 class Instruction {
 public:
+	Location loc;
 	int pos;
+	Instruction(Location _loc) : loc(_loc) {}
 	virtual ~Instruction() {}
 	virtual void find() = 0;
 	virtual Type *resulttype() = 0;
@@ -19,7 +22,7 @@ private:
 	char op;
 	Instruction *a, *b;
 public:
-	BinaryOperatorInstruction(char _op, Instruction *_a, Instruction *_b);
+	BinaryOperatorInstruction(Location _loc, char _op, Instruction *_a, Instruction *_b) : Instruction(_loc), op(_op), a(_a), b(_b) {}
 	void find();
 	Type* resulttype();
 };
@@ -28,14 +31,14 @@ class IntegerConstantInstruction : public Instruction {
 private:
 	int co;
 public:
-	IntegerConstantInstruction(int _co);
+	IntegerConstantInstruction(Location _loc, int _co) : Instruction(_loc), co(_co) {}
 	void find();
 	Type* resulttype();
 };
 
 class NullInstruction : public Instruction {
 public:
-	NullInstruction() {}
+	NullInstruction(Location _loc) : Instruction(_loc) {}
 	void find();
 	Type* resulttype();
 };
@@ -45,7 +48,7 @@ private:
 	string *name;
 	ClassType *type;
 public:
-	NewInstruction(string *_name);
+	NewInstruction(Location _loc, string *_name) : Instruction(_loc), name(_name) {}
 	void find();
 	Type* resulttype();
 };
@@ -54,7 +57,7 @@ class PrintInstruction : public Instruction {
 private:
 	Instruction *a;
 public:
-	PrintInstruction(Instruction* _a);
+	PrintInstruction(Location _loc, Instruction* _a) : Instruction(_loc), a(_a) {}
 	void find();
 	Type* resulttype();
 };
@@ -65,7 +68,7 @@ public:
 	string *name;
 	int pos;
 public:
-	DeclarationInstruction(TypePointer *_type, string *_name);
+	DeclarationInstruction(Location _loc, TypePointer *_type, string *_name) : Instruction(_loc), type(_type), name(_name) {}
 	void find();
 	Type* resulttype();
 };
@@ -75,7 +78,7 @@ private:
 	Instruction *a;
 	Instruction *b;
 public:
-	SetInstruction(Instruction *_a, Instruction *_b);
+	SetInstruction(Location _loc, Instruction *_a, Instruction *_b) : Instruction(_loc), a(_a), b(_b) {}
 	void find();
 	Type* resulttype();
 };
@@ -85,7 +88,7 @@ private:
 	string *name;
 	DeclarationInstruction *dec;
 public:
-	VariableInstruction(string *_name);
+	VariableInstruction(Location _loc, string *_name) : Instruction(_loc), name(_name) {}
 	void find();
 	Type* resulttype();
 	void findSet(Instruction* b);
@@ -97,7 +100,7 @@ private:
 	VariableDeclaration *dec;
 	Instruction *a;
 public:
-	AccessInstruction(Instruction *_a, string *_name);
+	AccessInstruction(Location _loc, Instruction *_a, string *_name) : Instruction(_loc), a(_a), name(_name) {}
 	void find();
 	Type* resulttype();
 	void findSet(Instruction* b);
@@ -108,7 +111,7 @@ private:
 	Instruction * a;
 	Instruction * b;
 public:
-	AccessArrayInstruction(Instruction * _a, Instruction * _b) : a(_a), b(_b) {}
+	AccessArrayInstruction(Location _loc, Instruction * _a, Instruction * _b) : Instruction(_loc), a(_a), b(_b) {}
 	void find();
 	Type* resulttype();
 	void findSet(Instruction* b);
@@ -119,7 +122,7 @@ private:
 	Instruction *cond;
 	BlockInstruction *then;
 public:
-	IfInstruction(Instruction *_cond, BlockInstruction *_then);
+	IfInstruction(Location _loc, Instruction *_cond, BlockInstruction *_then) : Instruction(_loc), cond(_cond), then(_then) {}
 	void find();
 	Type* resulttype();
 };
@@ -129,7 +132,7 @@ private:
 	Instruction *cond;
 	BlockInstruction *then;
 public:
-	WhileInstruction(Instruction *_cond, BlockInstruction *_then);
+	WhileInstruction(Location _loc, Instruction *_cond, BlockInstruction *_then) : Instruction(_loc), cond(_cond), then(_then) {}
 	void find();
 	Type* resulttype();
 };
@@ -140,7 +143,7 @@ private:
 	FunctionDeclaration *dec;
 	vector<Instruction*> *arguments;
 public:
-	CallInstruction(string *_name, vector<Instruction*> *_arguments) : name(_name), arguments(_arguments) {}
+	CallInstruction(Location _loc, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), name(_name), arguments(_arguments) {}
 	void find();
 	Type* resulttype();
 };
@@ -150,7 +153,7 @@ private:
 	TypePointer * contenttype;
 	Instruction * size;
 public:
-	CreateArrayInstruction(TypePointer * _contenttype, Instruction *_size) : contenttype(_contenttype), size(_size) {}
+	CreateArrayInstruction(Location _loc, TypePointer * _contenttype, Instruction *_size) : Instruction(_loc), contenttype(_contenttype), size(_size) {}
 	void find();
 	Type* resulttype();
 };
@@ -160,8 +163,8 @@ public:
 	vector<Instruction*> instructions;
 	int varsize;
 public:
-	BlockInstruction() {}
-	BlockInstruction(Instruction* _i) {instructions.push_back(_i);}
+	BlockInstruction(Location _loc) : Instruction(_loc) {}
+	BlockInstruction(Location _loc, Instruction* _i) : Instruction(_loc) {instructions.push_back(_i);}
 	void find();
 	Type* resulttype();
 };
@@ -170,7 +173,7 @@ class CompoundInstruction : public Instruction {
 private:
 	vector<Instruction*> * instructions;
 public:
-	CompoundInstruction(vector<Instruction*> *_instructions) : instructions(_instructions) {}
+	CompoundInstruction(Location _loc, vector<Instruction*> *_instructions) : Instruction(_loc), instructions(_instructions) {}
 	void find();
 	Type* resulttype();
 };

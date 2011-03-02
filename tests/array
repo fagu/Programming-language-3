@@ -1,4 +1,5 @@
 int main() {
+	int test;
 	int max = 10;
 	int[][] a = new int[][max];
 	for (int i = 0; i < max; i++;) {

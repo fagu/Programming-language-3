@@ -2,6 +2,8 @@
 #include <math.h>
 #include <string>
 #include "bison_parser.h"
+# define YY_USER_ACTION yylloc.first_line = yylloc.last_line; yylloc.first_column = yylloc.last_column; yylloc.last_column += yyleng;
+# define YY_USER_INIT yylloc.first_line = 1; yylloc.first_column = 1; yylloc.last_line = 1; yylloc.last_column = 1;
 %}
 
 DIGIT    [0-9]
@@ -35,9 +37,17 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 	return IDENTIFIER;
 }
 
-"//"[^\n]*"\n"     // Einzeilige Kommentare
+"//"[^\n]*"\n" {
+	yylloc.last_line++;
+	yylloc.last_column = 1;
+}
 
-[ \t\n]+          // Whitespace
+[ \t]+
+
+[\n]+ {
+	yylloc.last_line += yyleng;
+	yylloc.last_column = 1;
+}
 
 . {return yytext[0];}
 

@@ -17,12 +17,14 @@ struct instr {
 
 class ParseResult {
 private:
-	vector<int> lastneeded;
+	vector<string> funcspecs;
+	vector<vector<int> > lastneeded;
 	vector<int> realpos;
-	vector<instr> instructions;
-	vector<int> stoppos;
+	vector<vector<instr> > instructions;
+	vector<vector<int> > stoppos;
 	void need(int id, int len);
 public:
+	bool haserror;
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;
 	map<string,FunctionDeclaration*> functions;

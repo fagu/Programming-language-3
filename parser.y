@@ -4,6 +4,8 @@
 	#include <string>
 	#include "../parseresult.h"
 	#include "../instruction.h"
+	#include "../location.h"
+	#define YYLTYPE Location
 	using namespace std;
 	int yylex (void);
 	void yyerror (char const *);
@@ -43,9 +45,6 @@
 %%
 
 input: outerstatements {
-	for (vector<ClassType*>::iterator it = ParseResult::self()->classtypes.begin(); it != ParseResult::self()->classtypes.end(); it++) {
-		(*it)->find();
-	}
 	ParseRes->output();
 }
 
@@ -57,14 +56,14 @@ outerstatements:
 
 outerstatement:
 	  type IDENTIFIER '(' parameters ')' statement {
-	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction($6), $1);
+	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction(@6, $6), $1);
 	if (ParseResult::self()->functions.count(*$2))
 		fprintf(stderr, "Multiple definition of function '%s'!\n", $2->c_str());
 	else
 		ParseResult::self()->functions[*$2] = dec;
 }
 	| CLASS IDENTIFIER '{' classcontents '}' {
-	ClassType *type = new ClassType($4);
+	ClassType *type = new ClassType(@$, $2, $4);
 	ParseResult::self()->classtypes.push_back(type);
 	if (ParseResult::self()->types.count(*$2))
 		fprintf(stderr, "Multiple definition of type '%s'!\n", $2->c_str());
@@ -74,48 +73,50 @@ outerstatement:
 
 statements:
 	    {
-	$$ = new BlockInstruction();
+	$$ = new BlockInstruction(@$);
 }
 	| statements statement {
 	$$->instructions.push_back($2);
+	$$->loc = @$;
 }
 
 statement:
 	  exp ';' {
-	$$ = new PrintInstruction($1);
+	$$ = new PrintInstruction(@$, $1);
 }
 	| type IDENTIFIER ';' {
-	$$ = new DeclarationInstruction($1, $2);
+	$$ = new DeclarationInstruction(@$, $1, $2);
 }
 	| type IDENTIFIER '=' exp ';' {
 	vector<Instruction*> *i = new vector<Instruction*>();
-	i->push_back(new DeclarationInstruction($1, $2));
-	i->push_back(new SetInstruction(new VariableInstruction($2), $4));
-	$$ = new CompoundInstruction(i);
+	i->push_back(new DeclarationInstruction(@1+@2, $1, $2));
+	i->push_back(new SetInstruction(@2+@3+@4+@5, new VariableInstruction(@2, $2), $4));
+	$$ = new CompoundInstruction(@$, i);
 }
 	| exp '=' exp ';' {
-	$$ = new SetInstruction($1, $3);
+	$$ = new SetInstruction(@$, $1, $3);
 }
 	| exp PP ';' {
-	$$ = new SetInstruction($1, new BinaryOperatorInstruction('+', $1, new IntegerConstantInstruction(1)));
+	$$ = new SetInstruction(@$, $1, new BinaryOperatorInstruction(@$, '+', $1, new IntegerConstantInstruction(@$, 1)));
 }
 	| exp MM ';' {
-	$$ = new SetInstruction($1, new BinaryOperatorInstruction('-', $1, new IntegerConstantInstruction(1)));
+	$$ = new SetInstruction(@$, $1, new BinaryOperatorInstruction(@$, '-', $1, new IntegerConstantInstruction(@$, 1)));
 }
 	| '{' statements '}' {
+	$2->loc = @$;
 	$$ = $2;
 }
 	| IF '(' exp ')' statement {
-	$$ = new IfInstruction($3, new BlockInstruction($5));
+	$$ = new IfInstruction(@$, $3, new BlockInstruction(@5, $5));
 }
 	| WHILE '(' exp ')' statement {
-	$$ = new WhileInstruction($3, new BlockInstruction($5));
+	$$ = new WhileInstruction(@$, $3, new BlockInstruction(@5, $5));
 }
 	| FOR '(' statement exp ';' statement ')' statement {
-	BlockInstruction *a = new BlockInstruction($3);
-	BlockInstruction *b = new BlockInstruction($8);
+	BlockInstruction *a = new BlockInstruction(@$, $3);
+	BlockInstruction *b = new BlockInstruction(@$, $8);
 	b->instructions.push_back($6);
-	a->instructions.push_back(new WhileInstruction($4, b));
+	a->instructions.push_back(new WhileInstruction(@$, $4, b));
 	$$ = a;
 }
 
@@ -130,10 +131,10 @@ parameters:
 neparameters:
 	  type IDENTIFIER {
 	$$ = new vector<DeclarationInstruction*>();
-	$$->push_back(new DeclarationInstruction($1, $2));
+	$$->push_back(new DeclarationInstruction(@$, $1, $2));
 }
 	| neparameters ',' type IDENTIFIER {
-	$1->push_back(new DeclarationInstruction($3, $4));
+	$1->push_back(new DeclarationInstruction(@$, $3, $4));
 	$$ = $1;
 }
 
@@ -168,20 +169,20 @@ classcontents:
 
 classcontent:
 	  type IDENTIFIER ';' {
-	$$ = new VariableDeclaration($2, $1);
+	$$ = new VariableDeclaration(@$, $2, $1);
 }
 
 exp:      narexp {
 	$$ = $1;
 }
 	| NEW ttype '[' exp ']' {
-	$$ = new CreateArrayInstruction($2, $4);
+	$$ = new CreateArrayInstruction(@$, $2, $4);
 }
 	| NEW IDENTIFIER '[' exp ']' {
-	$$ = new CreateArrayInstruction(new TypePointerId($2), $4);
+	$$ = new CreateArrayInstruction(@$, new TypePointerId(@2, $2), $4);
 }
 	| NEW IDENTIFIER {
-	$$ = new NewInstruction($2);
+	$$ = new NewInstruction(@$, $2);
 }
 
 narexp:
@@ -189,75 +190,75 @@ narexp:
 	$$ = $2;
 }
 	| IDENTIFIER {
-	$$ = new VariableInstruction($1);
+	$$ = new VariableInstruction(@$, $1);
 }
 	| NUMBER {
-	$$ = new IntegerConstantInstruction($1);
+	$$ = new IntegerConstantInstruction(@$, $1);
 }
 	| NUL {
-	$$ = new NullInstruction();
+	$$ = new NullInstruction(@$);
 }
 	| narexp '[' exp ']' {
-	$$ = new AccessArrayInstruction($1, $3);
+	$$ = new AccessArrayInstruction(@$, $1, $3);
 }
 	| exp '.' IDENTIFIER {
-	$$ = new AccessInstruction($1, $3);
+	$$ = new AccessInstruction(@$, $1, $3);
 }
 	| IDENTIFIER '(' arguments ')' {
-	$$ = new CallInstruction($1, $3);
+	$$ = new CallInstruction(@$, $1, $3);
 }
 	| exp '+' exp {
-	$$ = new BinaryOperatorInstruction('+', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '+', $1, $3);
 }
 	| exp '-' exp {
-	$$ = new BinaryOperatorInstruction('-', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '-', $1, $3);
 }
 	| exp '*' exp {
-	$$ = new BinaryOperatorInstruction('*', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '*', $1, $3);
 }
 	| exp '/' exp {
-	$$ = new BinaryOperatorInstruction('/', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '/', $1, $3);
 }
 	| exp '%' exp {
-	$$ = new BinaryOperatorInstruction('%', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '%', $1, $3);
 }
 	| exp EQ exp {
-	$$ = new BinaryOperatorInstruction('=', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '=', $1, $3);
 }
 	| exp '<' exp {
-	$$ = new BinaryOperatorInstruction('<', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '<', $1, $3);
 }
 	| exp '>' exp {
-	$$ = new BinaryOperatorInstruction('>', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '>', $1, $3);
 }
 	| exp LE exp {
-	$$ = new BinaryOperatorInstruction('(', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '(', $1, $3);
 }
 	| exp GE exp {
-	$$ = new BinaryOperatorInstruction(')', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, ')', $1, $3);
 }
 	| exp NE exp {
-	$$ = new BinaryOperatorInstruction('~', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '~', $1, $3);
 }
 	| exp AND exp {
-	$$ = new BinaryOperatorInstruction('&', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, '&', $1, $3);
 }
 	| exp OR exp {
-	$$ = new BinaryOperatorInstruction('O', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, 'O', $1, $3);
 }
 	| '+' exp %prec NEG {
-	$$ = new BinaryOperatorInstruction('+', new IntegerConstantInstruction(0), $2);
+	$$ = new BinaryOperatorInstruction(@$, '+', new IntegerConstantInstruction(@$, 0), $2);
 }
 	| '-' exp %prec NEG {
-	$$ = new BinaryOperatorInstruction('-', new IntegerConstantInstruction(0), $2);
+	$$ = new BinaryOperatorInstruction(@$, '-', new IntegerConstantInstruction(@$, 0), $2);
 }
 	| '!' exp {
-	$$ = new BinaryOperatorInstruction('~', $2, new IntegerConstantInstruction(0)); // TODO faster solution with unary operator
+	$$ = new BinaryOperatorInstruction(@$, '~', $2, new IntegerConstantInstruction(@$, 0)); // TODO faster solution with unary operator
 }
 
 type:
 	  IDENTIFIER {
-	$$ = new TypePointerId($1);
+	$$ = new TypePointerId(@$, $1);
 }
 	| ttype {
 	$$ = $1;
@@ -265,7 +266,7 @@ type:
 
 ttype:
 	  type ARRAY {
-	$$ = new TypePointerArray($1);
+	$$ = new TypePointerArray(@$, $1);
 }
 
 %%

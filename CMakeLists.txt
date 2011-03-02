@@ -11,6 +11,7 @@ set(COMPILER_CPPFILES
 	type.cpp
 	parseresult.cpp
 	instruction.cpp
+	location.cpp
 	bison_parser.cpp
 	flex_lexer.cpp
 )

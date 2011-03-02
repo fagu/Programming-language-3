@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include "location.h"
 
 class BlockInstruction;
 class DeclarationInstruction;
@@ -15,7 +16,8 @@ class Type {
 private:
 	ArrayType * array;
 public:
-	Type() {array = 0;}
+	Location loc;
+	Type(Location _loc) : loc(_loc) {array = 0;}
 	virtual ~Type() {}
 	virtual void find() {}
 	virtual int size()=0;
@@ -28,6 +30,8 @@ class TypePointer {
 protected:
 	Type * type;
 public:
+	Location loc;
+	TypePointer(Location _loc) : loc(_loc) {}
 	virtual ~TypePointer() {}
 	virtual void find() = 0;
 	Type & operator*();
@@ -39,8 +43,8 @@ class TypePointerId : public TypePointer {
 private:
 	string * name;
 public:
-	TypePointerId(string *_name) : name(_name) {type = 0;}
-	TypePointerId(Type * _type) {type=_type;}
+	TypePointerId(Location _loc, string *_name) : TypePointer(_loc), name(_name) {type = 0;}
+	TypePointerId(Location _loc, Type * _type) : TypePointer(_loc) {type=_type;}
 	~TypePointerId();
 	void find();
 };
@@ -49,7 +53,7 @@ class TypePointerArray : public TypePointer {
 private:
 	TypePointer * contenttype;
 public:
-	TypePointerArray(TypePointer * _contenttype) : contenttype(_contenttype) {}
+	TypePointerArray(Location _loc, TypePointer * _contenttype) : TypePointer(_loc), contenttype(_contenttype) {}
 	~TypePointerArray();
 	void find();
 	
@@ -57,11 +61,12 @@ public:
 
 class VariableDeclaration {
 public:
+	Location loc;
 	string *name;
 	TypePointer *type;
 	int pos;
 public:
-	VariableDeclaration(string *_name, TypePointer *_type) : name(_name), type(_type), pos(-1) {
+	VariableDeclaration(Location _loc, string *_name, TypePointer *_type) : loc(_loc), name(_name), type(_type), pos(-1) {
 	}
 	~VariableDeclaration() {
 		delete name;
@@ -75,9 +80,9 @@ class ClassType : public Type {
 private:
 	VariableDeclarations *declarations;
 	int m_size;
-	bool infind;
 public:
-	ClassType(VariableDeclarations *_declarations);
+	string *name;
+	ClassType(Location _loc, string *_name, VariableDeclarations *_declarations) : Type(_loc), name(_name), declarations(_declarations), m_size(-1) {}
 	~ClassType();
 	void find();
 	int size();
@@ -90,7 +95,7 @@ class PrimitiveType : public Type {
 private:
 	int m_size;
 public:
-	PrimitiveType(int _size) : m_size(_size) {}
+	PrimitiveType(Location _loc, int _size) : Type(_loc), m_size(_size) {}
 	~PrimitiveType() {}
 	int size() {
 		return m_size;
@@ -100,6 +105,7 @@ public:
 
 class NullType : public Type {
 public:
+	NullType(Location _loc) : Type(_loc) {}
 	int size() {return 1;}
 	char style() {return 'N';}
 	bool convertibleTo(Type* t) {return true;}
@@ -112,7 +118,7 @@ public:
 	int size() {return 1;}
 	char style() {return 'A';}
 private:
-	ArrayType(Type * _contenttype) : contenttype(_contenttype) {}
+	ArrayType(Location _loc, Type * _contenttype) : Type(_loc), contenttype(_contenttype) {}
 };
 
 class FunctionDeclaration {

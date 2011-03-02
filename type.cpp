@@ -4,11 +4,8 @@
 
 ArrayType* Type::arrayType() {
 	if (!array)
-		array = new ArrayType(this);
+		array = new ArrayType(Location(), this);
 	return array;
-}
-
-ClassType::ClassType(VariableDeclarations* _declarations) : declarations(_declarations), m_size(-1), infind(false) {
 }
 
 ClassType::~ClassType() {
@@ -19,18 +16,12 @@ ClassType::~ClassType() {
 }
 
 void ClassType::find() {
-	if (infind) {
-		fprintf(stderr, "Cycle in type definitions!\n");
-		return;
-	}
-	infind = true;
 	int size = 0;
 	for (VariableDeclarations::iterator it = declarations->begin(); it != declarations->end(); it++) {
 		it->second->pos = size;
 		size += (*it->second->type)->size();
 	}
 	m_size = size;
-	infind = false;
 }
 
 int ClassType::size() {
@@ -74,7 +65,7 @@ void TypePointerId::find() {
 		return;
 	type = ParseRes->types[*name];
 	if (type == 0)
-		fprintf(stderr, "Type '%s' not known!\n", name->c_str());
+		printerr("Type '%s' not known!\n", name->c_str());
 }
 
 TypePointerArray::~TypePointerArray() {
@@ -91,7 +82,7 @@ int FunctionDeclaration::find() {
 	for (int i = 0; i < parameters->size(); i++) {
 		(*parameters)[i]->find();
 	}
-	DeclarationInstruction * returndec = new DeclarationInstruction(resulttype, new string("return"));
+	DeclarationInstruction * returndec = new DeclarationInstruction(Location(), resulttype, new string("return")); // TODO use real location
 	returndec->find();
 	instructions->find();
 	while(ParseRes->varstack.size() > sizebefore) {
