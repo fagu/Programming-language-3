@@ -6,8 +6,17 @@
 #include "virtualmachine.h"
 #include "garbagecollector.h"
 
-//#define PRINTHASH
+//#define PRINTCOMMAND
 //#define PRINTSTACK
+//#define PRINTHEAP
+#ifndef PRINTCOMMAND
+#ifdef PRINTSTACK
+#define PRINTCOMMAND
+#endif
+#ifdef PRINTHEAP
+#define PRINTCOMMAND
+#endif
+#endif
 
 bool showinput = false;
 bool run = true;
@@ -36,6 +45,26 @@ int oplength[] = {
 string opname[NUMBEROFOPCODES];
 
 state stat;
+
+#define dump_stack() do { \
+		printf("\033[34mstack: "); \
+		for (int i = 0; i < st.size(); i++) { \
+			if (ip[i]) \
+				printf("p"); \
+			printf("%2d ", st[i]); \
+		} \
+		printf("\033[39m\n"); \
+	} while(0)
+
+#define dump_heap() do { \
+		printf("\033[32mheap: "); \
+		for (int i = 0; i < stat.hash.size(); i++) { \
+			if (stat.hashispointer[i]) \
+				printf("p"); \
+			printf("%2d ", stat.hash[i]); \
+		} \
+		printf("\033[39m\n"); \
+	} while(0)
 
 int main(int argc, char *argv[]) {
 	int option;
@@ -156,6 +185,18 @@ int main(int argc, char *argv[]) {
 			int len, co, pos, posa, posb, posc;
 			int nextpos;
 			aktpos++;
+#ifdef PRINTCOMMAND
+			printf("\033[31m%2d %s (", stat.stac.back()->funcnum, opname[op].c_str());
+			int oplen = oplength[op];
+			if (op == CALL)
+				oplen = 2+argsizes[li[aktpos]].size();
+			for (int i = 0; i < oplen; i++) {
+				printf("%2d", li[aktpos+i]);
+				if (i < oplen-1)
+					printf(",");
+			}
+			printf("):\033[39m\n");
+#endif
 			switch(op) {
 #define INSTRUCTION(c,n,code) case c: code break;
 #include "vminstructions.cpp"
@@ -165,24 +206,10 @@ int main(int argc, char *argv[]) {
 					return 0;
 			}
 #ifdef PRINTSTACK
-			printf("\033[34m%2d %s (", stat.stac.back()->funcnum, opname[op].c_str());
-			for (int i = 0; i < oplength[op]; i++) {
-				printf("%2d", li[aktpos+i]);
-				if (i < oplength[op]-1)
-					printf(",");
-			}
-			printf("):\t ");
-			for (int i = 0; i < st.size(); i++) {
-				printf("%d ", st[i]);
-			}
-			printf("\033[39m\n");
+			dump_stack();
 #endif
-#ifdef PRINTHASH
-			printf("\033[32m   ");
-			for (int i = 0; i < stat.hash.size(); i++) {
-				printf("%2d ", stat.hash[i]);
-			}
-			printf("\033[39m\n");
+#ifdef PRINTHEAP
+			dump_heap();
 #endif
 			aktpos = nextpos;
 			if (stat.hash.size() >= nextgc) {

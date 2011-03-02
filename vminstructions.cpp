@@ -139,25 +139,13 @@ INSTRUCTION(CALL,1,
 
 // Dump stack
 INSTRUCTION(DUMP_STACK,0,
-	printf("\033[34mstack: ");
-	for (int i = 0; i < st.size(); i++) {
-		if (ip[i])
-			printf("p");
-		printf("%d ", st[i]);
-	}
-	printf("\033[39m\n");
+	dump_stack();
 	nextpos = aktpos;
 )
 
 // Dump heap
 INSTRUCTION(DUMP_HEAP,0,
-	printf("\033[32mheap: ");
-	for (int i = 0; i < stat.hash.size(); i++) {
-		if (stat.hashispointer[i])
-			printf("p");
-		printf("%d ", stat.hash[i]);
-	}
-	printf("\033[39m\n");
+	dump_heap();
 	nextpos = aktpos;
 )
 
