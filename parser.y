@@ -12,7 +12,7 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token NUL CLASS NEW IF WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHASH
+%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHASH
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp narexp statement;
@@ -40,7 +40,7 @@
 	TypePointer * type;
 }
 
-%expect 2
+%expect 3
 
 %%
 
@@ -110,7 +110,10 @@ statement:
 	$$ = $2;
 }
 	| IF '(' exp ')' statement {
-	$$ = new IfInstruction(@$, $3, new BlockInstruction(@5, $5));
+	$$ = new IfInstruction(@$, $3, new BlockInstruction(@5, $5), new BlockInstruction(Location()));
+}
+	| IF '(' exp ')' statement ELSE statement {
+	$$ = new IfInstruction(@$, $3, new BlockInstruction(@5, $5), new BlockInstruction(@7, $7));
 }
 	| WHILE '(' exp ')' statement {
 	$$ = new WhileInstruction(@$, $3, new BlockInstruction(@5, $5));

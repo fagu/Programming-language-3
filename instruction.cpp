@@ -153,9 +153,13 @@ void AccessArrayInstruction::findSet(Instruction* c) {
 
 void IfInstruction::find() {
 	cond->find();
+	int elsepos = ParseRes->newStop();
 	int end = ParseRes->newStop();
-	ParseRes->jumpIf(cond->pos, end);
+	ParseRes->jumpIf(cond->pos, elsepos);
 	then->find();
+	ParseRes->jump(end);
+	ParseRes->hereStop(elsepos);
+	Else->find();
 	ParseRes->hereStop(end);
 }
 

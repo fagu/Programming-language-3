@@ -29,8 +29,7 @@ void ensureres(vector v, int s) {
 			v.cont[i] = old[i];
 		}
 		v.res = nres;
-	}
-	if (v.res >= 4*s && v.res >= 4) {
+	} else if (v.res >= 4*s && v.res >= 4) {
 		int nres = v.res/4;
 		int[] old = v.cont;
 		v.cont = new int[nres];

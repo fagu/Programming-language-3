@@ -121,8 +121,9 @@ class IfInstruction : public Instruction {
 private:
 	Instruction *cond;
 	BlockInstruction *then;
+	BlockInstruction *Else;
 public:
-	IfInstruction(Location _loc, Instruction *_cond, BlockInstruction *_then) : Instruction(_loc), cond(_cond), then(_then) {}
+	IfInstruction(Location _loc, Instruction *_cond, BlockInstruction *_then, BlockInstruction *_else) : Instruction(_loc), cond(_cond), then(_then), Else(_else) {}
 	void find();
 	Type* resulttype();
 };

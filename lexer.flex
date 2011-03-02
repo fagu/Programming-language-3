@@ -15,6 +15,7 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 "class" {return CLASS;}
 "new" {return NEW;}
 "if" {return IF;}
+"else" {return ELSE;}
 "while" {return WHILE;}
 "for" {return FOR;}
 "==" {return EQ;}
