@@ -1,6 +1,10 @@
 
+INSTRUCTION(FUNC,0,)
+INSTRUCTION(FUNC_MAIN,0,)
+INSTRUCTION(HERE_STOP,0,)
+
 // Allocate on stack
-INSTRUCTION('A',1,
+INSTRUCTION(ALLOC_STACK,1,
 	len = li[aktpos];
 	if (len > 0) {
 		for (int i = 0; i < len; i++) {
@@ -17,7 +21,7 @@ INSTRUCTION('A',1,
 )
 
 // Integer constant
-INSTRUCTION('I',2,
+INSTRUCTION(INT_CONST,2,
 	co = li[aktpos]; pos = li[aktpos+1];
 	st[li[aktpos+1]] = li[aktpos];
 	ip[li[aktpos+1]] = false;
@@ -25,7 +29,7 @@ INSTRUCTION('I',2,
 )
 
 // Copy on stack
-INSTRUCTION('C',3,
+INSTRUCTION(COPY_STACK,3,
 	posa = li[aktpos]; len = li[aktpos+1]; posb = li[aktpos+2];
 	for (int i = 0; i < len; i++) {
 		st[posb+i] = st[posa+i];
@@ -35,7 +39,7 @@ INSTRUCTION('C',3,
 )
 
 // Print
-INSTRUCTION('P',2,
+INSTRUCTION(PRINT,2,
 	pos = li[aktpos]; len = li[aktpos+1];
 	for (int i = 0; i < len; i++)
 		printf("%d ", st[pos+i]);
@@ -44,7 +48,7 @@ INSTRUCTION('P',2,
 )
 
 // Allocate fixed amount on heap and save pointer
-INSTRUCTION('R',2,
+INSTRUCTION(ALLOC_HEAP_CONSTAMOUNT,2,
 	pos = li[aktpos]; len = li[aktpos+1];
 	st[pos] = alloc(len, stat);
 	ip[pos] = true;
@@ -52,7 +56,7 @@ INSTRUCTION('R',2,
 )
 
 // Allocate variable amount on heap and save pointer
-INSTRUCTION('r',3,
+INSTRUCTION(ALLOC_HEAP_VARAMOUNT,3,
 	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2];
 	st[posb] = alloc(len*st[posa], stat);
 	ip[posb] = true;
@@ -60,7 +64,7 @@ INSTRUCTION('r',3,
 )
 
 // Set on heap
-INSTRUCTION('S',3,
+INSTRUCTION(SET_HEAP,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	stat.hash[st[posb]+posc] = st[posa];
 	stat.hashispointer[st[posb]+posc] = ip[posa];
@@ -68,7 +72,7 @@ INSTRUCTION('S',3,
 )
 
 // Get from heap
-INSTRUCTION('G',3,
+INSTRUCTION(GET_HEAP,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = stat.hash[st[posa]+posb];
 	ip[posc] = stat.hashispointer[st[posa]+posb];
@@ -76,7 +80,7 @@ INSTRUCTION('G',3,
 )
 
 // Set on heap array
-INSTRUCTION('X',4,
+INSTRUCTION(SET_ARRAY,4,
 	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2]; posc = li[aktpos+3];
 	for (int i = 0; i < len; i++) {
 		stat.hash[st[posb]+len*st[posc]+i] = st[posa+i];
@@ -86,7 +90,7 @@ INSTRUCTION('X',4,
 )
 
 // Get from heap array
-INSTRUCTION('x',4,
+INSTRUCTION(GET_ARRAY,4,
 	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2]; posc = li[aktpos+3];
 	for (int i = 0; i < len; i++) {
 		st[posc+i] = stat.hash[st[posa]+len*st[posb]+i];
@@ -96,7 +100,7 @@ INSTRUCTION('x',4,
 )
 
 // Jump if
-INSTRUCTION('J',2,
+INSTRUCTION(JUMPIF,2,
 	posa = li[aktpos]; posb = li[aktpos+1];
 	if (st[posa] == 0)
 		nextpos = sto[posb];
@@ -105,13 +109,13 @@ INSTRUCTION('J',2,
 )
 
 // Jump
-INSTRUCTION('j',1,
+INSTRUCTION(JUMP,1,
 	posa = li[aktpos];
 	nextpos = sto[posa];
 )
 
 // Call function
-INSTRUCTION('c',1,
+INSTRUCTION(CALL,1,
 	co = li[aktpos]; pos = li[aktpos+1];
 	stat.stac.push_back(new stackentry());
 	stat.stac.back()->aktpos = 0;
@@ -134,7 +138,7 @@ INSTRUCTION('c',1,
 )
 
 // Dump stack
-INSTRUCTION('D',0,
+INSTRUCTION(DUMP_STACK,0,
 	printf("stack: ");
 	for (int i = 0; i < st.size(); i++) {
 		if (ip[i])
@@ -145,9 +149,9 @@ INSTRUCTION('D',0,
 	nextpos = aktpos;
 )
 
-// Dump hash
-INSTRUCTION('d',0,
-	printf("hash: ");
+// Dump heap
+INSTRUCTION(DUMP_HEAP,0,
+	printf("heap: ");
 	for (int i = 0; i < stat.hash.size(); i++) {
 		if (stat.hashispointer[i])
 			printf("p");
@@ -157,91 +161,91 @@ INSTRUCTION('d',0,
 	nextpos = aktpos;
 )
 
-INSTRUCTION('+',3,
+INSTRUCTION(PLUS,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa]+st[posb];
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('-',3,
+INSTRUCTION(MINUS,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa]-st[posb];
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('*',3,
+INSTRUCTION(TIMES,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa]*st[posb];
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('/',3,
+INSTRUCTION(DIV,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa]/st[posb];
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('%',3,
+INSTRUCTION(MOD,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa]%st[posb];
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('=',3,
+INSTRUCTION(EQUAL,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa] == st[posb] ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('<',3,
+INSTRUCTION(LESS,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa] < st[posb] ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('>',3,
+INSTRUCTION(GREATER,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa] > st[posb] ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('(',3,
+INSTRUCTION(LESSOREQUAL,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa] <= st[posb] ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION(')',3,
+INSTRUCTION(GREATEROREQUAL,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa] >= st[posb] ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('~',3,
+INSTRUCTION(UNEQUAL,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa] != st[posb] ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('&',3,
+INSTRUCTION(AND,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = (st[posa]!=0 && st[posb]!=0 ? 1 : 0);
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
-INSTRUCTION('O',3,
+INSTRUCTION(OR,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = (st[posa]!=0 || st[posb]!=0 ? 1 : 0);
 	ip[posc] = false;

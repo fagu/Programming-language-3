@@ -3,6 +3,7 @@
 
 #include "location.h"
 #include "type.h"
+#include "opcodes.h"
 
 class BlockInstruction;
 class BlockInstruction;
@@ -19,10 +20,10 @@ public:
 
 class BinaryOperatorInstruction : public Instruction {
 private:
-	char op;
+	OPCODE op;
 	Instruction *a, *b;
 public:
-	BinaryOperatorInstruction(Location _loc, char _op, Instruction *_a, Instruction *_b) : Instruction(_loc), op(_op), a(_a), b(_b) {}
+	BinaryOperatorInstruction(Location _loc, OPCODE _op, Instruction *_a, Instruction *_b) : Instruction(_loc), op(_op), a(_a), b(_b) {}
 	void find();
 	Type* resulttype();
 };
@@ -188,9 +189,9 @@ public:
 
 class DumpInstruction : public Instruction {
 private:
-	char op;
+	OPCODE op;
 public:
-	DumpInstruction(Location _loc, char _op) : Instruction(_loc), op(_op) {}
+	DumpInstruction(Location _loc, OPCODE _op) : Instruction(_loc), op(_op) {}
 	void find();
 	Type* resulttype();
 };

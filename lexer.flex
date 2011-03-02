@@ -22,13 +22,13 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 "<=" {return LE;}
 ">=" {return GE;}
 "!=" {return NE;}
-"&&" {return AND;}
-"||" {return OR;}
+"&&" {return LAND;}
+"||" {return LOR;}
 "++" {return PP;}
 "--" {return MM;}
 "[]" {return ARRAY;}
 "dump_stack" {return DUMPSTACK;}
-"dump_hash" {return DUMPHASH;}
+"dump_heap" {return DUMPHEAP;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);

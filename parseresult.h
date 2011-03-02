@@ -5,9 +5,10 @@
 #include <stack>
 #include "type.h"
 #include "instruction.h"
+#include "opcodes.h"
 
 struct instr {
-	char typ;
+	OPCODE typ;
 	int len;
 	int a;
 	int b;
@@ -37,7 +38,7 @@ public:
 	
 	int alloc(int len);
 	void copy(int from, int len, int to);
-	void binaryoperate(char o, int a, int b, int c);
+	void binaryoperate(OPCODE o, int a, int b, int c);
 	void intconst(int nr, int to);
 	void print(int from, int len);
 	void newRef(int len, int to);
@@ -51,7 +52,7 @@ public:
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
 	void call(int func, const std::vector< int >& args, int resultpos);
-	void dump(char op);
+	void dump(OPCODE op);
 	
 	void output();
 	

@@ -12,7 +12,7 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHASH
+%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHEAP
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp narexp statement;
@@ -20,7 +20,7 @@
 %type <params> parameters neparameters;
 %type <instructions> arguments nearguments;
 %type <type> type ttype;
-%left AND OR
+%left LAND LOR
 %left '!'
 %left EQ LE GE '<' '>' NE
 %left '+' '-'
@@ -100,10 +100,10 @@ statement:
 	$$ = new SetInstruction(@$, $1, $3);
 }
 	| exp PP ';' {
-	$$ = new SetInstruction(@$, $1, new BinaryOperatorInstruction(@$, '+', $1, new IntegerConstantInstruction(@$, 1)));
+	$$ = new SetInstruction(@$, $1, new BinaryOperatorInstruction(@$, PLUS, $1, new IntegerConstantInstruction(@$, 1)));
 }
 	| exp MM ';' {
-	$$ = new SetInstruction(@$, $1, new BinaryOperatorInstruction(@$, '-', $1, new IntegerConstantInstruction(@$, 1)));
+	$$ = new SetInstruction(@$, $1, new BinaryOperatorInstruction(@$, MINUS, $1, new IntegerConstantInstruction(@$, 1)));
 }
 	| '{' statements '}' {
 	$2->loc = @$;
@@ -126,10 +126,10 @@ statement:
 	$$ = a;
 }
 	| DUMPSTACK ';' {
-	$$ = new DumpInstruction(@$, 'D');
+	$$ = new DumpInstruction(@$, DUMP_STACK);
 }
-	| DUMPHASH ';' {
-	$$ = new DumpInstruction(@$, 'd');
+	| DUMPHEAP ';' {
+	$$ = new DumpInstruction(@$, DUMP_HEAP);
 }
 	| error ';' {
 	printsyntaxerr(@$, "syntax error\n");
@@ -224,52 +224,52 @@ narexp:
 	$$ = new CallInstruction(@$, $1, $3);
 }
 	| exp '+' exp {
-	$$ = new BinaryOperatorInstruction(@$, '+', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, PLUS, $1, $3);
 }
 	| exp '-' exp {
-	$$ = new BinaryOperatorInstruction(@$, '-', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, MINUS, $1, $3);
 }
 	| exp '*' exp {
-	$$ = new BinaryOperatorInstruction(@$, '*', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, TIMES, $1, $3);
 }
 	| exp '/' exp {
-	$$ = new BinaryOperatorInstruction(@$, '/', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, DIV, $1, $3);
 }
 	| exp '%' exp {
-	$$ = new BinaryOperatorInstruction(@$, '%', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, MOD, $1, $3);
 }
 	| exp EQ exp {
-	$$ = new BinaryOperatorInstruction(@$, '=', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, EQUAL, $1, $3);
 }
 	| exp '<' exp {
-	$$ = new BinaryOperatorInstruction(@$, '<', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, LESS, $1, $3);
 }
 	| exp '>' exp {
-	$$ = new BinaryOperatorInstruction(@$, '>', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, GREATER, $1, $3);
 }
 	| exp LE exp {
-	$$ = new BinaryOperatorInstruction(@$, '(', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, LESSOREQUAL, $1, $3);
 }
 	| exp GE exp {
-	$$ = new BinaryOperatorInstruction(@$, ')', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, GREATEROREQUAL, $1, $3);
 }
 	| exp NE exp {
-	$$ = new BinaryOperatorInstruction(@$, '~', $1, $3);
+	$$ = new BinaryOperatorInstruction(@$, UNEQUAL, $1, $3);
 }
-	| exp AND exp {
-	$$ = new BinaryOperatorInstruction(@$, '&', $1, $3);
+	| exp LAND exp {
+	$$ = new BinaryOperatorInstruction(@$, AND, $1, $3);
 }
-	| exp OR exp {
-	$$ = new BinaryOperatorInstruction(@$, 'O', $1, $3);
+	| exp LOR exp {
+	$$ = new BinaryOperatorInstruction(@$, OR, $1, $3);
 }
 	| '+' exp %prec NEG {
-	$$ = new BinaryOperatorInstruction(@$, '+', new IntegerConstantInstruction(@$, 0), $2);
+	$$ = new BinaryOperatorInstruction(@$, PLUS, new IntegerConstantInstruction(@$, 0), $2);
 }
 	| '-' exp %prec NEG {
-	$$ = new BinaryOperatorInstruction(@$, '-', new IntegerConstantInstruction(@$, 0), $2);
+	$$ = new BinaryOperatorInstruction(@$, MINUS, new IntegerConstantInstruction(@$, 0), $2);
 }
 	| '!' exp {
-	$$ = new BinaryOperatorInstruction(@$, '~', $2, new IntegerConstantInstruction(@$, 0)); // TODO faster solution with unary operator
+	$$ = new BinaryOperatorInstruction(@$, UNEQUAL, $2, new IntegerConstantInstruction(@$, 0)); // TODO faster solution with unary operator
 }
 
 type:

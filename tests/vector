@@ -53,11 +53,12 @@ void pop_back(vector v) {
 
 void main() {
 	vector v = newvector();
-	for (int i = 0; i < 100000; i++;) {
+	for (int i = 0; i < 100; i++;) {
 		push_back(v, i);
 		if (i % 2 == 0)
 			pop_back(v);
 	}
 	for (int i = 0; i < v.size; i++;)
 		v.cont[i];
+	dump_heap;
 }
