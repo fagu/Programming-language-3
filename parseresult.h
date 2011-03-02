@@ -51,6 +51,7 @@ public:
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
 	void call(int func, const std::vector< int >& args, int resultpos);
+	void dump(char op);
 	
 	void output();
 	

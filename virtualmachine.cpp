@@ -117,6 +117,8 @@ int main(int argc, char *argv[]) {
 				for (pos--; pos != codepos+1; pos--)
 					if (*pos == '\0')
 						*pos = ';';
+			} else if(oplength[liste.back()[N]] == 0) {
+				N++;
 			} else if (oplength[liste.back()[N]] == 1) {
 				liste.back().push_back(0);
 				sscanf(codepos+1, "%d", &liste.back()[N+1]);
@@ -205,6 +207,7 @@ int main(int argc, char *argv[]) {
 			stackentry & nse = *stat.stac[stat.stac.size()-2];
 			for (int i = 0; i < resultsize[se.funcnum]; i++) {
 				nse.regs[se.copyresultto+i] = se.regs[resultpos[se.funcnum]+i];
+				nse.ispointer[se.copyresultto+i] = se.ispointer[resultpos[se.funcnum]+i];
 			}
 		}
 		stat.stac.pop_back();

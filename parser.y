@@ -12,7 +12,7 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token NUL CLASS NEW IF WHILE FOR EQ LE GE NE PP MM ARRAY
+%token NUL CLASS NEW IF WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHASH
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp narexp statement;
@@ -70,6 +70,9 @@ outerstatement:
 	else
 		ParseResult::self()->types[*$2] = type;
 }
+	| error {
+	printsyntaxerr(@$, "Syntax error!\n");
+}
 
 statements:
 	    {
@@ -118,6 +121,12 @@ statement:
 	b->instructions.push_back($6);
 	a->instructions.push_back(new WhileInstruction(@$, $4, b));
 	$$ = a;
+}
+	| DUMPSTACK ';' {
+	$$ = new DumpInstruction(@$, 'D');
+}
+	| DUMPHASH ';' {
+	$$ = new DumpInstruction(@$, 'd');
 }
 	| error ';' {
 	printsyntaxerr(@$, "syntax error\n");

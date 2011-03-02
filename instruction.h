@@ -185,4 +185,13 @@ public:
 	Type* resulttype();
 };
 
+class DumpInstruction : public Instruction {
+private:
+	char op;
+public:
+	DumpInstruction(Location _loc, char _op) : Instruction(_loc), op(_op) {}
+	void find();
+	Type* resulttype();
+};
+
 #endif

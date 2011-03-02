@@ -1,0 +1,64 @@
+class vector {
+	int[] cont;
+	int size;
+	int res;
+}
+
+vector newvector() {
+	vector v = new vector;
+	v.cont = new int[1];
+	v.size = 0;
+	v.res = 1;
+	return=v;
+}
+
+int nextres(int old, int newmin) {
+	if (old == 0)
+		old = 1;
+	while(old < newmin)
+		old = old*2;
+	return=old;
+}
+
+void ensureres(vector v, int s) {
+	if (v.res < s) {
+		int[] old = v.cont;
+		int nres = nextres(v.res, s);
+		v.cont = new int[nres];
+		for (int i = 0; i < v.res; i++;) {
+			v.cont[i] = old[i];
+		}
+		v.res = nres;
+	}
+	if (v.res >= 4*s && v.res >= 4) {
+		int nres = v.res/4;
+		int[] old = v.cont;
+		v.cont = new int[nres];
+		for (int i = 0; i < nres; i++;) {
+			v.cont[i] = old[i];
+		}
+		v.res = nres;
+	}
+}
+
+void push_back(vector v, int n) {
+	ensureres(v, v.size+1);
+	v.cont[v.size] = n;
+	v.size++;
+}
+
+void pop_back(vector v) {
+	ensureres(v, v.size-1);
+	v.size--;
+}
+
+void main() {
+	vector v = newvector();
+	for (int i = 0; i < 100000; i++;) {
+		push_back(v, i);
+		if (i % 2 == 0)
+			pop_back(v);
+	}
+	for (int i = 0; i < v.size; i++;)
+		v.cont[i];
+}

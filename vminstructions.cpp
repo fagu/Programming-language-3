@@ -133,6 +133,30 @@ INSTRUCTION('c',1,
 	goto stackup;
 )
 
+// Dump stack
+INSTRUCTION('D',0,
+	printf("stack: ");
+	for (int i = 0; i < st.size(); i++) {
+		if (ip[i])
+			printf("p");
+		printf("%d ", st[i]);
+	}
+	printf("\n");
+	nextpos = aktpos;
+)
+
+// Dump hash
+INSTRUCTION('d',0,
+	printf("hash: ");
+	for (int i = 0; i < stat.hash.size(); i++) {
+		if (stat.hashispointer[i])
+			printf("p");
+		printf("%d ", stat.hash[i]);
+	}
+	printf("\n");
+	nextpos = aktpos;
+)
+
 INSTRUCTION('+',3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
 	st[posc] = st[posa]+st[posb];

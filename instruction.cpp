@@ -238,3 +238,11 @@ void EmptyInstruction::find() {
 Type* EmptyInstruction::resulttype() {
 	return ParseRes->voidType;
 }
+
+void DumpInstruction::find() {
+	ParseRes->dump(op);
+}
+
+Type* DumpInstruction::resulttype() {
+	return ParseRes->voidType;
+}

@@ -7,7 +7,7 @@
 %}
 
 DIGIT    [0-9]
-ID       [a-zA-Z][a-zA-Z0-9]*
+ID       [a-zA-Z_][a-zA-Z0-9_]*
 
 %%
 
@@ -26,6 +26,8 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 "++" {return PP;}
 "--" {return MM;}
 "[]" {return ARRAY;}
+"dump_stack" {return DUMPSTACK;}
+"dump_hash" {return DUMPHASH;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);
@@ -37,9 +39,18 @@ ID       [a-zA-Z][a-zA-Z0-9]*
 	return IDENTIFIER;
 }
 
-"//"[^\n]*"\n" {
+"//".*"\n" {
 	yylloc.last_line++;
 	yylloc.last_column = 1;
+}
+
+"/*"([^\*]|\*[^/])*"*/" {
+	for (int i = 0; i < yyleng; i++) {
+		if (yytext[i] == '\n') {
+			yylloc.last_line++;
+			yylloc.last_column = 1;
+		}
+	}
 }
 
 [ \t]+

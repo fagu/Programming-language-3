@@ -128,6 +128,11 @@ void ParseResult::call(int func, const std::vector< int >& args, int resultpos) 
 	instructions.back().push_back(i);
 }
 
+void ParseResult::dump(char op) {
+	instr i = {op};
+	instructions.back().push_back(i);
+}
+
 void ParseResult::output() {
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->find();
@@ -225,6 +230,8 @@ void ParseResult::output() {
 				for (int i = 0; i < in.v.size(); i++)
 					printf(";%d", realpos[in.v[i]]);
 				printf("|\n");
+			} else if (in.typ == 'D' || in.typ == 'd') {
+				printf("%c|\n", in.typ);
 			} else {
 				printf("%c%d;%d;%d|\n", in.typ, realpos[in.a], realpos[in.b], realpos[in.c]);
 			}
