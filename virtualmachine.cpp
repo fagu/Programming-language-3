@@ -93,7 +93,11 @@ int main(int argc, char *argv[]) {
 				fprintf(stderr, "Operation #%d does not exist!\n", op);
 				return 1;
 			}
+			if (op == FUNC || op == FUNC_MAIN)
+				printf("\033[1;31m");
 			printf("%25s: ", opname[op].c_str());
+			if (op == FUNC || op == FUNC_MAIN)
+				printf("\033[22;39m");
 			for (int i = 0; i < args.size(); i++)
 				printf("%2d ", args[i]);
 			printf("\n");
@@ -161,7 +165,7 @@ int main(int argc, char *argv[]) {
 					return 0;
 			}
 #ifdef PRINTSTACK
-			printf("%2d %s (", stat.stac.back()->funcnum, opname[op].c_str());
+			printf("\033[34m%2d %s (", stat.stac.back()->funcnum, opname[op].c_str());
 			for (int i = 0; i < oplength[op]; i++) {
 				printf("%2d", li[aktpos+i]);
 				if (i < oplength[op]-1)
@@ -171,14 +175,14 @@ int main(int argc, char *argv[]) {
 			for (int i = 0; i < st.size(); i++) {
 				printf("%d ", st[i]);
 			}
-			printf("\n");
+			printf("\033[39m\n");
 #endif
 #ifdef PRINTHASH
-			printf("   ");
+			printf("\033[32m   ");
 			for (int i = 0; i < stat.hash.size(); i++) {
 				printf("%2d ", stat.hash[i]);
 			}
-			printf("\n");
+			printf("\033[39m\n");
 #endif
 			aktpos = nextpos;
 			if (stat.hash.size() >= nextgc) {

@@ -33,7 +33,7 @@ enum OPCODE {
 	UNEQUAL,
 	AND,
 	OR,
-	NUMBEROFOPCODES
+	NUMBEROFOPCODES // ATTENTION: This MUST be the last entry
 };
 
 #endif // OPCODES_H
