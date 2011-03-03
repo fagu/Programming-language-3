@@ -47,7 +47,6 @@
 %%
 
 input: outerstatements {
-	ParseRes->output();
 }
 
 outerstatements:

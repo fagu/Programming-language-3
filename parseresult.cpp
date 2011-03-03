@@ -144,7 +144,7 @@ void ParseResult::dump(OPCODE op) {
 	instructions.back().push_back(i);
 }
 
-void ParseResult::output() {
+int ParseResult::output() {
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->find();
 	
@@ -173,7 +173,7 @@ void ParseResult::output() {
 		funcspecs.push_back(str.str());
 	}
 	if (haserror)
-		return;
+		return 1;
 	for (int f = 0; f < funcspecs.size(); f++) {
 		printf("%s", funcspecs[f].c_str());
 		realpos.resize(lastneeded[f].size());
@@ -251,6 +251,7 @@ void ParseResult::output() {
 		
 		realpos.clear();
 	}
+	return 0;
 }
 
 ParseResult *global = new ParseResult();

@@ -56,7 +56,7 @@ public:
 	void call(int func, const std::vector< int >& args, int resultpos);
 	void dump(OPCODE op);
 	
-	void output();
+	int output();
 	
 	ParseResult();
 	static ParseResult *self();

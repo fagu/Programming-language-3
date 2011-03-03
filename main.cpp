@@ -16,5 +16,5 @@ int main(int argc, char *argv[]) {
 	if (optind < argc)
 		freopen(argv[optind], "r", stdin);
 	yyparse();
-	return 0;
+	return ParseRes->output();
 }
