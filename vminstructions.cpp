@@ -23,8 +23,11 @@ INSTRUCTION(ALLOC_STACK,1,
 // Integer constant
 INSTRUCTION(INT_CONST,2,
 	co = li[aktpos]; pos = li[aktpos+1];
-	st[li[aktpos+1]] = li[aktpos];
+	INTREF(st[pos]) = co;
 	ip[li[aktpos+1]] = false;
+	//ip[li[aktpos+1]+1] = false;
+	//ip[li[aktpos+1]+2] = false;
+	//ip[li[aktpos+1]+3] = false;
 	nextpos = aktpos+2;
 )
 
@@ -41,41 +44,55 @@ INSTRUCTION(COPY_STACK,3,
 // Print
 INSTRUCTION(PRINT,2,
 	pos = li[aktpos]; len = li[aktpos+1];
+	//if (len == 4) {
+	//	printf("%d\n", INTREF(st[pos]));
+	//} else {
 	for (int i = 0; i < len; i++)
 		printf("%d ", st[pos+i]);
 	printf("\n");
+	//}
 	nextpos = aktpos+2;
 )
 
 // Allocate fixed amount on heap and save pointer
 INSTRUCTION(ALLOC_HEAP_CONSTAMOUNT,2,
 	pos = li[aktpos]; len = li[aktpos+1];
-	st[pos] = alloc(len, stat);
+	INTREF(st[pos]) = alloc(len, stat);
 	ip[pos] = true;
+	//ip[pos+1] = false;
+	//ip[pos+2] = false;
+	//ip[pos+3] = false;
 	nextpos = aktpos+2;
 )
 
 // Allocate variable amount on heap and save pointer
 INSTRUCTION(ALLOC_HEAP_VARAMOUNT,3,
 	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2];
-	st[posb] = alloc(len*st[posa], stat);
+	INTREF(st[posb]) = alloc(len*INTREF(st[posa]), stat);
 	ip[posb] = true;
+	//ip[pos+1] = false;
+	//ip[pos+2] = false;
+	//ip[pos+3] = false;
 	nextpos = aktpos+3;
 )
 
 // Set on heap
-INSTRUCTION(SET_HEAP,3,
-	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	stat.hash[st[posb]+posc] = st[posa];
-	stat.hashispointer[st[posb]+posc] = ip[posa];
+INSTRUCTION(SET_HEAP,4,
+	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2]; len = li[aktpos+3];
+	for (int i = 0; i < len; i++) {
+		stat.hash[INTREF(st[posb])+posc+i] = st[posa+i];
+		stat.hashispointer[INTREF(st[posb])+posc+i] = ip[posa+i];
+	}
 	nextpos = aktpos+3;
 )
 
 // Get from heap
-INSTRUCTION(GET_HEAP,3,
-	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = stat.hash[st[posa]+posb];
-	ip[posc] = stat.hashispointer[st[posa]+posb];
+INSTRUCTION(GET_HEAP,4,
+	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2]; len = li[aktpos+3];
+	for (int i = 0; i < len; i++) {
+		st[posc+i] = stat.hash[INTREF(st[posa])+posb+i];
+		ip[posc+i] = stat.hashispointer[INTREF(st[posa])+posb+i];
+	}
 	nextpos = aktpos+3;
 )
 
@@ -83,8 +100,8 @@ INSTRUCTION(GET_HEAP,3,
 INSTRUCTION(SET_ARRAY,4,
 	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2]; posc = li[aktpos+3];
 	for (int i = 0; i < len; i++) {
-		stat.hash[st[posb]+len*st[posc]+i] = st[posa+i];
-		stat.hashispointer[st[posb]+len*st[posc]+i] = ip[posa+i];
+		stat.hash[INTREF(st[posb])+len*INTREF(st[posc])+i] = st[posa+i];
+		stat.hashispointer[INTREF(st[posb])+len*INTREF(st[posc])+i] = ip[posa+i];
 	}
 	nextpos = aktpos+4;
 )
@@ -93,8 +110,8 @@ INSTRUCTION(SET_ARRAY,4,
 INSTRUCTION(GET_ARRAY,4,
 	len = li[aktpos]; posa = li[aktpos+1]; posb = li[aktpos+2]; posc = li[aktpos+3];
 	for (int i = 0; i < len; i++) {
-		st[posc+i] = stat.hash[st[posa]+len*st[posb]+i];
-		ip[posc+i] = stat.hashispointer[st[posa]+len*st[posb]+i];
+		st[posc+i] = stat.hash[INTREF(st[posa])+len*INTREF(st[posb])+i];
+		ip[posc+i] = stat.hashispointer[INTREF(st[posa])+len*INTREF(st[posb])+i];
 	}
 	nextpos = aktpos+4;
 )
@@ -151,91 +168,91 @@ INSTRUCTION(DUMP_HEAP,0,
 
 INSTRUCTION(PLUS,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa]+st[posb];
+	INTREF(st[posc]) = INTREF(st[posa])+INTREF(st[posb]);
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(MINUS,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa]-st[posb];
+	INTREF(st[posc]) = INTREF(st[posa])-INTREF(st[posb]);
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(TIMES,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa]*st[posb];
+	INTREF(st[posc]) = INTREF(st[posa])*INTREF(st[posb]);
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(DIV,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa]/st[posb];
+	INTREF(st[posc]) = INTREF(st[posa])/INTREF(st[posb]);
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(MOD,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa]%st[posb];
+	INTREF(st[posc]) = INTREF(st[posa])%INTREF(st[posb]);
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(EQUAL,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa] == st[posb] ? 1 : 0;
+	BOOLREF(st[posc]) = INTREF(st[posa]) == INTREF(st[posb]) ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(LESS,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa] < st[posb] ? 1 : 0;
+	BOOLREF(st[posc]) = INTREF(st[posa]) < INTREF(st[posb]) ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(GREATER,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa] > st[posb] ? 1 : 0;
+	BOOLREF(st[posc]) = INTREF(st[posa]) > INTREF(st[posb]) ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(LESSOREQUAL,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa] <= st[posb] ? 1 : 0;
+	BOOLREF(st[posc]) = INTREF(st[posa]) <= INTREF(st[posb]) ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(GREATEROREQUAL,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa] >= st[posb] ? 1 : 0;
+	BOOLREF(st[posc]) = INTREF(st[posa]) >= INTREF(st[posb]) ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(UNEQUAL,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = st[posa] != st[posb] ? 1 : 0;
+	BOOLREF(st[posc]) = INTREF(st[posa]) != INTREF(st[posb]) ? 1 : 0;
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(AND,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = (st[posa]!=0 && st[posb]!=0 ? 1 : 0);
+	BOOLREF(st[posc]) = (INTREF(st[posa])!=0 && INTREF(st[posb])!=0 ? 1 : 0);
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )
 
 INSTRUCTION(OR,3,
 	posa = li[aktpos]; posb = li[aktpos+1]; posc = li[aktpos+2];
-	st[posc] = (st[posa]!=0 || st[posb]!=0 ? 1 : 0);
+	BOOLREF(st[posc]) = (INTREF(st[posa])!=0 || INTREF(st[posb])!=0 ? 1 : 0);
 	ip[posc] = false;
 	nextpos = aktpos+3;
 )

@@ -10,10 +10,12 @@ ParseResult::ParseResult() {
 	voidType = new PrimitiveType(Location(), 0);
 	intType = new PrimitiveType(Location(), 1);
 	boolType = new PrimitiveType(Location(), 1);
+	charType = new PrimitiveType(Location(), 1);
 	types["null"] = nullType;
 	types["void"] = voidType;
 	types["int"] = intType;
 	types["bool"] = boolType;
+	types["char"] = charType;
 }
 
 void ParseResult::need(int id, int len) {
@@ -39,15 +41,15 @@ void ParseResult::copy(int from, int len, int to) {
 }
 
 void ParseResult::binaryoperate(OPCODE o, int a, int b, int c) {
-	need(a, 1);
-	need(b, 1);
-	need(c, 1);
+	need(a, intType->size());
+	need(b, intType->size());
+	need(c, intType->size());
 	instr i = {o, 0, a, b, c};
 	instructions.back().push_back(i);
 }
 
 void ParseResult::intconst(int nr, int to) {
-	need(to, 1);
+	need(to, intType->size());
 	instr i = {INT_CONST, 0, nr, to};
 	instructions.back().push_back(i);
 }
@@ -61,34 +63,34 @@ void ParseResult::print(int from, int len) {
 }
 
 void ParseResult::newRef(int len, int to) {
-	need(to, 1);
+	need(to, intType->size());
 	instr i = {ALLOC_HEAP_CONSTAMOUNT, len, to};
 	instructions.back().push_back(i);
 }
 
 void ParseResult::newArray(int unitsize, int sizepos, int to) {
-	need(sizepos, 1);
+	need(sizepos, intType->size());
 	instr i = {ALLOC_HEAP_VARAMOUNT, unitsize, sizepos, to};
 	instructions.back().push_back(i);
 }
 
-void ParseResult::getSub(int from, int varid, int to) {
-	need(from, 1);
-	need(to, 1);
-	instr i = {GET_HEAP, 0, from, varid, to};
+void ParseResult::getSub(int from, int varid, int to, int len) {
+	need(from, len);
+	need(to, len);
+	instr i = {GET_HEAP, len, from, varid, to};
 	instructions.back().push_back(i);
 }
 
-void ParseResult::copySub(int from, int to, int varid) {
-	need(from, 1);
-	need(to, 1);
-	instr i = {SET_HEAP, 0, from, to, varid};
+void ParseResult::copySub(int from, int to, int varid, int len) {
+	need(from, len);
+	need(to, len);
+	instr i = {SET_HEAP, len, from, to, varid};
 	instructions.back().push_back(i);
 }
 
 void ParseResult::accessArray(int unitsize, int from, int pos, int to) {
-	need(from, 1);
-	need(pos, 1);
+	need(from, intType->size());
+	need(pos, intType->size());
 	need(to, unitsize);
 	instr i = {GET_ARRAY, unitsize, from, pos, to};
 	instructions.back().push_back(i);
@@ -96,8 +98,8 @@ void ParseResult::accessArray(int unitsize, int from, int pos, int to) {
 
 void ParseResult::setArray(int unitsize, int from, int to, int pos) {
 	need(from, unitsize);
-	need(to, 1);
-	need(pos, 1);
+	need(to, intType->size());
+	need(pos, intType->size());
 	instr i = {SET_ARRAY, unitsize, from, to, pos};
 	instructions.back().push_back(i);
 }
@@ -114,7 +116,7 @@ void ParseResult::hereStop(int stop) {
 }
 
 void ParseResult::jumpIf(int cond, int stop) {
-	need(cond, 1);
+	need(cond, intType->size());
 	instr i = {JUMPIF, 0, cond, stop};
 	instructions.back().push_back(i);
 }
@@ -175,18 +177,19 @@ void ParseResult::output() {
 		sort(la.begin(), la.end());
 		int lapos = 0;
 		int spacestart = 0;
-		queue<int> unocc;
+		//queue<int> unocc;
 		for (int i = 0; i < instructions[f].size(); i++) {
 			instr in = instructions[f][i];
 			if (in.typ == ALLOC_STACK) {
+				fprintf(stderr, "found len %d\n", in.len);
 				for (int k = 0; k < in.len; k++) {
-					if (unocc.empty()) {
+					//if (unocc.empty()) {
 						realpos[in.a+k] = spacestart;
 						spacestart++;
-					} else {
-						realpos[in.a+k] = unocc.front();
-						unocc.pop();
-					}
+					//} else {
+					//	realpos[in.a+k] = unocc.front();
+					//	unocc.pop();
+					//}
 				}
 			}
 			/*while(lapos < la.size() && la[lapos].first <= i) {
@@ -211,9 +214,9 @@ void ParseResult::output() {
 				} else if (in.typ == ALLOC_HEAP_VARAMOUNT) {
 					printf("%d;%d;%d;\n", in.len, realpos[in.a], realpos[in.b]);
 				} else if (in.typ == GET_HEAP) {
-					printf("%d;%d;%d;\n", realpos[in.a], in.b, realpos[in.c]);
+					printf("%d;%d;%d;%d;\n", realpos[in.a], in.b, realpos[in.c], in.len);
 				} else if (in.typ == SET_HEAP) {
-					printf("%d;%d;%d;\n", realpos[in.a], realpos[in.b], in.c);
+					printf("%d;%d;%d;%d\n", realpos[in.a], realpos[in.b], in.c, in.len);
 				} else if (in.typ == GET_ARRAY) {
 					printf("%d;%d;%d;%d;\n", in.len, realpos[in.a], realpos[in.b], realpos[in.c]);
 				} else if (in.typ == SET_ARRAY) {

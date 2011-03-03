@@ -22,4 +22,8 @@ struct state {
 	vector<vector<int> > freeblocks; // TODO this is very inefficient!!!
 };
 
+#define BOOLREF(x) (x)
+#define CHARREF(x) (x)
+#define INTREF(x) (x)
+
 #endif // VIRTUALMACHINE_H

@@ -13,11 +13,11 @@ void BinaryOperatorInstruction::find() {
 }
 
 Type* BinaryOperatorInstruction::resulttype() {
-	return ParseRes->intType;
+	return binaryresulttype(op);
 }
 
 void IntegerConstantInstruction::find() {
-	pos = ParseRes->alloc(1);
+	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->intconst(co, pos);
 }
 
@@ -26,7 +26,7 @@ Type* IntegerConstantInstruction::resulttype() {
 }
 
 void NullInstruction::find() {
-	pos = ParseRes->alloc(1);
+	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->intconst(0, pos);
 }
 
@@ -41,7 +41,7 @@ void NewInstruction::find() {
 	if (t->style() != 'C')
 		printerr("Type '%s' is not a class!\n", name->c_str());
 	type = (ClassType*)t;
-	pos = ParseRes->alloc(1);
+	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->newRef(type->hashsize(), pos);
 }
 
@@ -104,8 +104,8 @@ void AccessInstruction::find() {
 	dec = ((ClassType*)a->resulttype())->var(*name);
 	if (!dec)
 		printerr("Class does not have a Variable called '%s'!\n", name->c_str());
-	pos = ParseRes->alloc(1);
-	ParseRes->getSub(a->pos, dec->pos, pos);
+	pos = ParseRes->alloc(dec->type->real()->size());
+	ParseRes->getSub(a->pos, dec->pos, pos, dec->type->real()->size());
 }
 
 Type* AccessInstruction::resulttype() {
@@ -122,7 +122,7 @@ void AccessInstruction::findSet(Instruction* b) {
 	b->find();
 	if (!b->resulttype()->convertibleTo(resulttype()))
 		printerr("Types do not match!\n");
-	ParseRes->copySub(b->pos, a->pos, dec->pos);
+	ParseRes->copySub(b->pos, a->pos, dec->pos, dec->type->real()->size());
 }
 
 void AccessArrayInstruction::find() {
@@ -203,7 +203,7 @@ Type* CallInstruction::resulttype() {
 
 void CreateArrayInstruction::find() {
 	size->find();
-	pos = ParseRes->alloc(1);
+	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->newArray(contenttype->real()->size(), size->pos, pos);
 }
 

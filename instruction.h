@@ -1,6 +1,7 @@
 #ifndef INSTRUCTION_H
 #define INSTRUCTION_H
 
+#include <stdio.h>
 #include "location.h"
 #include "type.h"
 #include "opcodes.h"

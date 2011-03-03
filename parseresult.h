@@ -35,6 +35,7 @@ public:
 	Type *voidType;
 	Type *intType;
 	Type *boolType;
+	Type *charType;
 	
 	int alloc(int len);
 	void copy(int from, int len, int to);
@@ -43,8 +44,8 @@ public:
 	void print(int from, int len);
 	void newRef(int len, int to);
 	void newArray(int unitsize, int sizepos, int to);
-	void getSub(int from, int varid, int to);
-	void copySub(int from, int to, int varid);
+	void getSub(int from, int varid, int to, int len);
+	void copySub(int from, int to, int varid, int len);
 	void accessArray(int unitsize, int from, int pos, int to);
 	void setArray(int unitsize, int from, int to, int pos);
 	int newStop();

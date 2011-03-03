@@ -12,6 +12,7 @@ set(COMPILER_CPPFILES
 	parseresult.cpp
 	instruction.cpp
 	location.cpp
+	opcodes.cpp
 	bison_parser.cpp
 	flex_lexer.cpp
 )

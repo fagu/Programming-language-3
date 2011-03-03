@@ -22,7 +22,7 @@ bool showinput = false;
 bool run = true;
 
 // FIXME Buffer overflow
-char input[10000];
+char input[1000000];
 int mainfunc = -1;
 vector<int> resultpos;
 vector<int> resultsize;

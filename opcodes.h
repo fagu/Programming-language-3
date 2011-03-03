@@ -36,4 +36,8 @@ enum OPCODE {
 	NUMBEROFOPCODES // ATTENTION: This MUST be the last entry
 };
 
+class Type;
+
+Type * binaryresulttype(OPCODE code);
+
 #endif // OPCODES_H
