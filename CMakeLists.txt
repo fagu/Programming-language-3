@@ -26,3 +26,12 @@ add_executable(compiler ${COMPILER_CPPFILES})
 add_executable(vm ${VM_CPPFILES})
 
 target_link_libraries(compiler fl)
+
+ENABLE_TESTING()
+
+ADD_TEST(performance ../testcase.sh performance)
+ADD_TEST(array ../testcase.sh array)
+ADD_TEST(functions ../testcase.sh functions)
+ADD_TEST(linkedlist ../testcase.sh linkedlist)
+ADD_TEST(string ../testcase.sh string)
+ADD_TEST(vector ../testcase.sh vector)

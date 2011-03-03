@@ -6,7 +6,7 @@
 void BinaryOperatorInstruction::find() {
 	a->find();
 	b->find();
-	if (a->resulttype() != ParseRes->intType || b->resulttype() != ParseRes->intType)
+	if (a->resulttype() != binaryinputtype(op) || b->resulttype() != binaryinputtype(op))
 		printerr("Wrong type in binary operator!\n");
 	pos = ParseRes->alloc(resulttype()->size());
 	ParseRes->binaryoperate(op, a->pos, b->pos, pos);
@@ -168,9 +168,12 @@ void AccessArrayInstruction::findSet(Instruction* c) {
 
 void IfInstruction::find() {
 	cond->find();
+	if (!cond->resulttype()->convertibleTo(ParseRes->boolType))
+		printerr("Types do not match!\n");
+	Instruction *convcond = cond->resulttype()->convertTo(cond, ParseRes->boolType);
 	int elsepos = ParseRes->newStop();
 	int end = ParseRes->newStop();
-	ParseRes->jumpIf(cond->pos, elsepos);
+	ParseRes->jumpIf(convcond->pos, elsepos);
 	then->find();
 	ParseRes->jump(end);
 	ParseRes->hereStop(elsepos);
@@ -186,8 +189,11 @@ void WhileInstruction::find() {
 	int start = ParseRes->newStop();
 	ParseRes->hereStop(start);
 	cond->find();
+	if (!cond->resulttype()->convertibleTo(ParseRes->boolType))
+		printerr("Types do not match!\n");
+	Instruction *convcond = cond->resulttype()->convertTo(cond, ParseRes->boolType);
 	int end = ParseRes->newStop();
-	ParseRes->jumpIf(cond->pos, end);
+	ParseRes->jumpIf(convcond->pos, end);
 	then->find();
 	ParseRes->jump(start);
 	ParseRes->hereStop(end);

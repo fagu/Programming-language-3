@@ -40,6 +40,7 @@ enum OPCODE {
 
 class Type;
 
+Type * binaryinputtype(OPCODE code);
 Type * binaryresulttype(OPCODE code);
 
 #endif // OPCODES_H

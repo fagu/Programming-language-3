@@ -2,6 +2,10 @@
 #include "type.h"
 #include "parseresult.h"
 
+Instruction* Type::convertTo(Instruction* a, Type* t) {
+	return a;
+}
+
 ArrayType* Type::arrayType() {
 	if (!array)
 		array = new ArrayType(Location(), this);
@@ -32,6 +36,10 @@ int ClassType::hashsize() {
 	if (m_size == -1)
 		find();
 	return m_size;
+}
+
+bool ClassType::convertibleTo(Type* t) {
+	return t == this || t == ParseRes->boolType;
 }
 
 VariableDeclaration* ClassType::var(const std::string& name) {

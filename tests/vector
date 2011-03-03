@@ -59,6 +59,5 @@ void main() {
 			pop_back(v);
 	}
 	for (int i = 0; i < v.size; i++;)
-		v.cont[i];
-	dump_heap;
+		print_int(v.cont[i]);
 }

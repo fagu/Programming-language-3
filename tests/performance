@@ -1,7 +1,7 @@
 int main() {
 	int sum = 0;
-	int i = 1000;
-	while(i) {
+	int i = 1000000;
+	while(i > 0) {
 		sum = sum+i;
 		i = i-1;
 	}

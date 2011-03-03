@@ -8,5 +8,5 @@ int main() {
 	}
 	for (int i = 0; i < max; i++;)
 		for (int k = 0; k < i+1; k++;)
-			a[i][k];
+			print_int(a[i][k]);
 }

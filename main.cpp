@@ -7,8 +7,14 @@
 int yyparse();
 
 int main(int argc, char *argv[]) {
-	if (argc >= 2)
-		freopen(argv[1], "r", stdin);
+	int option;
+	while ((option = getopt (argc, argv, "o:")) != -1) {
+		switch (option) {
+			case 'o': freopen(optarg, "w", stdout); break;
+		}
+	}
+	if (optind < argc)
+		freopen(argv[optind], "r", stdin);
 	yyparse();
 	return 0;
 }

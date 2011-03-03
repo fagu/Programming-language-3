@@ -6,6 +6,7 @@
 #include <map>
 #include "location.h"
 
+class Instruction;
 class BlockInstruction;
 class DeclarationInstruction;
 using namespace std;
@@ -23,6 +24,7 @@ public:
 	virtual int size()=0;
 	virtual char style()=0;
 	virtual bool convertibleTo(Type *t) {return t == this;};
+	virtual Instruction * convertTo(Instruction *a, Type *t);
 	ArrayType * arrayType();
 };
 
@@ -89,6 +91,7 @@ public:
 	int hashsize();
 	VariableDeclaration *var(const string &name);
 	char style() {return 'C';}
+	bool convertibleTo(Type* t);
 };
 
 class PrimitiveType : public Type {

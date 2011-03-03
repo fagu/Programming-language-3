@@ -16,7 +16,7 @@ void push(punkt p, int n) {
 void print(punkt p) {
 	while(p.next) {
 		p = p.next;
-		p.eintrag;
+		print_int(p.eintrag);
 	}
 }
 

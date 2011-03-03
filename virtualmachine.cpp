@@ -68,10 +68,11 @@ state stat;
 
 int main(int argc, char *argv[]) {
 	int option;
-	while ((option = getopt (argc, argv, "sn")) != -1) {
+	while ((option = getopt (argc, argv, "sno:")) != -1) {
 		switch (option) {
 			case 's': showinput = true; break;
 			case 'n': run = false; break;
+			case 'o': freopen(optarg, "w", stdout); break;
 		}
 	}
 	if (optind < argc)

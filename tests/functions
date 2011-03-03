@@ -1,6 +1,6 @@
 
 int test(int a) {
-	a;
+	print_int(a);
 }
 
 int main() {
