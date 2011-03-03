@@ -263,8 +263,12 @@ void CallInstruction::find() {
 				break;
 			}
 		}
-		if (ok)
-			dec = dists[i].first;
+		if (ok) {
+			if (dec)
+				printerr("Function '%s' cannot be uniquely determined!\n", name->c_str());
+			else
+				dec = dists[i].first;
+		}
 	}
 	if (!dec)
 		printerr("Function '%s' cannot be uniquely determined!\n", name->c_str());
