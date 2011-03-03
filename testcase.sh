@@ -1,6 +1,6 @@
 #!/bin/bash
 cd ..
-timelimit -T 1 -t 2 build/compiler tests/$1 -o tests/$1.code;
+timelimit -T 1 -t 2 build/compiler tests/$1 tests/util -o tests/$1.code;
 if (($?)); then
 	echo "Could not compile!";
 	exit 1;

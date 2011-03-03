@@ -13,8 +13,10 @@ int main(int argc, char *argv[]) {
 			case 'o': freopen(optarg, "w", stdout); break;
 		}
 	}
-	if (optind < argc)
+	while (optind < argc) {
 		freopen(argv[optind], "r", stdin);
-	yyparse();
+		yyparse();
+		optind++;
+	}
 	return ParseRes->output();
 }
