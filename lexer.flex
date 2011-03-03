@@ -1,4 +1,5 @@
 %{
+#include <stdio.h>
 #include <math.h>
 #include <string>
 #include "bison_parser.h"
@@ -9,7 +10,11 @@
 DIGIT    [0-9]
 ID       [a-zA-Z_][a-zA-Z0-9_]*
 
+%x COMMENT
+
 %%
+
+	int commentdepth;
 
 "null" {return NUL;}
 "class" {return CLASS;}
@@ -47,13 +52,25 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 	yylloc.last_column = 1;
 }
 
-"/*"([^\*]|\*[^/])*"*/" {
-	for (int i = 0; i < yyleng; i++) {
-		if (yytext[i] == '\n') {
-			yylloc.last_line++;
-			yylloc.last_column = 1;
-		}
-	}
+"/*" {
+	commentdepth = 1;
+	BEGIN(COMMENT);
+}
+
+<COMMENT>{
+"/*" {
+	commentdepth++;
+}
+"*/" {
+	commentdepth--;
+	if (commentdepth == 0)
+		BEGIN(0);
+}
+.
+\n {
+	yylloc.last_line++;
+	yylloc.last_column = 1;
+}
 }
 
 "'"[^'\n]"'" {

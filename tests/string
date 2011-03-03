@@ -49,5 +49,6 @@ void print_string(string a) {
 }
 
 void main() {
+/* hi /* hello */ test */
 	print_string(plus(tostring(-1234567890), newstring('\n')));
 }
