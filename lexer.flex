@@ -76,15 +76,11 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 }
 }
 
-"'"[^'\n]"'" {
-	yylval.character = yytext[1];
-	return CHARACTER;
-}
-
-"'\\n'" {
-	yylval.character = '\n';
-	return CHARACTER;
-}
+\'[^\\\'\n]\'	yylval.character = yytext[1]; return CHARACTER;
+\'\\'\'	yylval.character = '\''; return CHARACTER;
+\'\\n\'	yylval.character = '\n'; return CHARACTER;
+\'\\t\'	yylval.character = '\t'; return CHARACTER;
+\'\\\\\'	yylval.character = '\\'; return CHARACTER;
 
 \" {
 	BEGIN(ST_STRING);
