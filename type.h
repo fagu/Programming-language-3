@@ -104,6 +104,7 @@ public:
 		return m_size;
 	}
 	char style() {return 'P';}
+	bool convertibleTo(Type* t);
 };
 
 class NullType : public Type {

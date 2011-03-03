@@ -42,6 +42,17 @@ bool ClassType::convertibleTo(Type* t) {
 	return t == this || t == ParseRes->boolType;
 }
 
+bool PrimitiveType::convertibleTo(Type* t) {
+	if (this == t)
+		return true;
+	if (this == ParseRes->intType)
+		return t == ParseRes->boolType || t == ParseRes->charType;
+	else if (this == ParseRes->charType)
+		return t == ParseRes->boolType || t == ParseRes->intType;
+	else
+		return false;
+}
+
 VariableDeclaration* ClassType::var(const std::string& name) {
 	return (*declarations)[name];
 }

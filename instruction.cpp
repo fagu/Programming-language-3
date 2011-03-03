@@ -6,10 +6,12 @@
 void BinaryOperatorInstruction::find() {
 	a->find();
 	b->find();
-	if (a->resulttype() != binaryinputtype(op) || b->resulttype() != binaryinputtype(op))
+	if (!a->resulttype()->convertibleTo(binaryinputtype(op)) || !b->resulttype()->convertibleTo(binaryinputtype(op)))
 		printerr("Wrong type in binary operator!\n");
+	Instruction *conva = a->resulttype()->convertTo(a, binaryinputtype(op));
+	Instruction *convb = b->resulttype()->convertTo(b, binaryinputtype(op));
 	pos = ParseRes->alloc(resulttype()->size());
-	ParseRes->binaryoperate(op, a->pos, b->pos, pos);
+	ParseRes->binaryoperate(op, conva->pos, convb->pos, pos);
 }
 
 Type* BinaryOperatorInstruction::resulttype() {
@@ -211,8 +213,12 @@ void CallInstruction::find() {
 		printerr("Function '%s' needs exactly %d instead of %d arguments!\n", name->c_str(), (int)dec->parameters->size(), (int)arguments->size());
 	vector<int> args;
 	for (int i = 0; i < arguments->size(); i++) {
-		(*arguments)[i]->find();
-		args.push_back((*arguments)[i]->pos);
+		Instruction * arg = (*arguments)[i];
+		arg->find();
+		if (!arg->resulttype()->convertibleTo((*dec->parameters)[i]->type->real()))
+			printerr("Types do not match!\n");
+		Instruction * convarg = arg->resulttype()->convertTo(arg, (*dec->parameters)[i]->type->real());
+		args.push_back(convarg->pos);
 	}
 	pos = ParseRes->alloc((*dec->resulttype)->size());
 	ParseRes->call(dec->num, args, pos);
