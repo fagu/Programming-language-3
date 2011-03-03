@@ -1,0 +1,73 @@
+char char(int n) {
+	return=n;
+}
+
+class string {
+	char[] c;
+	int size;
+}
+
+string string() {
+	return = new string;
+	return.size = 0;
+}
+
+string string(char c) {
+	return = new string;
+	return.c = new char[1];
+	return.size = 1;
+	return.c[0] = c;
+}
+
+string string(char[] c) {
+	return = new string;
+	int len;
+	for (len = 0; c[len] != 0; len++;)
+		;
+	return.c = new char[len];
+	return.size = len;
+	for (int i = 0; i < len; i++;) {
+		return.c[i] = c[i];
+	}
+}
+
+string string(int n) {
+	return = string();
+	if (n == 0)
+		return = string('0');
+	else {
+		string pre = string();
+		if (n < 0) {
+			pre = string('-');
+			n = -n;
+		}
+		while(n > 0) {
+			return = plus(string(char('0'+ n%10)), return);
+			n = n/10;
+		}
+		return = plus(pre, return);
+	}
+}
+
+string plus(string a, string b) {
+	return = new string;
+	return.c = new char[a.size+b.size];
+	return.size = a.size+b.size;
+	for (int i = 0; i < a.size; i++;)
+		return.c[i] = a.c[i];
+	for (int i = 0; i < b.size; i++;)
+		return.c[a.size+i] = b.c[i];
+}
+
+void pr(int n) {
+	print_int(n);
+}
+
+void pr(char c) {
+	print_char(c);
+}
+
+void pr(string a) {
+	for (int i = 0; i < a.size; i++;)
+		print_char(a.c[i]);
+}

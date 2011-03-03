@@ -82,7 +82,10 @@ statements:
 }
 
 statement:
-	  exp ';' {
+	';' {
+	$$ = new EmptyInstruction(@$);
+}
+	| exp ';' {
 	$$ = $1;
 }
 	| PRINTINT '(' exp ')' ';' {
