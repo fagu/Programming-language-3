@@ -12,7 +12,8 @@
 }
 %token <name> IDENTIFIER
 %token <num> NUMBER
-%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHEAP
+%token <character> CHARACTER
+%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHEAP PRINTINT PRINTCHAR
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp narexp statement;
@@ -31,6 +32,7 @@
 %union {
 	string *name;
 	int num;
+	char character;
 	VariableDeclarations *classcontents;
 	VariableDeclaration *classcontent;
 	Instruction *instruction;
@@ -85,7 +87,13 @@ statements:
 
 statement:
 	  exp ';' {
-	$$ = new PrintInstruction(@$, $1);
+	$$ = $1;
+}
+	| PRINTINT '(' exp ')' ';' {
+	$$ = new PrintInstruction(@$, PRINT_INT, $3);
+}
+	| PRINTCHAR '(' exp ')' ';' {
+	$$ = new PrintInstruction(@$, PRINT_CHAR, $3);
 }
 	| type IDENTIFIER ';' {
 	$$ = new DeclarationInstruction(@$, $1, $2);
@@ -210,6 +218,9 @@ narexp:
 }
 	| NUMBER {
 	$$ = new IntegerConstantInstruction(@$, $1);
+}
+	| CHARACTER {
+	$$ = new CharacterConstantInstruction(@$, $1);
 }
 	| NUL {
 	$$ = new NullInstruction(@$);

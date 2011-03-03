@@ -29,6 +29,8 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 "[]" {return ARRAY;}
 "dump_stack" {return DUMPSTACK;}
 "dump_heap" {return DUMPHEAP;}
+"print_int" {return PRINTINT;}
+"print_char" {return PRINTCHAR;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);
@@ -52,6 +54,16 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 			yylloc.last_column = 1;
 		}
 	}
+}
+
+"'"[^'\n]"'" {
+	yylval.character = yytext[1];
+	return CHARACTER;
+}
+
+"'\\n'" {
+	yylval.character = '\n';
+	return CHARACTER;
 }
 
 [ \t]+

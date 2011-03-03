@@ -54,11 +54,18 @@ void ParseResult::intconst(int nr, int to) {
 	instructions.back().push_back(i);
 }
 
-void ParseResult::print(int from, int len) {
-	if (len == 0)
-		return;
-	need(from, len);
-	instr i = {PRINT, len, from};
+void ParseResult::charconst(char ch, int to) {
+	need(to, charType->size());
+	instr i = {CHAR_CONST, 0, ch, to};
+	instructions.back().push_back(i);
+}
+
+void ParseResult::print(OPCODE o, int from) {
+	if (o == PRINT_INT)
+		need(from, intType->size());
+	else if (o == PRINT_CHAR)
+		need(from, charType->size());
+	instr i = {o, 0, from};
 	instructions.back().push_back(i);
 }
 
@@ -181,7 +188,6 @@ void ParseResult::output() {
 		for (int i = 0; i < instructions[f].size(); i++) {
 			instr in = instructions[f][i];
 			if (in.typ == ALLOC_STACK) {
-				fprintf(stderr, "found len %d\n", in.len);
 				for (int k = 0; k < in.len; k++) {
 					//if (unocc.empty()) {
 						realpos[in.a+k] = spacestart;
@@ -205,9 +211,11 @@ void ParseResult::output() {
 				printf("%d;", in.typ);
 				if (in.typ == COPY_STACK) {
 					printf("%d;%d;%d;\n", realpos[in.a], in.len, realpos[in.b]);
-				} else if (in.typ == PRINT) {
-					printf("%d;%d;\n", realpos[in.a], in.len);
+				} else if (in.typ == PRINT_INT || in.typ == PRINT_CHAR) {
+					printf("%d;\n", realpos[in.a]);
 				} else if (in.typ == INT_CONST) {
+					printf("%d;%d;\n", in.a, realpos[in.b]);
+				} else if (in.typ == CHAR_CONST) {
 					printf("%d;%d;\n", in.a, realpos[in.b]);
 				} else if (in.typ == ALLOC_HEAP_CONSTAMOUNT) {
 					printf("%d;%d;\n", realpos[in.a], in.len);
@@ -216,7 +224,7 @@ void ParseResult::output() {
 				} else if (in.typ == GET_HEAP) {
 					printf("%d;%d;%d;%d;\n", realpos[in.a], in.b, realpos[in.c], in.len);
 				} else if (in.typ == SET_HEAP) {
-					printf("%d;%d;%d;%d\n", realpos[in.a], realpos[in.b], in.c, in.len);
+					printf("%d;%d;%d;%d;\n", realpos[in.a], realpos[in.b], in.c, in.len);
 				} else if (in.typ == GET_ARRAY) {
 					printf("%d;%d;%d;%d;\n", in.len, realpos[in.a], realpos[in.b], realpos[in.c]);
 				} else if (in.typ == SET_ARRAY) {

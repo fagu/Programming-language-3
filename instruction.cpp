@@ -25,6 +25,15 @@ Type* IntegerConstantInstruction::resulttype() {
 	return ParseRes->intType;
 }
 
+void CharacterConstantInstruction::find() {
+	pos = ParseRes->alloc(ParseRes->charType->size());
+	ParseRes->charconst(co, pos);
+}
+
+Type* CharacterConstantInstruction::resulttype() {
+	return ParseRes->charType;
+}
+
 void NullInstruction::find() {
 	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->intconst(0, pos);
@@ -51,7 +60,13 @@ Type* NewInstruction::resulttype() {
 
 void PrintInstruction::find() {
 	a->find();
-	ParseRes->print(a->pos, a->resulttype()->size());
+	if (op == PRINT_INT)
+		if (!a->resulttype()->convertibleTo(ParseRes->intType))
+			printerr("Types do not match!\n");
+	if (op == PRINT_CHAR)
+		if (!a->resulttype()->convertibleTo(ParseRes->charType))
+			printerr("Types do not match!\n");
+	ParseRes->print(op, a->pos);
 }
 
 Type* PrintInstruction::resulttype() {

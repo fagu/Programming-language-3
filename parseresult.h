@@ -41,7 +41,8 @@ public:
 	void copy(int from, int len, int to);
 	void binaryoperate(OPCODE o, int a, int b, int c);
 	void intconst(int nr, int to);
-	void print(int from, int len);
+	void charconst(char ch, int to);
+	void print(OPCODE o, int from);
 	void newRef(int len, int to);
 	void newArray(int unitsize, int sizepos, int to);
 	void getSub(int from, int varid, int to, int len);

@@ -38,6 +38,15 @@ public:
 	Type* resulttype();
 };
 
+class CharacterConstantInstruction : public Instruction {
+private:
+	char co;
+public:
+	CharacterConstantInstruction(Location _loc, char _co) : Instruction(_loc), co(_co) {}
+	void find();
+	Type* resulttype();
+};
+
 class NullInstruction : public Instruction {
 public:
 	NullInstruction(Location _loc) : Instruction(_loc) {}
@@ -57,9 +66,10 @@ public:
 
 class PrintInstruction : public Instruction {
 private:
+	OPCODE op;
 	Instruction *a;
 public:
-	PrintInstruction(Location _loc, Instruction* _a) : Instruction(_loc), a(_a) {}
+	PrintInstruction(Location _loc, OPCODE _op, Instruction* _a) : Instruction(_loc), op(_op), a(_a) {}
 	void find();
 	Type* resulttype();
 };

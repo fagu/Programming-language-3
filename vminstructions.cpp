@@ -31,6 +31,17 @@ INSTRUCTION(INT_CONST,2,
 	nextpos = aktpos+2;
 )
 
+// Character constant
+INSTRUCTION(CHAR_CONST,2,
+	co = li[aktpos]; pos = li[aktpos+1];
+	CHARREF(st[pos]) = co;
+	ip[li[aktpos+1]] = false;
+	//ip[li[aktpos+1]+1] = false;
+	//ip[li[aktpos+1]+2] = false;
+	//ip[li[aktpos+1]+3] = false;
+	nextpos = aktpos+2;
+)
+
 // Copy on stack
 INSTRUCTION(COPY_STACK,3,
 	posa = li[aktpos]; len = li[aktpos+1]; posb = li[aktpos+2];
@@ -41,17 +52,18 @@ INSTRUCTION(COPY_STACK,3,
 	nextpos = aktpos+3;
 )
 
-// Print
-INSTRUCTION(PRINT,2,
-	pos = li[aktpos]; len = li[aktpos+1];
-	//if (len == 4) {
-	//	printf("%d\n", INTREF(st[pos]));
-	//} else {
-	for (int i = 0; i < len; i++)
-		printf("%d ", st[pos+i]);
-	printf("\n");
-	//}
-	nextpos = aktpos+2;
+// Print integer
+INSTRUCTION(PRINT_INT,1,
+	pos = li[aktpos];
+	printf("%d\n", INTREF(st[pos]));
+	nextpos = aktpos+1;
+)
+
+// Print character
+INSTRUCTION(PRINT_CHAR,1,
+	pos = li[aktpos];
+	printf("%c", CHARREF(st[pos]));
+	nextpos = aktpos+1;
 )
 
 // Allocate fixed amount on heap and save pointer
@@ -83,7 +95,7 @@ INSTRUCTION(SET_HEAP,4,
 		stat.hash[INTREF(st[posb])+posc+i] = st[posa+i];
 		stat.hashispointer[INTREF(st[posb])+posc+i] = ip[posa+i];
 	}
-	nextpos = aktpos+3;
+	nextpos = aktpos+4;
 )
 
 // Get from heap
@@ -93,7 +105,7 @@ INSTRUCTION(GET_HEAP,4,
 		st[posc+i] = stat.hash[INTREF(st[posa])+posb+i];
 		ip[posc+i] = stat.hashispointer[INTREF(st[posa])+posb+i];
 	}
-	nextpos = aktpos+3;
+	nextpos = aktpos+4;
 )
 
 // Set on heap array
