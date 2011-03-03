@@ -6,7 +6,7 @@
 void BinaryOperatorInstruction::find() {
 	a->find();
 	b->find();
-	if (!a->resulttype()->convertibleTo(binaryinputtype(op)) || !b->resulttype()->convertibleTo(binaryinputtype(op)))
+	if (a->resulttype()->distance(binaryinputtype(op)) == INFTY && b->resulttype()->distance(binaryinputtype(op)) == INFTY)
 		printerr("Wrong type in binary operator!\n");
 	Instruction *conva = a->resulttype()->convertTo(a, binaryinputtype(op));
 	Instruction *convb = b->resulttype()->convertTo(b, binaryinputtype(op));
@@ -79,10 +79,10 @@ Type* NewInstruction::resulttype() {
 void PrintInstruction::find() {
 	a->find();
 	if (op == PRINT_INT)
-		if (!a->resulttype()->convertibleTo(ParseRes->intType))
+		if (a->resulttype()->distance(ParseRes->intType) == INFTY)
 			printerr("Types do not match!\n");
 	if (op == PRINT_CHAR)
-		if (!a->resulttype()->convertibleTo(ParseRes->charType))
+		if (a->resulttype()->distance(ParseRes->charType) == INFTY)
 			printerr("Types do not match!\n");
 	ParseRes->print(op, a->pos);
 }
@@ -125,7 +125,7 @@ Type* VariableInstruction::resulttype() {
 void VariableInstruction::findSet(Instruction* b) {
 	find();
 	b->find();
-	if (!b->resulttype()->convertibleTo(resulttype()))
+	if (b->resulttype()->distance(resulttype()) == INFTY)
 		printerr("Types do not match!\n");
 	ParseRes->copy(b->pos, b->resulttype()->size(), pos);
 }
@@ -153,7 +153,7 @@ void AccessInstruction::findSet(Instruction* b) {
 	if (!dec)
 		printerr("Class does not have a Variable called '%s'!\n", name->c_str());
 	b->find();
-	if (!b->resulttype()->convertibleTo(resulttype()))
+	if (b->resulttype()->distance(resulttype()) == INFTY)
 		printerr("Types do not match!\n");
 	ParseRes->copySub(b->pos, a->pos, dec->pos, dec->type->real()->size());
 }
@@ -179,14 +179,14 @@ void AccessArrayInstruction::findSet(Instruction* c) {
 		printerr("Expression is not an array!\n");
 	int unitsize = ((ArrayType*)a->resulttype())->contenttype->size();
 	c->find();
-	if (!c->resulttype()->convertibleTo(resulttype()))
+	if (c->resulttype()->distance(resulttype()) == INFTY)
 		printerr("Types do not match!\n");
 	ParseRes->setArray(unitsize, c->pos, a->pos, b->pos);
 }
 
 void IfInstruction::find() {
 	cond->find();
-	if (!cond->resulttype()->convertibleTo(ParseRes->boolType))
+	if (cond->resulttype()->distance(ParseRes->boolType) == INFTY)
 		printerr("Types do not match!\n");
 	Instruction *convcond = cond->resulttype()->convertTo(cond, ParseRes->boolType);
 	int elsepos = ParseRes->newStop();
@@ -207,7 +207,7 @@ void WhileInstruction::find() {
 	int start = ParseRes->newStop();
 	ParseRes->hereStop(start);
 	cond->find();
-	if (!cond->resulttype()->convertibleTo(ParseRes->boolType))
+	if (cond->resulttype()->distance(ParseRes->boolType) == INFTY)
 		printerr("Types do not match!\n");
 	Instruction *convcond = cond->resulttype()->convertTo(cond, ParseRes->boolType);
 	int end = ParseRes->newStop();
@@ -221,18 +221,56 @@ Type* WhileInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
+typedef pair<FunctionDeclaration*,vector<int> > Dist;
+
 void CallInstruction::find() {
-	if (!ParseRes->functions.count(*name))
-		printerr("Function '%s' does not exist!\n", name->c_str());
-	dec = ParseRes->functions[*name];
-	if (dec->parameters->size() != arguments->size())
-		printerr("Function '%s' needs exactly %d instead of %d arguments!\n", name->c_str(), (int)dec->parameters->size(), (int)arguments->size());
+	for (int i = 0; i < arguments->size(); i++)
+		(*arguments)[i]->find();
+	vector<Dist> dists;
+	for (map<Funcspec,FunctionDeclaration*>::iterator it = ParseRes->functions.begin(); it != ParseRes->functions.end(); it++) {
+		if (it->first.first != *name) // TODO Store functions sorted by name to make this faster
+			continue;
+		FunctionDeclaration * dec = it->second;
+		if (dec->parameters->size() != arguments->size())
+			continue;
+		dists.push_back(Dist(dec, vector<int>()));
+		vector<int> & dv = dists.back().second;
+		bool ok = true;
+		for (int i = 0; i < arguments->size(); i++) {
+			dv.push_back(((*arguments)[i])->resulttype()->distance(dec->parameters->at(i)->type->real()));
+			if (dv.back() == INFTY) {
+				ok = false;
+				break;
+			}
+		}
+		if (!ok)
+			dists.pop_back();
+	}
+	if (dists.empty())
+		printerr("Function '%s' (with the specified argument types) does not exist!\n", name->c_str());
+	vector<int> smallest(arguments->size(), INFTY);
+	for (int i = 0; i < dists.size(); i++) {
+		for (int k = 0; k < arguments->size(); k++) {
+			smallest[k] = min(smallest[k], dists[i].second[k]);
+		}
+	}
+	dec = 0;
+	for (int i = 0; i < dists.size(); i++) {
+		bool ok = true;
+		for (int k = 0; k < arguments->size(); k++) {
+			if (smallest[k] != dists[i].second[k]) {
+				ok = false;
+				break;
+			}
+		}
+		if (ok)
+			dec = dists[i].first;
+	}
+	if (!dec)
+		printerr("Function '%s' cannot be uniquely determined!\n", name->c_str());
 	vector<int> args;
 	for (int i = 0; i < arguments->size(); i++) {
 		Instruction * arg = (*arguments)[i];
-		arg->find();
-		if (!arg->resulttype()->convertibleTo((*dec->parameters)[i]->type->real()))
-			printerr("Types do not match!\n");
 		Instruction * convarg = arg->resulttype()->convertTo(arg, (*dec->parameters)[i]->type->real());
 		args.push_back(convarg->pos);
 	}

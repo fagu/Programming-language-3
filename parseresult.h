@@ -16,6 +16,8 @@ struct instr {
 	vector<int> v;
 };
 
+typedef pair<string,vector<Type*> > Funcspec;
+
 class ParseResult {
 private:
 	vector<string> funcspecs;
@@ -28,7 +30,7 @@ public:
 	bool haserror;
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;
-	map<string,FunctionDeclaration*> functions;
+	map<Funcspec,FunctionDeclaration*> functions;
 	stack<DeclarationInstruction*> varstack;
 	map<string,DeclarationInstruction*> vars;
 	Type *nullType;
@@ -36,6 +38,8 @@ public:
 	Type *intType;
 	Type *boolType;
 	Type *charType;
+	
+	void addFunction(string *name, FunctionDeclaration *dec);
 	
 	int alloc(int len);
 	void copy(int from, int len, int to);

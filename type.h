@@ -13,6 +13,8 @@ using namespace std;
 
 class ArrayType;
 
+#define INFTY 2000000000
+
 class Type {
 private:
 	ArrayType * array;
@@ -23,7 +25,7 @@ public:
 	virtual void find() {}
 	virtual int size()=0;
 	virtual char style()=0;
-	virtual bool convertibleTo(Type *t) {return t == this;};
+	virtual int distance(Type *t) ;
 	virtual Instruction * convertTo(Instruction *a, Type *t);
 	ArrayType * arrayType();
 };
@@ -91,7 +93,7 @@ public:
 	int hashsize();
 	VariableDeclaration *var(const string &name);
 	char style() {return 'C';}
-	bool convertibleTo(Type* t);
+	int distance(Type* t);
 };
 
 class PrimitiveType : public Type {
@@ -104,7 +106,7 @@ public:
 		return m_size;
 	}
 	char style() {return 'P';}
-	bool convertibleTo(Type* t);
+	int distance(Type* t);
 };
 
 class NullType : public Type {
@@ -112,7 +114,7 @@ public:
 	NullType(Location _loc) : Type(_loc) {}
 	int size() {return 1;}
 	char style() {return 'N';}
-	bool convertibleTo(Type* t) {return true;}
+	int distance(Type* t) {return true;}
 };
 
 class ArrayType : public Type {
@@ -129,10 +131,11 @@ class FunctionDeclaration {
 private:
 	BlockInstruction* instructions;
 public:
+	Location loc;
 	TypePointer * resulttype;
 	vector<DeclarationInstruction*> * parameters;
 	int num;
-	FunctionDeclaration(vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : parameters(_parameters), instructions(_instructions), resulttype(_resulttype) {}
+	FunctionDeclaration(Location _loc, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : loc(_loc), parameters(_parameters), instructions(_instructions), resulttype(_resulttype) {}
 	~FunctionDeclaration() {}
 	int find();
 };

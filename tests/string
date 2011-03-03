@@ -1,21 +1,25 @@
+char char(int n) {
+	return=n;
+}
+
 class string {
 	char[] c;
 	int size;
 }
 
-string emptystring() {
+string string() {
 	return = new string;
 	return.size = 0;
 }
 
-string newstring(char c) {
+string string(char c) {
 	return = new string;
 	return.c = new char[1];
 	return.size = 1;
 	return.c[0] = c;
 }
 
-string fromarray(char[] c) {
+string string(char[] c) {
 	return = new string;
 	int len;
 	for (len = 0; c[len] != 0; len++;) {
@@ -27,18 +31,18 @@ string fromarray(char[] c) {
 	}
 }
 
-string tostring(int n) {
-	return = emptystring();
+string string(int n) {
+	return = string();
 	if (n == 0)
-		return = newstring('0');
+		return = string('0');
 	else {
-		string pre = emptystring();
+		string pre = string();
 		if (n < 0) {
-			pre = newstring('-');
+			pre = string('-');
 			n = -n;
 		}
 		while(n > 0) {
-			return = plus(newstring('0'+ n%10), return);
+			return = plus(string(char('0'+ n%10)), return);
 			n = n/10;
 		}
 		return = plus(pre, return);
@@ -55,7 +59,15 @@ string plus(string a, string b) {
 		return.c[a.size+i] = b.c[i];
 }
 
-void print_string(string a) {
+void pr(int n) {
+	print_int(n);
+}
+
+void pr(char c) {
+	print_char(c);
+}
+
+void pr(string a) {
 	for (int i = 0; i < a.size; i++;)
 		print_char(a.c[i]);
 }
@@ -63,6 +75,9 @@ void print_string(string a) {
 void main() {
 /* hi /* hello */ test */
 	char[] ar = "he\"\\\\\tllo\n";
-	print_string(fromarray(ar));
-	print_string(plus(tostring(-1234567890), newstring('\n')));
+	pr(string(ar));
+	pr(plus(string(-1234567890), string('\n')));
+	pr(5);
+	pr('h');
+	pr('\n');
 }

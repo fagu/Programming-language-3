@@ -18,6 +18,17 @@ ParseResult::ParseResult() {
 	types["char"] = charType;
 }
 
+void ParseResult::addFunction(string *name, FunctionDeclaration* dec) {
+	Funcspec spec;
+	spec.first = *name;
+	for (int i = 0; i < dec->parameters->size(); i++) {
+		spec.second.push_back((*dec->parameters)[i]->type->real());
+	}
+	if (functions.count(spec))
+		printsyntaxerr(dec->loc, "Multiple definition of function '%s'!\n", name->c_str());
+	functions[spec] = dec;
+}
+
 void ParseResult::need(int id, int len) {
 	for (int i = 0; i < len; i++) {
 		lastneeded.back()[id+i] = instructions.back().size();
@@ -149,9 +160,9 @@ int ParseResult::output() {
 		(*it)->find();
 	
 	int n = 0;
-	for (map<string,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++)
+	for (map<Funcspec,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++)
 		it->second->num = n++;
-	for (map<string,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
+	for (map<Funcspec,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
 		lastneeded.push_back(vector<int>());
 		instructions.push_back(vector<instr>());
 		stoppos.push_back(vector<int>());
@@ -161,7 +172,7 @@ int ParseResult::output() {
 		
 		stringstream str;
 		
-		if (it->first == "main")
+		if (it->first.first == "main")
 			str << FUNC_MAIN;
 		else
 			str << FUNC;

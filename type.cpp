@@ -2,6 +2,13 @@
 #include "type.h"
 #include "parseresult.h"
 
+int Type::distance(Type* t) {
+	if (t == this)
+		return 0;
+	else
+		return INFTY;
+}
+
 Instruction* Type::convertTo(Instruction* a, Type* t) {
 	return a;
 }
@@ -38,19 +45,28 @@ int ClassType::hashsize() {
 	return m_size;
 }
 
-bool ClassType::convertibleTo(Type* t) {
-	return t == this || t == ParseRes->boolType;
+int ClassType::distance(Type* t) {
+	if (t == this || t == ParseRes->boolType)
+		return 0;
+	else
+		return INFTY;
 }
 
-bool PrimitiveType::convertibleTo(Type* t) {
+int PrimitiveType::distance(Type* t) {
 	if (this == t)
-		return true;
-	if (this == ParseRes->intType)
-		return t == ParseRes->boolType || t == ParseRes->charType;
-	else if (this == ParseRes->charType)
-		return t == ParseRes->boolType || t == ParseRes->intType;
-	else
-		return false;
+		return 0;
+	if (this == ParseRes->intType) {
+		if (t == ParseRes->boolType || t == ParseRes->charType)
+			return 1;
+		else
+			return INFTY;
+	} else if (this == ParseRes->charType) {
+		if (t == ParseRes->boolType || t == ParseRes->intType)
+			return 1;
+		else
+			return INFTY;
+	} else
+		return INFTY;
 }
 
 VariableDeclaration* ClassType::var(const std::string& name) {

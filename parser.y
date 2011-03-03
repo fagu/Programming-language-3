@@ -58,11 +58,7 @@ outerstatements:
 
 outerstatement:
 	  type IDENTIFIER '(' parameters ')' statement {
-	FunctionDeclaration *dec = new FunctionDeclaration($4, new BlockInstruction(@6, $6), $1);
-	if (ParseResult::self()->functions.count(*$2))
-		printsyntaxerr(@$, "Multiple definition of function '%s'!\n", $2->c_str());
-	else
-		ParseResult::self()->functions[*$2] = dec;
+	ParseRes->addFunction($2, new FunctionDeclaration(@$, $4, new BlockInstruction(@6, $6), $1));
 }
 	| CLASS IDENTIFIER '{' classcontents '}' {
 	ClassType *type = new ClassType(@$, $2, $4);
