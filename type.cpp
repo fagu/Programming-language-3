@@ -46,8 +46,10 @@ int ClassType::hashsize() {
 }
 
 int ClassType::distance(Type* t) {
-	if (t == this || t == ParseRes->boolType)
+	if (t == this)
 		return 0;
+	else if (t == ParseRes->boolType)
+		return INFTY/2;
 	else
 		return INFTY;
 }
