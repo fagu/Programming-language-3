@@ -10,11 +10,14 @@
 DIGIT    [0-9]
 ID       [a-zA-Z_][a-zA-Z0-9_]*
 
-%x COMMENT
+%x ST_COMMENT
+%x ST_STRING
 
 %%
 
 	int commentdepth;
+	string *str;
+	int fl, fc;
 
 "null" {return NUL;}
 "class" {return CLASS;}
@@ -54,10 +57,10 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 
 "/*" {
 	commentdepth = 1;
-	BEGIN(COMMENT);
+	BEGIN(ST_COMMENT);
 }
 
-<COMMENT>{
+<ST_COMMENT>{
 "/*" {
 	commentdepth++;
 }
@@ -67,8 +70,8 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 		BEGIN(0);
 }
 .
-\n {
-	yylloc.last_line++;
+\n+ {
+	yylloc.last_line += yyleng;
 	yylloc.last_column = 1;
 }
 }
@@ -81,6 +84,40 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 "'\\n'" {
 	yylval.character = '\n';
 	return CHARACTER;
+}
+
+\" {
+	BEGIN(ST_STRING);
+	str = new string;
+	fl = yylloc.first_line;
+	fc = yylloc.first_column;
+}
+
+<ST_STRING>{
+\" {
+	BEGIN(0);
+	yylval.name = str;
+	yylloc.first_line = fl;
+	yylloc.first_column = fc;
+	return STRING;
+}
+\\\"	str->append("\"");
+\\n	str->append("\n");
+\\t	str->append("\t");
+\\\\	str->append("\\");
+\\	str->append("\\");
+\n {
+	fprintf(stderr, "%d: String not terminated in this line!\n", yylloc.first_line);
+	ParseRes->haserror = true;
+	BEGIN(0);
+	yylloc.last_line++;
+	yylloc.last_column = 1;
+	yylloc.first_line = fl;
+	yylloc.first_column = fc;
+	yylval.name = str;
+	return STRING;
+}
+[^\\\"\n]	str->append(yytext);
 }
 
 [ \t]+

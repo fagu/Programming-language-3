@@ -36,6 +36,22 @@ Type* CharacterConstantInstruction::resulttype() {
 	return ParseRes->charType;
 }
 
+void StringConstantInstruction::find() {
+	pos = ParseRes->alloc(ParseRes->intType->size());
+	ParseRes->newRef(ParseRes->charType->size()*(co->length()+1), pos);
+	int charpos = ParseRes->alloc(ParseRes->charType->size());
+	for (int i = 0; i < co->length(); i++) {
+		ParseRes->charconst((*co)[i], charpos);
+		ParseRes->copySub(charpos, pos, i*ParseRes->charType->size(), ParseRes->charType->size());
+	}
+	ParseRes->charconst('\0', charpos);
+	ParseRes->copySub(charpos, pos, co->length()*ParseRes->charType->size(), ParseRes->charType->size());
+}
+
+Type* StringConstantInstruction::resulttype() {
+	return ParseRes->charType->arrayType();
+}
+
 void NullInstruction::find() {
 	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->intconst(0, pos);

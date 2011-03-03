@@ -13,6 +13,7 @@
 %token <name> IDENTIFIER
 %token <num> NUMBER
 %token <character> CHARACTER
+%token <name> STRING
 %token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHEAP PRINTINT PRINTCHAR
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
@@ -220,6 +221,9 @@ narexp:
 }
 	| CHARACTER {
 	$$ = new CharacterConstantInstruction(@$, $1);
+}
+	| STRING {
+	$$ = new StringConstantInstruction(@$, $1);
 }
 	| NUL {
 	$$ = new NullInstruction(@$);

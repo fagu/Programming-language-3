@@ -47,6 +47,15 @@ public:
 	Type* resulttype();
 };
 
+class StringConstantInstruction : public Instruction {
+private:
+	string *co;
+public:
+	StringConstantInstruction(Location _loc, string *_co) : Instruction(_loc), co(_co) {}
+	void find();
+	Type* resulttype();
+};
+
 class NullInstruction : public Instruction {
 public:
 	NullInstruction(Location _loc) : Instruction(_loc) {}
