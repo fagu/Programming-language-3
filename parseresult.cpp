@@ -8,9 +8,9 @@ ParseResult::ParseResult() {
 	haserror = false;
 	nullType = new NullType(Location());
 	voidType = new PrimitiveType(Location(), 0);
-	intType = new PrimitiveType(Location(), 1);
-	boolType = new PrimitiveType(Location(), 1);
-	charType = new PrimitiveType(Location(), 1);
+	intType = new PrimitiveType(Location(), INTSIZE);
+	boolType = new PrimitiveType(Location(), BOOLSIZE);
+	charType = new PrimitiveType(Location(), CHARSIZE);
 	types["null"] = nullType;
 	types["void"] = voidType;
 	types["int"] = intType;
@@ -29,149 +29,125 @@ void ParseResult::addFunction(string *name, FunctionDeclaration* dec) {
 	functions[spec] = dec;
 }
 
-void ParseResult::need(int id, int len) {
-	for (int i = 0; i < len; i++) {
-		lastneeded.back()[id+i] = instructions.back().size();
-	}
+void ParseResult::addnode(Node* n) {
+	if (prevnode)
+		prevnode->suc.push_back(n);
+	prevnode = n;
 }
 
 int ParseResult::alloc(int len) {
-	for (int k = 0; k < len; k++) {
-		lastneeded.back().push_back(instructions.back().size());
-	}
-	instr i = {ALLOC_STACK, len, lastneeded.back().size()-len};
-	instructions.back().push_back(i);
-	return lastneeded.back().size()-len;
+	int pos = varnum;
+	varnum += len;
+	return pos;
 }
 
 void ParseResult::copy(int from, int len, int to) {
-	need(from, len);
-	need(to, len);
-	instr i = {COPY_STACK, len, from, to};
-	instructions.back().push_back(i);
+	Node *n = new Node(COPY_STACK, new Arg(GETARG, from, len), new Arg(INTARG, len), new Arg(SETARG, to, len));
+	addnode(n);
 }
 
 void ParseResult::binaryoperate(OPCODE o, int a, int b, int c) {
-	need(a, intType->size());
-	need(b, intType->size());
-	need(c, intType->size());
-	instr i = {o, 0, a, b, c};
-	instructions.back().push_back(i);
+	Node *n = new Node(o, new Arg(GETARG, a, INTSIZE), new Arg(GETARG, b, INTSIZE), new Arg(SETARG, c, INTSIZE));
+	addnode(n);
 }
 
 void ParseResult::intconst(int nr, int to) {
-	need(to, intType->size());
-	instr i = {INT_CONST, 0, nr, to};
-	instructions.back().push_back(i);
+	Node *n = new Node(INT_CONST, new Arg(INTARG, nr), new Arg(SETARG, to, INTSIZE));
+	addnode(n);
 }
 
 void ParseResult::charconst(char ch, int to) {
-	need(to, charType->size());
-	instr i = {CHAR_CONST, 0, ch, to};
-	instructions.back().push_back(i);
+	Node *n = new Node(CHAR_CONST, new Arg(INTARG, ch), new Arg(SETARG, to, CHARSIZE));
+	addnode(n);
 }
 
 void ParseResult::print(OPCODE o, int from) {
-	if (o == PRINT_INT)
-		need(from, intType->size());
-	else if (o == PRINT_CHAR)
-		need(from, charType->size());
-	instr i = {o, 0, from};
-	instructions.back().push_back(i);
+	Node *n = new Node(o, new Arg(GETARG, from, o == PRINT_INT ? INTSIZE : CHARSIZE));
+	addnode(n);
 }
 
 void ParseResult::newRef(int len, int to) {
-	need(to, intType->size());
-	instr i = {ALLOC_HEAP_CONSTAMOUNT, len, to};
-	instructions.back().push_back(i);
+	Node *n = new Node(ALLOC_HEAP_CONSTAMOUNT, new Arg(SETARG, to, POINTERSIZE), new Arg(INTARG, len));
+	addnode(n);
 }
 
 void ParseResult::newArray(int unitsize, int sizepos, int to) {
-	need(sizepos, intType->size());
-	instr i = {ALLOC_HEAP_VARAMOUNT, unitsize, sizepos, to};
-	instructions.back().push_back(i);
+	Node *n = new Node(ALLOC_HEAP_VARAMOUNT, new Arg(INTARG, unitsize), new Arg(GETARG, sizepos, INTSIZE), new Arg(SETARG, to, POINTERSIZE));
+	addnode(n);
 }
 
 void ParseResult::getSub(int from, int varid, int to, int len) {
-	need(from, len);
-	need(to, len);
-	instr i = {GET_HEAP, len, from, varid, to};
-	instructions.back().push_back(i);
+	Node *n = new Node(GET_HEAP, new Arg(GETARG, from, POINTERSIZE), new Arg(INTARG, varid), new Arg(SETARG, to, len), new Arg(INTARG, len));
+	addnode(n);
 }
 
 void ParseResult::copySub(int from, int to, int varid, int len) {
-	need(from, len);
-	need(to, len);
-	instr i = {SET_HEAP, len, from, to, varid};
-	instructions.back().push_back(i);
+	Node *n = new Node(SET_HEAP, new Arg(GETARG, from, len), new Arg(GETARG, to, POINTERSIZE), new Arg(INTARG, varid), new Arg(INTARG, len));
+	addnode(n);
 }
 
 void ParseResult::accessArray(int unitsize, int from, int pos, int to) {
-	need(from, intType->size());
-	need(pos, intType->size());
-	need(to, unitsize);
-	instr i = {GET_ARRAY, unitsize, from, pos, to};
-	instructions.back().push_back(i);
+	Node *n = new Node(GET_ARRAY, new Arg(INTARG, unitsize), new Arg(GETARG, from, POINTERSIZE), new Arg(GETARG, pos, INTSIZE), new Arg(SETARG, to, unitsize));
+	addnode(n);
 }
 
 void ParseResult::setArray(int unitsize, int from, int to, int pos) {
-	need(from, unitsize);
-	need(to, intType->size());
-	need(pos, intType->size());
-	instr i = {SET_ARRAY, unitsize, from, to, pos};
-	instructions.back().push_back(i);
+	Node *n = new Node(SET_ARRAY, new Arg(INTARG, unitsize), new Arg(GETARG, from, unitsize), new Arg(GETARG, to, POINTERSIZE), new Arg(GETARG, pos, INTSIZE));
+	addnode(n);
 }
 
 int ParseResult::newStop() {
-	stoppos.back().push_back(-1);
-	return stoppos.back().size()-1;
+	Node *n = new Node(HERE_STOP);
+	stops.push_back(n);
+	return stops.size()-1;
 }
 
 void ParseResult::hereStop(int stop) {
-	stoppos.back()[stop] = instructions.back().size()-1;
-	instr i = {HERE_STOP, 0, stop};
-	instructions.back().push_back(i);
+	addnode(stops[stop]);
 }
 
 void ParseResult::jumpIf(int cond, int stop) {
-	need(cond, intType->size());
-	instr i = {JUMPIF, 0, cond, stop};
-	instructions.back().push_back(i);
+	Node *n = new Node(JUMPIF, new Arg(GETARG, cond, BOOLSIZE));
+	n->suc.push_back(stops[stop]);
+	addnode(n);
 }
 
 void ParseResult::jump(int stop) {
-	instr i = {JUMP, 0, stop};
-	instructions.back().push_back(i);
+	prevnode->suc.push_back(stops[stop]);
+	prevnode = 0;
 }
 
 void ParseResult::call(int func, const std::vector< int >& args, int resultpos) {
-	instr i = {CALL, 0, func, resultpos};
-	i.v = args;
-	instructions.back().push_back(i);
+	Node *n = new Node(CALL, new Arg(INTARG, func), new Arg(SETARG, resultpos, funcdecs[func]->resulttype->real()->size()));
+	for (int i = 0; i < args.size(); i++) {
+		n->args.push_back(new Arg(GETARG, args[i], (*funcdecs[func]->parameters)[i]->type->real()->size()));
+	}
+	addnode(n);
 }
 
 void ParseResult::dump(OPCODE op) {
-	instr i = {op};
-	instructions.back().push_back(i);
+	Node *n = new Node(op);
+	addnode(n);
 }
 
 int ParseResult::output() {
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->find();
-	
 	int n = 0;
-	for (map<Funcspec,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++)
-		it->second->num = n++;
 	for (map<Funcspec,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
-		lastneeded.push_back(vector<int>());
-		instructions.push_back(vector<instr>());
-		stoppos.push_back(vector<int>());
-		
+		it->second->num = n++;
+		funcdecs.push_back(it->second);
+	}
+	for (map<Funcspec,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
+		graphs.push_back(new Graph());
+		prevnode = graphs.back()->start;
+		varnum = 0;
 		FunctionDeclaration *dec = it->second;
 		int retpos = dec->find();
+		addnode(new Node(RETURN));
+		graphs.back()->addNewStops();
 		
 		stringstream str;
-		
 		if (it->first.first == "main")
 			str << FUNC_MAIN;
 		else
@@ -181,86 +157,15 @@ int ParseResult::output() {
 			str << (*dec->parameters)[i]->type->real()->size() << ";";
 		}
 		str << "\n";
+		str << ALLOC_STACK << ";" << varnum << ";\n";
 		funcspecs.push_back(str.str());
+		stops.clear();
 	}
 	if (haserror)
 		return 1;
 	for (int f = 0; f < funcspecs.size(); f++) {
 		printf("%s", funcspecs[f].c_str());
-		realpos.resize(lastneeded[f].size());
-		vector<pair<int,int> > la;
-		for (int i = 0; i < lastneeded[f].size(); i++) {
-			la.push_back(make_pair(lastneeded[f][i], i));
-		}
-		sort(la.begin(), la.end());
-		int lapos = 0;
-		int spacestart = 0;
-		//queue<int> unocc;
-		for (int i = 0; i < instructions[f].size(); i++) {
-			instr in = instructions[f][i];
-			if (in.typ == ALLOC_STACK) {
-				for (int k = 0; k < in.len; k++) {
-					//if (unocc.empty()) {
-						realpos[in.a+k] = spacestart;
-						spacestart++;
-					//} else {
-					//	realpos[in.a+k] = unocc.front();
-					//	unocc.pop();
-					//}
-				}
-			}
-			/*while(lapos < la.size() && la[lapos].first <= i) {
-				unocc.push(realpos[la[lapos].second]);
-				lapos++;
-			}*/
-		}
-		printf("%d;%d;\n", ALLOC_STACK, spacestart);
-		for (int i = 0; i < instructions[f].size(); i++) {
-			instr in = instructions[f][i];
-			if (in.typ == ALLOC_STACK) {
-			} else {
-				printf("%d;", in.typ);
-				if (in.typ == COPY_STACK) {
-					printf("%d;%d;%d;\n", realpos[in.a], in.len, realpos[in.b]);
-				} else if (in.typ == PRINT_INT || in.typ == PRINT_CHAR) {
-					printf("%d;\n", realpos[in.a]);
-				} else if (in.typ == INT_CONST) {
-					printf("%d;%d;\n", in.a, realpos[in.b]);
-				} else if (in.typ == CHAR_CONST) {
-					printf("%d;%d;\n", in.a, realpos[in.b]);
-				} else if (in.typ == ALLOC_HEAP_CONSTAMOUNT) {
-					printf("%d;%d;\n", realpos[in.a], in.len);
-				} else if (in.typ == ALLOC_HEAP_VARAMOUNT) {
-					printf("%d;%d;%d;\n", in.len, realpos[in.a], realpos[in.b]);
-				} else if (in.typ == GET_HEAP) {
-					printf("%d;%d;%d;%d;\n", realpos[in.a], in.b, realpos[in.c], in.len);
-				} else if (in.typ == SET_HEAP) {
-					printf("%d;%d;%d;%d;\n", realpos[in.a], realpos[in.b], in.c, in.len);
-				} else if (in.typ == GET_ARRAY) {
-					printf("%d;%d;%d;%d;\n", in.len, realpos[in.a], realpos[in.b], realpos[in.c]);
-				} else if (in.typ == SET_ARRAY) {
-					printf("%d;%d;%d;%d;\n", in.len, realpos[in.a], realpos[in.b], realpos[in.c]);
-				} else if (in.typ == HERE_STOP) {
-					printf("%d;\n", in.a);
-				} else if (in.typ == JUMPIF) {
-					printf("%d;%d;\n", realpos[in.a], in.b);
-				} else if (in.typ == JUMP) {
-					printf("%d;\n", in.a);
-				} else if (in.typ == CALL) {
-					printf("%d;%d;", in.a, in.b);
-					for (int i = 0; i < in.v.size(); i++)
-						printf("%d;", realpos[in.v[i]]);
-					printf("\n");
-				} else if (in.typ == DUMP_STACK || in.typ == DUMP_HEAP) {
-					printf("\n");
-				} else {
-					printf("%d;%d;%d;\n", realpos[in.a], realpos[in.b], realpos[in.c]);
-				}
-			}
-		}
-		//printf("%d;%d;\n", ALLOC_STACK, -spacestart);
-		
-		realpos.clear();
+		graphs[f]->start->print();
 	}
 	return 0;
 }

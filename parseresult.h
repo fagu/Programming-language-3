@@ -6,26 +6,23 @@
 #include "type.h"
 #include "instruction.h"
 #include "opcodes.h"
+#include "flowgraph.h"
 
-struct instr {
-	OPCODE typ;
-	int len;
-	int a;
-	int b;
-	int c;
-	vector<int> v;
-};
+#define INTSIZE 1
+#define CHARSIZE 1
+#define BOOLSIZE 1
+#define POINTERSIZE 1
 
 typedef pair<string,vector<Type*> > Funcspec;
 
 class ParseResult {
 private:
 	vector<string> funcspecs;
-	vector<vector<int> > lastneeded;
-	vector<int> realpos;
-	vector<vector<instr> > instructions;
-	vector<vector<int> > stoppos;
-	void need(int id, int len);
+	int varnum;
+	vector<Graph*> graphs;
+	Node *prevnode;
+	vector<Node*> stops;
+	vector<FunctionDeclaration*> funcdecs;
 public:
 	bool haserror;
 	vector<ClassType*> classtypes;
@@ -40,6 +37,8 @@ public:
 	Type *charType;
 	
 	void addFunction(string *name, FunctionDeclaration *dec);
+	
+	void addnode(Node *n);
 	
 	int alloc(int len);
 	void copy(int from, int len, int to);

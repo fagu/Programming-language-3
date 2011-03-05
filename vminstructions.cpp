@@ -3,6 +3,10 @@ INSTRUCTION(FUNC,0,)
 INSTRUCTION(FUNC_MAIN,0,)
 INSTRUCTION(HERE_STOP,0,)
 
+INSTRUCTION(RETURN,0,
+	nextpos = li.size();
+)
+
 // Allocate on stack
 INSTRUCTION(ALLOC_STACK,1,
 	len = li[aktpos];

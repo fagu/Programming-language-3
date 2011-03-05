@@ -31,11 +31,6 @@ vector<vector<int> > liste;
 vector<vector<int> > stops;
 vector<vector<int> > argsizes;
 
-#define INSTRUCTION(c,n,code) c,
-char opcodes[] = {
-#include "vminstructions.cpp"
-};
-#undef INSTRUCTION
 #define INSTRUCTION(c,n,code) n,
 int oplength[] = {
 #include "vminstructions.cpp"

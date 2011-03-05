@@ -13,6 +13,7 @@ set(COMPILER_CPPFILES
 	instruction.cpp
 	location.cpp
 	opcodes.cpp
+	flowgraph.cpp
 	bison_parser.cpp
 	flex_lexer.cpp
 )

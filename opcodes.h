@@ -5,6 +5,7 @@ enum OPCODE {
 	FUNC,
 	FUNC_MAIN,
 	HERE_STOP,
+	RETURN,
 	ALLOC_STACK,
 	INT_CONST,
 	CHAR_CONST,
@@ -35,7 +36,8 @@ enum OPCODE {
 	UNEQUAL,
 	AND,
 	OR,
-	NUMBEROFOPCODES // ATTENTION: This MUST be the last entry
+	NUMBEROFOPCODES, // ATTENTION: This must be after all real opcodes and before all virtual opcodes
+	VIRTUAL_START
 };
 
 class Type;
