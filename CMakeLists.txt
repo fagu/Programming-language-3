@@ -13,6 +13,7 @@ set(COMPILER_CPPFILES
 	instruction.cpp
 	location.cpp
 	opcodes.cpp
+	opcodes_compiler.cpp
 	flowgraph.cpp
 	bison_parser.cpp
 	flex_lexer.cpp
@@ -21,6 +22,7 @@ set(COMPILER_CPPFILES
 set(VM_CPPFILES
 	virtualmachine.cpp
 	garbagecollector.cpp
+	opcodes.cpp
 )
 
 add_executable(compiler ${COMPILER_CPPFILES})

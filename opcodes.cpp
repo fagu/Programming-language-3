@@ -1,15 +1,20 @@
+#include <stdio.h>
 #include "opcodes.h"
 #include "type.h"
-#include "parseresult.h"
 
-Type* binaryinputtype(OPCODE code) {
-	if (code == AND || code == OR)
-		return ParseRes->boolType;
-	return ParseRes->intType;
+string opnames[NUMBEROFOPCODES];
+
+void init() {
+#define INSTRUCTION(c,n,code) opnames[c]=string(#c);
+#include "vminstructions.cpp"
+#undef INSTRUCTION
+	for (int i = 0; i < NUMBEROFOPCODES; i++) {
+		if (!opnames[i].length()) {
+			fprintf(stderr, "Opcode %d does not have a name!\n", i);
+		}
+	}
 }
 
-Type* binaryresulttype(OPCODE code) {
-	if (code == PLUS || code == MINUS || code == TIMES || code == DIV || code == MOD)
-		return ParseRes->intType;
-	return ParseRes->boolType;
+string opname(OPCODE op) {
+	return opnames[op];
 }

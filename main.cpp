@@ -7,6 +7,7 @@
 int yyparse();
 
 int main(int argc, char *argv[]) {
+	init();
 	system("rm -rf graphs");
 	int option;
 	while ((option = getopt (argc, argv, "o:g")) != -1) {

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "instruction.h"
 #include "parseresult.h"
+#include "opcodes_compiler.h"
 
 void BinaryOperatorInstruction::find() {
 	a->find();

@@ -112,10 +112,26 @@ void Node::printGraph(Graph &g, FILE *fi) {
 		return;
 	graphprinted = true;
 	num = g.nextnum++;
-	for (int i = 0; i < suc.size(); i++) {
-		suc[i]->printGraph(g, fi);
-		fprintf(fi, "\t%d -> %d", num, suc[i]->num);
-		if (suc.size() > 1)
+	fprintf(fi, "\t%d [shape=box,label=\"", num);
+	Node *aktnode = this;
+	while(true) {
+		fprintf(fi, "%s (", opname(aktnode->op).c_str());
+		for (int i = 0; i < aktnode->args.size(); i++) {
+			if (i > 0)
+				fprintf(fi, ",");
+			fprintf(fi, "%d", aktnode->args[i]->value);
+		}
+		fprintf(fi, ")\\n");
+		if (aktnode->suc.size() != 1 || aktnode->suc[0]->stopid != -1)
+			break;
+		aktnode = aktnode->suc[0];
+	}
+	fprintf(fi, "\"];\n");
+	
+	for (int i = 0; i < aktnode->suc.size(); i++) {
+		aktnode->suc[i]->printGraph(g, fi);
+		fprintf(fi, "\t%d:s -> %d:n", num, aktnode->suc[i]->num);
+		if (aktnode->suc.size() > 1)
 			fprintf(fi, " [label=\"%d\"]", i);
 		fprintf(fi, ";\n");
 	}

@@ -6,6 +6,8 @@
 #include "virtualmachine.h"
 #include "garbagecollector.h"
 
+#define VIRTUALMACHINE
+
 //#define PRINTCOMMAND
 //#define PRINTSTACK
 //#define PRINTHEAP
@@ -36,8 +38,6 @@ int oplength[] = {
 #include "vminstructions.cpp"
 };
 #undef INSTRUCTION
-
-string opname[NUMBEROFOPCODES];
 
 state stat;
 
@@ -73,6 +73,8 @@ int main(int argc, char *argv[]) {
 	if (optind < argc)
 		freopen(argv[optind], "r", stdin);
 	
+	init();
+	
 	int L;
 	for (L = 0; true; L++) {
 		int c = fgetc(stdin);
@@ -81,16 +83,6 @@ int main(int argc, char *argv[]) {
 		input[L] = c;
 	}
 	input[L] = '\0';
-	
-#define INSTRUCTION(c,n,code) opname[c]=string(#c);
-#include "vminstructions.cpp"
-#undef INSTRUCTION
-	for (int i = 0; i < NUMBEROFOPCODES; i++) {
-		if (!opname[i].length()) {
-			fprintf(stderr, "Opcode %d does not have a name!\n", i);
-			return 1;
-		}
-	}
 	
 	char *codepos = input;
 	while(*codepos != '\0') {
@@ -120,7 +112,7 @@ int main(int argc, char *argv[]) {
 			}
 			if (op == FUNC || op == FUNC_MAIN)
 				printf("\033[1;31m");
-			printf("%25s: ", opname[op].c_str());
+			printf("%25s: ", opname((OPCODE)op).c_str());
 			if (op == FUNC || op == FUNC_MAIN)
 				printf("\033[22;39m");
 			for (int i = 0; i < args.size(); i++)

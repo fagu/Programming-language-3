@@ -1,5 +1,7 @@
 #ifndef OPCODES_H
 #define OPCODES_H
+#include <string>
+using namespace std;
 
 enum OPCODE {
 	FUNC,
@@ -36,13 +38,11 @@ enum OPCODE {
 	UNEQUAL,
 	AND,
 	OR,
-	NUMBEROFOPCODES, // ATTENTION: This must be after all real opcodes and before all virtual opcodes
-	VIRTUAL_START
+	VIRTUAL_START,
+	NUMBEROFOPCODES
 };
 
-class Type;
-
-Type * binaryinputtype(OPCODE code);
-Type * binaryresulttype(OPCODE code);
+void init();
+string opname(OPCODE op);
 
 #endif // OPCODES_H
