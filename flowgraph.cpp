@@ -114,6 +114,9 @@ void Node::printGraph(Graph &g, FILE *fi) {
 	num = g.nextnum++;
 	for (int i = 0; i < suc.size(); i++) {
 		suc[i]->printGraph(g, fi);
-		fprintf(fi, "\t%d -> %d;\n", num, suc[i]->num);
+		fprintf(fi, "\t%d -> %d", num, suc[i]->num);
+		if (suc.size() > 1)
+			fprintf(fi, " [label=\"%d\"]", i);
+		fprintf(fi, ";\n");
 	}
 }
