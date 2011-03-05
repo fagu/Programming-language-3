@@ -4,7 +4,7 @@
 
 void Graph::addNewStops() {
 	nextstopid = 0;
-	//nextnum = 0;
+	nextnum = 0;
 	start->removeStops();
 	start->searchNodes(*this);
 	start->addGoodStops(*this);
@@ -21,12 +21,19 @@ void Graph::addNewStops() {
 	}
 }
 
+void Graph::printGraph(FILE *fi) {
+	fprintf(fi, "digraph G {\n");
+	start->printGraph(*this, fi);
+	fprintf(fi, "}\n");
+}
+
 void Node::init(OPCODE _op) {
 	op = _op;
 	found = false;
 	inrem = false;
 	ingood = false;
 	instack = false;
+	graphprinted = false;
 	stopid = -1;
 	outputsuc = 0;
 	outputprefound = false;
@@ -98,4 +105,15 @@ void Node::print() {
 			printf("%d;%d;\n", JUMP, suc.back()->stopid);
 	if (outputsuc)
 		outputsuc->print();
+}
+
+void Node::printGraph(Graph &g, FILE *fi) {
+	if (graphprinted)
+		return;
+	graphprinted = true;
+	num = g.nextnum++;
+	for (int i = 0; i < suc.size(); i++) {
+		suc[i]->printGraph(g, fi);
+		fprintf(fi, "\t%d -> %d;\n", num, suc[i]->num);
+	}
 }

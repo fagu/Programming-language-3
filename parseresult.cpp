@@ -6,6 +6,7 @@
 
 ParseResult::ParseResult() {
 	haserror = false;
+	printgraphs = false;
 	nullType = new NullType(Location());
 	voidType = new PrimitiveType(Location(), 0);
 	intType = new PrimitiveType(Location(), INTSIZE);
@@ -146,6 +147,17 @@ int ParseResult::output() {
 		int retpos = dec->find();
 		addnode(new Node(RETURN));
 		graphs.back()->addNewStops();
+		
+		if (printgraphs) {
+			char filename[100];
+			sprintf(filename, "graphs/%s-%d.dot", it->first.first.c_str(), dec->num);
+			FILE *fi = fopen(filename, "w");
+			graphs.back()->printGraph(fi);
+			fclose(fi);
+			char command[1000];
+			sprintf(command, "dot graphs/%s-%d.dot -Tpng -o graphs/%s-%d.png", it->first.first.c_str(), dec->num, it->first.first.c_str(), dec->num);
+			system(command);
+		}
 		
 		stringstream str;
 		if (it->first.first == "main")

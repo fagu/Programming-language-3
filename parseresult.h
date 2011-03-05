@@ -24,6 +24,7 @@ private:
 	vector<Node*> stops;
 	vector<FunctionDeclaration*> funcdecs;
 public:
+	bool printgraphs;
 	bool haserror;
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;

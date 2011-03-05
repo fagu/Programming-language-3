@@ -27,8 +27,8 @@ public:
 	OPCODE op;
 	vector<Arg*> args;
 	vector<Node*> suc;
-	//int num;
-	bool found, inrem, ingood, instack;
+	int num;
+	bool found, inrem, ingood, instack, graphprinted;
 	int stopid;
 	Node* outputsuc;
 	bool outputprefound;
@@ -42,6 +42,7 @@ public:
 	void searchNodes(Graph &g);
 	void addGoodStops(Graph &g);
 	void print();
+	void printGraph(Graph& g, FILE* fi);
 };
 
 class Graph {
@@ -49,10 +50,11 @@ public:
 	Node *start;
 	int nextstopid;
 	vector<Node*> nodes;
-	//int nextnum;
+	int nextnum;
 	
 	Graph() : nextstopid(0) {start = new Node(VIRTUAL_START);}
 	void addNewStops();
+	void printGraph(FILE *fi);
 };
 
 #endif // FLOWGRAPH_H
