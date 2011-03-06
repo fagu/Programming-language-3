@@ -37,9 +37,11 @@ void ParseResult::addnode(Node* n) {
 }
 
 int ParseResult::alloc(int len) {
-	int pos = varnum;
-	varnum += len;
-	return pos;
+	//int pos = varnum;
+	//varnum += len;
+	if (len == 0)
+		return 0;
+	return graphs.back()->varnum++; // TODO Handle variables with length != 1
 }
 
 void ParseResult::copy(int from, int len, int to) {
@@ -142,10 +144,13 @@ int ParseResult::output() {
 	for (map<Funcspec,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
 		graphs.push_back(new Graph());
 		prevnode = graphs.back()->start;
-		varnum = 0;
+		//varnum = 0;
 		FunctionDeclaration *dec = it->second;
 		int retpos = dec->find();
 		addnode(new Node(RETURN));
+		graphs.back()->removeOldStops();
+		graphs.back()->buildDomTree();
+		//graphs.back()->livenessAnalysis();
 		graphs.back()->addNewStops();
 		
 		if (printgraphs) {
@@ -169,7 +174,7 @@ int ParseResult::output() {
 			str << (*dec->parameters)[i]->type->real()->size() << ";";
 		}
 		str << "\n";
-		str << ALLOC_STACK << ";" << varnum << ";\n";
+		str << ALLOC_STACK << ";" << graphs.back()->varnum << ";\n";
 		funcspecs.push_back(str.str());
 		stops.clear();
 	}

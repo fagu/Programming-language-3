@@ -18,7 +18,6 @@ typedef pair<string,vector<Type*> > Funcspec;
 class ParseResult {
 private:
 	vector<string> funcspecs;
-	int varnum;
 	vector<Graph*> graphs;
 	Node *prevnode;
 	vector<Node*> stops;

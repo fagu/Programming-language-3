@@ -2,41 +2,24 @@
 #include <assert.h>
 #include "flowgraph.h"
 
-void Graph::addNewStops() {
-	nextstopid = 0;
-	nextnum = 0;
-	start->removeStops();
-	start->searchNodes(*this);
-	start->addGoodStops(*this);
-	vector<Node*> withouts;
-	for (int i = 0; i < nodes.size(); i++)
-		if (!nodes[i]->outputprefound)
-			withouts.push_back(nodes[i]);
-	for (int i = 0; i < withouts.size()-1; i++) {
-		Node *a = withouts[i];
-		while(a->outputsuc)
-			a = a->outputsuc;
-		a->outputsuc = withouts[i+1];
-		withouts[i+1]->outputprefound = true;
-	}
-}
-
-void Graph::printGraph(FILE *fi) {
-	fprintf(fi, "digraph G {\n");
-	start->printGraph(*this, fi);
-	fprintf(fi, "}\n");
-}
-
 void Node::init(OPCODE _op) {
 	op = _op;
-	found = false;
 	inrem = false;
 	ingood = false;
 	instack = false;
 	graphprinted = false;
+	num = -1;
 	stopid = -1;
 	outputsuc = 0;
 	outputprefound = false;
+	inlivequeue = false;
+	ancestor = 0;
+	label = this;
+}
+
+void Graph::removeOldStops() {
+	start->removeStops();
+	start->searchNodes(*this, 0);
 }
 
 void Node::removeStops() {
@@ -51,16 +34,131 @@ void Node::removeStops() {
 	}
 }
 
-void Node::searchNodes(Graph& g) {
-	if (found)
+void Node::searchNodes(Graph& g, Node* p) {
+	if (p)
+		par.push_back(p);
+	if (num != -1)
 		return;
-	//num = g.nextnum++;
+	num = g.nodes.size();
+	semi = num;
 	//fprintf(stderr, "%d: %d\n", num, op);
-	found = true;
 	g.nodes.push_back(this);
 	for (int i = 0; i < suc.size(); i++) {
-		suc[i]->searchNodes(g);
+		suc[i]->searchNodes(g, this);
 		//fprintf(stderr, "%d -> %d\n", num, suc[i]->num);
+	}
+}
+
+void Graph::buildDomTree() {
+	for (int i = nodes.size()-1; i > 0; i--) {
+		Node *w = nodes[i];
+		for (int k = 0; k < w->par.size(); k++) {
+			Node *v = w->par[k];
+			Node *u = v->eval();
+			w->semi = min(w->semi, u->semi);
+		}
+		nodes[w->semi]->bucket.push_back(w);
+		Node *p = w->par[0];
+		w->ancestor = p;
+		for (int k = 0; k < p->bucket.size(); k++) {
+			Node *v = p->bucket[k];
+			Node *u = v->eval();
+			if (u->semi < v->semi)
+				v->dom = u;
+			else
+				v->dom = p;
+		}
+		p->bucket.clear();
+	}
+	nodes[0]->dom = 0;
+	for (int i = 1; i < nodes.size(); i++) {
+		Node *w = nodes[i];
+		if (w->dom != nodes[w->semi])
+			w->dom = w->dom->dom;
+	}
+}
+
+Node* Node::eval() {
+	if (!ancestor)
+		return this;
+	compress();
+	return label;
+}
+
+void Node::compress() {
+	if (ancestor->ancestor) {
+		ancestor->compress();
+		if (ancestor->label->semi < label->semi) {
+			label = ancestor->label;
+		}
+		ancestor = ancestor->ancestor;
+	}
+}
+
+void Graph::livenessAnalysis() {
+	queue<Node*> qu; // TODO High asymptotic runtime
+	for (int i = 0; i < nodes.size(); i++) {
+		nodes[i]->initLive(*this);
+		nodes[i]->inlivequeue = true;
+		qu.push(nodes[i]);
+	}
+	int anz = 0;
+	while(!qu.empty()) {
+		anz++;
+		Node *n = qu.front();
+		qu.pop();
+		if (n->updateLive()) {
+			for (int k = 0; k < n->par.size(); k++) {
+				if (!n->par[k]->inlivequeue) {
+					n->par[k]->inlivequeue = true;
+					qu.push(n->par[k]);
+				}
+			}
+		}
+	}
+	//fprintf(stderr, "Liveness %d/%d\n", anz, nodes.size());
+}
+
+void Node::initLive(Graph& g) {
+	liveget.resize(g.varnum);
+	liveset.resize(g.varnum);
+	livein.resize(g.varnum);
+	liveout.resize(g.varnum);
+	for (int i = 0; i < args.size(); i++) {
+		if (args[i]->argtype == GETARG)
+			liveget[args[i]->value] = true;
+		else if (args[i]->argtype == SETARG)
+			liveset[args[i]->value] = true;
+	}
+}
+
+bool Node::updateLive() {
+	inlivequeue = false;
+	liveout.reset();
+	for (int i = 0; i < suc.size(); i++) {
+		liveout |= suc[i]->livein;
+	}
+	dynamic_bitset<> newin = liveget | (liveout - liveset);
+	if (newin != livein) {
+		livein = newin;
+		return true;
+	}
+	return false;
+}
+
+void Graph::addNewStops() {
+	nextstopid = 0;
+	start->addGoodStops(*this);
+	vector<Node*> withouts;
+	for (int i = 0; i < nodes.size(); i++)
+		if (!nodes[i]->outputprefound)
+			withouts.push_back(nodes[i]);
+	for (int i = 0; i < withouts.size()-1; i++) {
+		Node *a = withouts[i];
+		while(a->outputsuc)
+			a = a->outputsuc;
+		a->outputsuc = withouts[i+1];
+		withouts[i+1]->outputprefound = true;
 	}
 }
 
@@ -107,11 +205,16 @@ void Node::print() {
 		outputsuc->print();
 }
 
+void Graph::printGraph(FILE *fi) {
+	fprintf(fi, "digraph G {\n");
+	start->printGraph(*this, fi);
+	fprintf(fi, "}\n");
+}
+
 void Node::printGraph(Graph &g, FILE *fi) {
 	if (graphprinted)
 		return;
 	graphprinted = true;
-	num = g.nextnum++;
 	fprintf(fi, "\t%d [shape=box,label=\"", num);
 	Node *aktnode = this;
 	while(true) {
@@ -122,12 +225,15 @@ void Node::printGraph(Graph &g, FILE *fi) {
 			fprintf(fi, "%d", aktnode->args[i]->value);
 		}
 		fprintf(fi, ")\\n");
+		//break;
 		if (aktnode->suc.size() != 1 || aktnode->suc[0]->stopid != -1)
 			break;
 		aktnode = aktnode->suc[0];
 	}
 	fprintf(fi, "\"];\n");
 	
+	//if (dom)
+	//	fprintf(fi, "%d -> %d [color=red];\n", dom->num, num);
 	for (int i = 0; i < aktnode->suc.size(); i++) {
 		aktnode->suc[i]->printGraph(g, fi);
 		fprintf(fi, "\t%d:s -> %d:n", num, aktnode->suc[i]->num);
