@@ -44,5 +44,6 @@ enum OPCODE {
 
 void init();
 string opname(OPCODE op);
+bool opconst(OPCODE op);
 
 #endif // OPCODES_H

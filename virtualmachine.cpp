@@ -33,7 +33,7 @@ vector<vector<int> > liste;
 vector<vector<int> > stops;
 vector<vector<int> > argsizes;
 
-#define INSTRUCTION(c,n,code) n,
+#define INSTRUCTION(c,n,const,code) n,
 int oplength[] = {
 #include "vminstructions.cpp"
 };
@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
 			printf("):\033[39m\n");
 #endif
 			switch(op) {
-#define INSTRUCTION(c,n,code) case c: code break;
+#define INSTRUCTION(c,n,const,code) case c: code break;
 #include "vminstructions.cpp"
 #undef INSTRUCTION
 				default:
