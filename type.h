@@ -13,8 +13,6 @@ using namespace std;
 
 class ArrayType;
 
-#define INFTY 2000000000
-
 class Type {
 private:
 	ArrayType * array;
@@ -35,7 +33,7 @@ protected:
 	Type * type;
 public:
 	Location loc;
-	TypePointer(Location _loc) : loc(_loc) {}
+	TypePointer(Location _loc) : type(0), loc(_loc) {}
 	virtual ~TypePointer() {}
 	virtual void find() = 0;
 	Type & operator*();

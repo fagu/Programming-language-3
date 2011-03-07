@@ -2,6 +2,7 @@
 #define FLOWGRAPH_H
 #include <vector>
 #include <queue>
+#include <stack>
 #include <boost/dynamic_bitset.hpp>
 #include "opcodes.h"
 using namespace std;
@@ -17,9 +18,18 @@ class Arg {
 public:
 	ArgType argtype;
 	int value;
+	int sub;
 	int len;
-	Arg(ArgType t, int v) : argtype(t), value(v), len(-1) {}
+	Arg(ArgType t, int v) : argtype(t), value(v), len(0) {}
 	Arg(ArgType t, int v, int l) : argtype(t), value(v), len(l) {}
+};
+
+class Phi {
+public:
+	int varnum;
+	int setsub;
+	vector<int> getsubs;
+	Phi(int v, int s) : varnum(v) {getsubs.resize(s);}
 };
 
 class Graph;
@@ -43,16 +53,32 @@ public:
 	// DFS
 	int num; // Discovery time
 	vector<Node*> par;
+	vector<int> paridinchild;
 	void searchNodes(Graph& g, Node* p);
 	
 	// Dominator tree
 	int semi;
 	Node *dom;
+	vector<Node*> domsuc;
 	vector<Node*> bucket;
 	Node *ancestor;
 	Node *label;
 	Node *eval();
 	void compress();
+	
+	// Convert to SSA form
+	vector<Node*> domfront;
+	int ssamaxphi;
+	int ssainqueue;
+	vector<Phi*> phis;
+	void visitSSA(Graph& g);
+	
+	// Constant propagation
+	int unconstgets;
+	void eval(Graph& g, queue<Node*> &qu);
+	
+	// Dead code elimination
+	void removeNode();
 	
 	// Live variables
 	dynamic_bitset<> liveget;
@@ -78,6 +104,16 @@ public:
 	void printGraph(Graph& g, FILE* fi);
 };
 
+class Variable {
+public:
+	vector<Node*> setters;
+	vector<vector<Node*> > getters;
+	stack<int> aktsub;
+	int nextsub;
+	vector<int> consts;
+	Variable() : nextsub(1) {aktsub.push(0);}
+};
+
 class Graph {
 public:
 	Node *start;
@@ -86,9 +122,14 @@ public:
 	
 	vector<Node*> nodes;
 	
+	vector<Variable*> vars;
+	
 	Graph() : nextstopid(0), varnum(0) {start = new Node(VIRTUAL_START);}
 	void removeOldStops();
 	void buildDomTree();
+	void convertToSSA();
+	void constantPropagation();
+	void deadCodeElimination();
 	void livenessAnalysis();
 	void addNewStops();
 	void printGraph(FILE *fi);

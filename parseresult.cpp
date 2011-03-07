@@ -150,6 +150,9 @@ int ParseResult::output() {
 		addnode(new Node(RETURN));
 		graphs.back()->removeOldStops();
 		graphs.back()->buildDomTree();
+		graphs.back()->convertToSSA();
+		graphs.back()->constantPropagation();
+		graphs.back()->deadCodeElimination();
 		//graphs.back()->livenessAnalysis();
 		graphs.back()->addNewStops();
 		

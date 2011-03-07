@@ -29,7 +29,7 @@ INSTRUCTION(ALLOC_STACK,1,false,
 INSTRUCTION(INT_CONST,2,true,
 	co = li[aktpos]; pos = li[aktpos+1];
 	INTREF(st[pos]) = co;
-	ip[li[aktpos+1]] = false;
+	ip[pos] = false;
 	//ip[li[aktpos+1]+1] = false;
 	//ip[li[aktpos+1]+2] = false;
 	//ip[li[aktpos+1]+3] = false;
@@ -40,7 +40,7 @@ INSTRUCTION(INT_CONST,2,true,
 INSTRUCTION(CHAR_CONST,2,true,
 	co = li[aktpos]; pos = li[aktpos+1];
 	CHARREF(st[pos]) = co;
-	ip[li[aktpos+1]] = false;
+	ip[pos] = false;
 	//ip[li[aktpos+1]+1] = false;
 	//ip[li[aktpos+1]+2] = false;
 	//ip[li[aktpos+1]+3] = false;

@@ -3,6 +3,8 @@
 #include <string>
 using namespace std;
 
+#define INFTY 2000000000
+
 enum OPCODE {
 	FUNC,
 	FUNC_MAIN,
