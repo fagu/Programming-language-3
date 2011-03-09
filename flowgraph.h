@@ -20,16 +20,8 @@ public:
 	int value;
 	int sub;
 	int len;
-	Arg(ArgType t, int v) : argtype(t), value(v), len(0) {}
-	Arg(ArgType t, int v, int l) : argtype(t), value(v), len(l) {}
-};
-
-class Phi {
-public:
-	int varnum;
-	int setsub;
-	vector<int> getsubs;
-	Phi(int v, int s) : varnum(v) {getsubs.resize(s);}
+	Arg(ArgType t, int v) : argtype(t), value(v), len(0), sub(0) {}
+	Arg(ArgType t, int v, int l) : argtype(t), value(v), len(l), sub(0) {}
 };
 
 class Graph;
@@ -47,9 +39,15 @@ public:
 	
 	vector<Node*> suc;
 	
+	// Init simple properties of a node
+	vector<Arg*> getargs;
+	vector<Arg*> setargs;
+	void initSimple();
+	
 	// Remove HERE_STOP nodes
 	bool inrem;
 	void removeStops();
+	
 	// DFS
 	int num; // Discovery time
 	vector<Node*> par;
@@ -70,15 +68,18 @@ public:
 	vector<Node*> domfront;
 	int ssamaxphi;
 	int ssainqueue;
-	vector<Phi*> phis;
+	//vector<Phi*> phis;
+	Node *firstphi;
 	void visitSSA(Graph& g);
+	void insertNode(Node *n);
 	
 	// Constant propagation
 	int unconstgets;
 	void eval(Graph& g, queue<Node*> &qu);
 	
 	// Dead code elimination
-	void removeNode();
+	int needcount;
+	void removeNode(Graph& g, std::queue< Node* >& qu);
 	
 	// Live variables
 	dynamic_bitset<> liveget;
@@ -111,7 +112,9 @@ public:
 	stack<int> aktsub;
 	int nextsub;
 	vector<int> consts;
-	Variable() : nextsub(1) {aktsub.push(0);}
+	vector<int> numberofgetters;
+	vector<Node*> setter;
+	Variable() : nextsub(1) {aktsub.push(0);setter.push_back(0);}
 };
 
 class Graph {

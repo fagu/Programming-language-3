@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 #include "opcodes.h"
 #include "type.h"
 
@@ -13,9 +14,7 @@ void init() {
 #include "vminstructions.cpp"
 #undef INSTRUCTION
 	for (int i = 0; i < NUMBEROFOPCODES; i++) {
-		if (!opnames[i].length()) {
-			fprintf(stderr, "Opcode %d does not have a name!\n", i);
-		}
+		assert(opnames[i].length());
 	}
 }
 

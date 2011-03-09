@@ -18,6 +18,18 @@ void Node::init(OPCODE _op) {
 	label = this;
 	ssamaxphi = -1;
 	ssainqueue = -1;
+	firstphi = this;
+}
+
+void Node::initSimple() {
+	getargs.clear();
+	setargs.clear();
+	for (int i = 0; i < args.size(); i++) {
+		if (args[i]->argtype == GETARG)
+			getargs.push_back(args[i]);
+		else if (args[i]->argtype == SETARG)
+			setargs.push_back(args[i]);
+	}
 }
 
 void Graph::removeOldStops() {
@@ -51,6 +63,7 @@ void Node::searchNodes(Graph& g, Node* p) {
 		suc[i]->searchNodes(g, this);
 		//fprintf(stderr, "%d -> %d\n", num, suc[i]->num);
 	}
+	initSimple();
 }
 
 // TODO implement balanced tree for faster eval, link
@@ -116,10 +129,9 @@ void Graph::convertToSSA() {
 				}
 			}
 		}
-		for (int k = 0; k < v->args.size(); k++) {
-			Arg *a = v->args[k];
-			if (a->argtype == SETARG)
-				vars[a->value]->setters.push_back(v);
+		for (int k = 0; k < v->setargs.size(); k++) {
+			Arg *a = v->setargs[k];
+			vars[a->value]->setters.push_back(v);
 		}
 	}
 	queue<Node*> qu;
@@ -135,7 +147,13 @@ void Graph::convertToSSA() {
 			for (int k = 0; k < a->domfront.size(); k++) {
 				Node *b = a->domfront[k];
 				if (b->ssamaxphi < i) {
-					b->phis.push_back(new Phi(i, b->par.size()));
+					Node *phi = new Node(VIRTUAL_PHI, new Arg(SETARG, i, 1)); // TODO support types with len != 1
+					for (int r = 0; r < b->firstphi->par.size(); r++)
+						phi->args.push_back(new Arg(GETARG, i, 1));
+					phi->initSimple();
+					b->insertNode(phi);
+					if (b->ssamaxphi == -1)
+						b->firstphi = phi;
 					b->ssamaxphi = i;
 					for (int j = 0; j < b->domfront.size(); j++) {
 						Node *c = b->domfront[j];
@@ -149,64 +167,77 @@ void Graph::convertToSSA() {
 		}
 	}
 	start->visitSSA(*this);
+	for (int i = 0; i < nodes.size(); i++)
+		nodes[i]->num = -1;
+	nodes.clear();
+	start->searchNodes(*this, 0);
 }
 
 void Node::visitSSA(Graph &g) {
-	for (int i = 0; i < phis.size(); i++) {
-		Variable *v = g.vars[phis[i]->varnum];
+	for (int i = 0; i < setargs.size(); i++) {
+		Variable *v = g.vars[setargs[i]->value];
 		v->aktsub.push(v->nextsub);
-		phis[i]->setsub = v->nextsub++;
+		setargs[i]->sub = v->nextsub++;
+		g.vars[setargs[i]->value]->setter.push_back(this);
 	}
-	for (int i = 0; i < args.size(); i++) {
-		if (args[i]->argtype == SETARG) {
-			Variable *v = g.vars[args[i]->value];
-			v->aktsub.push(v->nextsub);
-			args[i]->sub = v->nextsub++;
-		} else if (args[i]->argtype == GETARG) {
-			int varid = args[i]->value;
+	if (op != VIRTUAL_PHI) {
+		for (int i = 0; i < getargs.size(); i++) {
+			int varid = getargs[i]->value;
 			int sub = g.vars[varid]->aktsub.top();
-			args[i]->sub = sub;
+			getargs[i]->sub = sub;
 			while(g.vars[varid]->getters.size() <= sub)
 				g.vars[varid]->getters.push_back(vector<Node*>());
 			g.vars[varid]->getters[sub].push_back(this);
 		}
-	}
-	for (int i = 0; i < suc.size(); i++) {
-		Node *v = suc[i];
-		for (int k = 0; k < v->phis.size(); k++) {
-			v->phis[k]->getsubs[paridinchild[i]] = g.vars[v->phis[k]->varnum]->aktsub.top();
+		for (int i = 0; i < suc.size(); i++) {
+			Node *v = suc[i];
+			while(v->op == VIRTUAL_PHI) {
+				v->getargs[paridinchild[i]]->sub = g.vars[v->setargs[0]->value]->aktsub.top();
+				v = v->suc[0];
+			}
 		}
 	}
 	for (int i = 0; i < domsuc.size(); i++)
 		domsuc[i]->visitSSA(g);
-	for (int i = 0; i < phis.size(); i++) {
-		Variable *v = g.vars[phis[i]->varnum];
+	for (int i = 0; i < setargs.size(); i++) {
+		Variable *v = g.vars[setargs[i]->value];
 		v->aktsub.pop();
-	}
-	for (int i = 0; i < args.size(); i++) {
-		if (args[i]->argtype == SETARG) {
-			Variable *v = g.vars[args[i]->value];
-			v->aktsub.pop();
-		}
 	}
 }
 
+void Node::insertNode(Node* n) { // TODO This function could have bad worst-case asymptotic runtime
+	n->suc.push_back(this);
+	for (int i = 0; i < par.size(); i++) {
+		Node *p = par[i];
+		for (int k = 0; k < p->suc.size(); k++) {
+			if (p->suc[k] == this) {
+				p->suc[k] = n;
+				p->paridinchild[k] = n->par.size();
+			}
+		}
+		n->par.push_back(p);
+	}
+	n->dom = dom;
+	for (int i = 0; i < dom->domsuc.size(); i++)
+		if (dom->domsuc[i] == this)
+			dom->domsuc[i] = n;
+	dom = n;
+	n->domsuc.push_back(this);
+	par.clear();
+	par.push_back(n);
+	n->paridinchild.push_back(0);
+}
+
 void Graph::constantPropagation() {
-	fprintf(stderr, "constprop\n");
 	queue<Node*> qu;
 	for (int i = 0; i < nodes.size(); i++) {
 		Node *a = nodes[i];
 		if (!opconst(a->op)) {
 			a->unconstgets = INFTY;
 		} else {
-			a->unconstgets = 0;
-			for (int k = 0; k < a->args.size(); k++) {
-				if (a->args[k]->argtype == GETARG)
-					a->unconstgets++;
-			}
-			if (a->unconstgets == 0) {
+			a->unconstgets = a->getargs.size();
+			if (a->unconstgets == 0)
 				qu.push(a);
-			}
 		}
 	}
 	while(!qu.empty()) {
@@ -237,7 +268,6 @@ void Node::eval(Graph& g, queue<Node*> &qu) {
 	stat.stac.back()->funcnum = 0;
 	stat.stac.back()->copyresultto = -1;
 	
-	int setcount = 0;
 	for (int i = 0; i < args.size(); i++) {
 		if (args[i]->argtype == SETARG) {
 			liste[0].push_back(stat.stac.back()->regs.size());
@@ -245,7 +275,6 @@ void Node::eval(Graph& g, queue<Node*> &qu) {
 				stat.stac.back()->regs.push_back(0);
 				stat.stac.back()->ispointer.push_back(false);
 			}
-			setcount++;
 		} else if (args[i]->argtype == GETARG) {
 			int varid = args[i]->value;
 			int sub = args[i]->sub;
@@ -266,76 +295,84 @@ void Node::eval(Graph& g, queue<Node*> &qu) {
 		if (args[i]->argtype == SETARG) {
 			int varid = args[i]->value;
 			int sub = args[i]->sub;
-			for (int k = 0; k < g.vars[varid]->getters[sub].size(); k++) {
-				Node *b = g.vars[varid]->getters[sub][k];
-				b->unconstgets--;
-				if (b->unconstgets == 0)
-					qu.push(b);
+			if (g.vars[varid]->getters.size() > sub) {
+				for (int k = 0; k < g.vars[varid]->getters[sub].size(); k++) {
+					Node *b = g.vars[varid]->getters[sub][k];
+					b->unconstgets--;
+					if (b->unconstgets == 0)
+						qu.push(b);
+				}
 			}
 			while(g.vars[varid]->consts.size() <= sub)
 				g.vars[varid]->consts.push_back(0);
 			g.vars[varid]->consts[sub] = stat.stac.back()->regs[stacpos]; // TODO support fields with length > 1
-			fprintf(stderr, "const: %d_%d = %d\n", varid, sub, g.vars[varid]->consts[sub]);
+			//fprintf(stderr, "const: %d_%d = %d\n", varid, sub, g.vars[varid]->consts[sub]);
 		}
 		stacpos += args[i]->len;
 	}
 	
 	// TODO support functions with multiple return values or return types != INT
-	if (setcount == 1) {
-		int varid;
-		int sub;
-		for (int i = 0; i < args.size(); i++) {
-			if (args[i]->argtype == SETARG) {
-				varid = args[i]->value;
-				sub = args[i]->sub;
-			}
-		}
-		op = INT_CONST;
-		args.clear();
-		args.push_back(new Arg(INTARG, g.vars[varid]->consts[sub]));
-		args.push_back(new Arg(SETARG, varid, 1));
-		args[1]->sub = sub;
-	}
+	assert(setargs.size() == 1);
+	int varid = setargs[0]->value;
+	int sub = setargs[0]->sub;
+	op = INT_CONST;
+	args.clear();
+	getargs.clear();
+	setargs.clear();
+	args.push_back(new Arg(INTARG, g.vars[varid]->consts[sub]));
+	args.push_back(new Arg(SETARG, varid, 1));
+	args[1]->sub = sub;
+	setargs.push_back(args[1]);
 }
 
 void Graph::deadCodeElimination() {
 	for (int i = 0; i < vars.size(); i++) {
-		for (int k = 0; k < vars[i]->getters.size(); k++)
-			vars[i]->getters[k].clear();
+		vars[i]->numberofgetters.clear();
+		vars[i]->numberofgetters.resize(vars[i]->nextsub, 0);
 	}
 	for (int k = 0; k < nodes.size(); k++) {
 		Node *a = nodes[k];
-		for (int i = 0; i < a->args.size(); i++) {
-			if (a->args[i]->argtype == GETARG) {
-				int varid = a->args[i]->value;
-				int sub = a->args[i]->sub;
-				while(vars[varid]->getters.size() <= sub)
-					vars[varid]->getters.push_back(vector<Node*>());
-				vars[varid]->getters[sub].push_back(a);
-			}
+		for (int i = 0; i < a->getargs.size(); i++) {
+			int varid = a->getargs[i]->value;
+			int sub = a->getargs[i]->sub;
+			vars[varid]->numberofgetters[sub]++;
 		}
 	}
+	queue<Node*> qu;
 	for (int k = 0; k < nodes.size(); k++) {
 		Node *a = nodes[k];
-		if (!opconst(a->op))
+		if (!opconst(a->op)) {
+			a->needcount = INFTY;
 			continue;
-		bool needed = false;
-		for (int i = 0; i < a->args.size(); i++) {
-			if (a->args[i]->argtype == SETARG) {
-				int varid = a->args[i]->value;
-				int sub = a->args[i]->sub;
-				if (vars[varid]->getters.size() <= sub || !vars[varid]->getters[sub].empty())
-					needed = true;
-			}
 		}
-		if (!needed) {
-			a->removeNode();
+		a->needcount = 0;
+		for (int i = 0; i < a->setargs.size(); i++) {
+			int varid = a->setargs[i]->value;
+			int sub = a->setargs[i]->sub;
+			a->needcount += vars[varid]->numberofgetters[sub];
 		}
+		if (a->needcount == 0)
+			qu.push(a);
+	}
+	while(!qu.empty()) {
+		Node *a = qu.front();
+		qu.pop();
+		a->removeNode(*this, qu);
 	}
 }
 
-void Node::removeNode() {
+void Node::removeNode(Graph &g, queue<Node*> &qu) { // TODO This function could have bad worst-case asymptotic runtime
 	assert(suc.size() == 1 && !par.empty());
+	for (int i = 0; i < getargs.size(); i++) {
+		if (getargs[i]->sub) {
+			Variable *v = g.vars[getargs[i]->value];
+			Node *b = v->setter[getargs[i]->sub];
+			b->needcount--;
+			if (b->needcount == 0)
+				qu.push(b);
+		}
+	}
+	op = VIRTUAL_DELETED;
 	for (int i = 0; i < par.size(); i++) {
 		Node *p = par[i];
 		for (int r = 0; r < p->suc.size(); r++) {
@@ -353,6 +390,9 @@ void Node::removeNode() {
 		}
 		if (!found)
 			suc[0]->par.push_back(p);
+	}
+	for (int i = 0; i < domsuc.size(); i++) {
+		domsuc[i]->dom = dom;
 	}
 }
 
@@ -377,7 +417,6 @@ void Graph::livenessAnalysis() {
 			}
 		}
 	}
-	//fprintf(stderr, "Liveness %d/%d\n", anz, nodes.size());
 }
 
 void Node::initLive(Graph& g) {
@@ -439,7 +478,6 @@ void Node::addGoodStops(Graph& g) {
 		if (outputsuc != suc[i]) {
 			if (suc[i]->stopid == -1)
 				suc[i]->stopid = g.nextstopid++;
-			//fprintf(stderr, "s%d\n", suc[i]->stopid);
 		}
 	}
 	for (int i = 0; i < suc.size(); i++)
@@ -451,7 +489,7 @@ void Node::print() {
 	if (stopid != -1)
 		printf("%d;%d;\n", HERE_STOP, stopid);
 	assert((suc.size() == 0 && op == RETURN) || (suc.size() == 1 && op != JUMPIF && op != RETURN) || (suc.size() == 2 && op == JUMPIF));
-	if (op != VIRTUAL_START) {
+	if (op < VIRTUAL_START) {
 		printf("%d;", op);
 		for (int i = 0; i < args.size(); i++)
 			printf("%d;", args[i]->value);
@@ -479,16 +517,6 @@ void Node::printGraph(Graph &g, FILE *fi) {
 	fprintf(fi, "\t%d [shape=box,label=\"", num);
 	Node *aktnode = this;
 	while(true) {
-		for (int i = 0; i < aktnode->phis.size(); i++) {
-			Phi *p = aktnode->phis[i];
-			fprintf(fi, "%d_%d <= phi(", p->varnum, p->setsub);
-			for (int k = 0; k < p->getsubs.size(); k++) {
-				if (k > 0)
-					fprintf(fi, ", ");
-				fprintf(fi, "%d_%d", p->varnum, p->getsubs[k]);
-			}
-			fprintf(fi, ")\\n");
-		}
 		fprintf(fi, "%s (", opname(aktnode->op).c_str());
 		for (int i = 0; i < aktnode->args.size(); i++) {
 			if (i > 0)

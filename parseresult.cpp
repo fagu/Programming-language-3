@@ -147,7 +147,12 @@ int ParseResult::output() {
 		//varnum = 0;
 		FunctionDeclaration *dec = it->second;
 		int retpos = dec->find();
-		addnode(new Node(RETURN));
+		Node *returnnode;
+		if (dec->resulttype->real()->size() > 0)
+			returnnode = new Node(RETURN, new Arg(GETARG, retpos));
+		else
+			returnnode = new Node(RETURN);
+		addnode(returnnode);
 		graphs.back()->removeOldStops();
 		graphs.back()->buildDomTree();
 		graphs.back()->convertToSSA();

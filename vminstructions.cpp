@@ -1,5 +1,7 @@
 
 INSTRUCTION(VIRTUAL_START,0,false,)
+INSTRUCTION(VIRTUAL_PHI,0,true,)
+INSTRUCTION(VIRTUAL_DELETED,0,false,)
 INSTRUCTION(FUNC,0,false,)
 INSTRUCTION(FUNC_MAIN,0,false,)
 INSTRUCTION(HERE_STOP,0,false,)
@@ -48,7 +50,7 @@ INSTRUCTION(CHAR_CONST,2,true,
 )
 
 // Copy on stack
-INSTRUCTION(COPY_STACK,3,false,
+INSTRUCTION(COPY_STACK,3,true,
 	posa = li[aktpos]; len = li[aktpos+1]; posb = li[aktpos+2];
 	for (int i = 0; i < len; i++) {
 		st[posb+i] = st[posa+i];
