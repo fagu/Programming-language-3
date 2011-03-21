@@ -23,4 +23,12 @@ void main() {
 	print_int(bla);
 	if (1)
 		;
+	A test = new A;
+	hi(test);
+}
+
+void hi(A a) {
+}
+
+class A {
 }

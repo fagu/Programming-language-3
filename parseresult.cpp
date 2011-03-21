@@ -45,14 +45,6 @@ void ParseResult::addPrimitiveFunction(Function* func) {
 }
 
 void ParseResult::addFunction(FunctionDeclaration* dec) {
-	Funcspec spec;
-	spec.first = *dec->name;
-	for (int i = 0; i < dec->parameters->size(); i++) {
-		spec.second.push_back((*dec->parameters)[i]->type->real());
-	}
-	if (functions.count(spec))
-		printsyntaxerr(dec->loc, "Multiple definition of function '%s'!\n", dec->name->c_str());
-	functions[spec] = dec;
 	funcdecs.push_back(dec);
 }
 
@@ -171,8 +163,18 @@ int ParseResult::output() {
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->find();
 	int n = 0;
-	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++)
-		(*it)->num = n++;
+	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
+		FunctionDeclaration *dec = *it;
+		Funcspec spec;
+		spec.first = *dec->name;
+		for (int i = 0; i < dec->parameters->size(); i++) {
+			spec.second.push_back((*dec->parameters)[i]->type->real());
+		}
+		if (functions.count(spec))
+			printsyntaxerr(dec->loc, "Multiple definition of function '%s'!\n", dec->name->c_str());
+		functions[spec] = dec;
+		dec->num = n++;
+	}
 	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
 		graphs.push_back(new Graph());
 		prevnode = graphs.back()->start;
