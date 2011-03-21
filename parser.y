@@ -14,7 +14,7 @@
 %token <num> NUMBER
 %token <character> CHARACTER
 %token <name> STRING
-%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY DUMPSTACK DUMPHEAP PRINTINT PRINTCHAR
+%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY
 %type <classcontents> classcontents;
 %type <classcontent> classcontent;
 %type <instruction> exp narexp statement;
@@ -58,7 +58,7 @@ outerstatements:
 
 outerstatement:
 	  type IDENTIFIER '(' parameters ')' statement {
-	ParseRes->addFunction($2, new FunctionDeclaration(@$, $4, new BlockInstruction(@6, $6), $1));
+	ParseRes->addFunction(new FunctionDeclaration(@$, $2, $4, new BlockInstruction(@6, $6), $1));
 }
 	| CLASS IDENTIFIER '{' classcontents '}' {
 	ClassType *type = new ClassType(@$, $2, $4);
@@ -87,12 +87,6 @@ statement:
 }
 	| exp ';' {
 	$$ = $1;
-}
-	| PRINTINT '(' exp ')' ';' {
-	$$ = new PrintInstruction(@$, PRINT_INT, $3);
-}
-	| PRINTCHAR '(' exp ')' ';' {
-	$$ = new PrintInstruction(@$, PRINT_CHAR, $3);
 }
 	| type IDENTIFIER ';' {
 	$$ = new DeclarationInstruction(@$, $1, $2);
@@ -131,12 +125,6 @@ statement:
 	b->instructions.push_back($6);
 	a->instructions.push_back(new WhileInstruction(@$, $4, b));
 	$$ = a;
-}
-	| DUMPSTACK ';' {
-	$$ = new DumpInstruction(@$, DUMP_STACK);
-}
-	| DUMPHEAP ';' {
-	$$ = new DumpInstruction(@$, DUMP_HEAP);
 }
 	| error ';' {
 	printsyntaxerr(@$, "syntax error\n");

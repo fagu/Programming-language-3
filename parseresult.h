@@ -27,7 +27,7 @@ public:
 	bool haserror;
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;
-	map<Funcspec,FunctionDeclaration*> functions;
+	map<Funcspec,Function*> functions;
 	stack<DeclarationInstruction*> varstack;
 	map<string,DeclarationInstruction*> vars;
 	Type *nullType;
@@ -36,7 +36,8 @@ public:
 	Type *boolType;
 	Type *charType;
 	
-	void addFunction(string *name, FunctionDeclaration *dec);
+	void addPrimitiveFunction(Function *func);
+	void addFunction(FunctionDeclaration *dec);
 	
 	void addnode(Node *n);
 	
@@ -56,7 +57,7 @@ public:
 	void hereStop(int stop);
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
-	void call(int func, const std::vector< int >& args, int resultpos);
+	void call(Function *func, const std::vector< int >& args, int resultpos);
 	void dump(OPCODE op);
 	
 	int output();

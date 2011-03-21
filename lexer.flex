@@ -35,10 +35,6 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 "++" {return PP;}
 "--" {return MM;}
 "[]" {return ARRAY;}
-"dump_stack" {return DUMPSTACK;}
-"dump_heap" {return DUMPHEAP;}
-"print_int" {return PRINTINT;}
-"print_char" {return PRINTCHAR;}
 
 {DIGIT}+ {
 	yylval.num = atoi(yytext);

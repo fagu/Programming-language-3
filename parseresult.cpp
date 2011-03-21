@@ -17,17 +17,43 @@ ParseResult::ParseResult() {
 	types["int"] = intType;
 	types["bool"] = boolType;
 	types["char"] = charType;
+	vector<DeclarationInstruction*> *ve;
+	PrimitiveFunction *fu;
+	ve = new vector<DeclarationInstruction*>();
+	ve->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(intType), new string("value")));
+	fu = new PrimitiveFunction(new string("print_int"), ve, PRINT_INT, new TypePointerExplicit(voidType));
+	addPrimitiveFunction(fu);
+	ve = new vector<DeclarationInstruction*>();
+	ve->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(charType), new string("value")));
+	fu = new PrimitiveFunction(new string("print_char"), ve, PRINT_CHAR, new TypePointerExplicit(voidType));
+	addPrimitiveFunction(fu);
+	ve = new vector<DeclarationInstruction*>();
+	fu = new PrimitiveFunction(new string("dump_stack"), ve, DUMP_STACK, new TypePointerExplicit(voidType));
+	addPrimitiveFunction(fu);
+	ve = new vector<DeclarationInstruction*>();
+	fu = new PrimitiveFunction(new string("dump_heap"), ve, DUMP_HEAP, new TypePointerExplicit(voidType));
+	addPrimitiveFunction(fu);
 }
 
-void ParseResult::addFunction(string *name, FunctionDeclaration* dec) {
+void ParseResult::addPrimitiveFunction(Function* func) {
 	Funcspec spec;
-	spec.first = *name;
+	spec.first = *func->name;
+	for (int i = 0; i < func->parameters->size(); i++) {
+		spec.second.push_back((*func->parameters)[i]->type->real());
+	}
+	functions[spec] = func;
+}
+
+void ParseResult::addFunction(FunctionDeclaration* dec) {
+	Funcspec spec;
+	spec.first = *dec->name;
 	for (int i = 0; i < dec->parameters->size(); i++) {
 		spec.second.push_back((*dec->parameters)[i]->type->real());
 	}
 	if (functions.count(spec))
-		printsyntaxerr(dec->loc, "Multiple definition of function '%s'!\n", name->c_str());
+		printsyntaxerr(dec->loc, "Multiple definition of function '%s'!\n", dec->name->c_str());
 	functions[spec] = dec;
+	funcdecs.push_back(dec);
 }
 
 void ParseResult::addnode(Node* n) {
@@ -37,10 +63,9 @@ void ParseResult::addnode(Node* n) {
 }
 
 int ParseResult::alloc(int len) {
-	//int pos = varnum;
-	//varnum += len;
 	if (len == 0)
 		return 0;
+	assert(len == 1);
 	return graphs.back()->varnum++; // TODO Handle variables with length != 1
 }
 
@@ -120,12 +145,21 @@ void ParseResult::jump(int stop) {
 	prevnode = 0;
 }
 
-void ParseResult::call(int func, const std::vector< int >& args, int resultpos) {
-	Node *n = new Node(CALL, new Arg(INTARG, func), new Arg(SETARG, resultpos, funcdecs[func]->resulttype->real()->size()));
-	for (int i = 0; i < args.size(); i++) {
-		n->args.push_back(new Arg(GETARG, args[i], (*funcdecs[func]->parameters)[i]->type->real()->size()));
+void ParseResult::call(Function* func, const std::vector< int >& args, int resultpos) {
+	if (func->type() == 'D') {
+		Node *n = new Node(CALL, new Arg(INTARG, dynamic_cast<FunctionDeclaration*>(func)->num), new Arg(SETARG, resultpos, func->resulttype->real()->size()));
+		for (int i = 0; i < args.size(); i++) {
+			n->args.push_back(new Arg(GETARG, args[i], (*func->parameters)[i]->type->real()->size()));
+		}
+		addnode(n);
+	} else {
+		Node *n = new Node(dynamic_cast<PrimitiveFunction*>(func)->op);
+		if (func->resulttype->real()->size())
+			n->args.push_back(new Arg(SETARG, resultpos, func->resulttype->real()->size()));
+		for (int i = 0; i < args.size(); i++)
+			n->args.push_back(new Arg(GETARG, args[i], (*func->parameters)[i]->type->real()->size()));
+		addnode(n);
 	}
-	addnode(n);
 }
 
 void ParseResult::dump(OPCODE op) {
@@ -137,15 +171,12 @@ int ParseResult::output() {
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->find();
 	int n = 0;
-	for (map<Funcspec,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
-		it->second->num = n++;
-		funcdecs.push_back(it->second);
-	}
-	for (map<Funcspec,FunctionDeclaration*>::iterator it = functions.begin(); it != functions.end(); it++) {
+	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++)
+		(*it)->num = n++;
+	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
 		graphs.push_back(new Graph());
 		prevnode = graphs.back()->start;
-		//varnum = 0;
-		FunctionDeclaration *dec = it->second;
+		FunctionDeclaration *dec = *it;
 		int retpos = dec->find();
 		Node *returnnode;
 		if (dec->resulttype->real()->size() > 0)
@@ -163,17 +194,17 @@ int ParseResult::output() {
 		
 		if (printgraphs) {
 			char filename[100];
-			sprintf(filename, "graphs/%s-%d.dot", it->first.first.c_str(), dec->num);
+			sprintf(filename, "graphs/%s-%d.dot", dec->name->c_str(), dec->num);
 			FILE *fi = fopen(filename, "w");
 			graphs.back()->printGraph(fi);
 			fclose(fi);
 			char command[1000];
-			sprintf(command, "dot graphs/%s-%d.dot -Tpng -o graphs/%s-%d.png", it->first.first.c_str(), dec->num, it->first.first.c_str(), dec->num);
+			sprintf(command, "dot graphs/%s-%d.dot -Tpng -o graphs/%s-%d.png", dec->name->c_str(), dec->num, dec->name->c_str(), dec->num);
 			system(command);
 		}
 		
 		stringstream str;
-		if (it->first.first == "main")
+		if (*dec->name == "main")
 			str << FUNC_MAIN;
 		else
 			str << FUNC;

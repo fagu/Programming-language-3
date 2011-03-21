@@ -77,21 +77,6 @@ Type* NewInstruction::resulttype() {
 	return type;
 }
 
-void PrintInstruction::find() {
-	a->find();
-	if (op == PRINT_INT)
-		if (a->resulttype()->distance(ParseRes->intType) == INFTY)
-			printerr("Types do not match!\n");
-	if (op == PRINT_CHAR)
-		if (a->resulttype()->distance(ParseRes->charType) == INFTY)
-			printerr("Types do not match!\n");
-	ParseRes->print(op, a->pos);
-}
-
-Type* PrintInstruction::resulttype() {
-	return ParseRes->voidType;
-}
-
 void DeclarationInstruction::find() {
 	if (ParseRes->vars.count(*name))
 		printerr("Multiple definition of variable '%s'!\n", name->c_str());
@@ -222,16 +207,16 @@ Type* WhileInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-typedef pair<FunctionDeclaration*,vector<int> > Dist;
+typedef pair<Function*,vector<int> > Dist;
 
 void CallInstruction::find() {
 	for (int i = 0; i < arguments->size(); i++)
 		(*arguments)[i]->find();
 	vector<Dist> dists;
-	for (map<Funcspec,FunctionDeclaration*>::iterator it = ParseRes->functions.begin(); it != ParseRes->functions.end(); it++) {
+	for (map<Funcspec,Function*>::iterator it = ParseRes->functions.begin(); it != ParseRes->functions.end(); it++) {
 		if (it->first.first != *name) // TODO Store functions sorted by name to make this faster
 			continue;
-		FunctionDeclaration * dec = it->second;
+		Function * dec = it->second;
 		if (dec->parameters->size() != arguments->size())
 			continue;
 		dists.push_back(Dist(dec, vector<int>()));
@@ -280,7 +265,7 @@ void CallInstruction::find() {
 		args.push_back(convarg->pos);
 	}
 	pos = ParseRes->alloc((*dec->resulttype)->size());
-	ParseRes->call(dec->num, args, pos);
+	ParseRes->call(dec, args, pos);
 }
 
 Type* CallInstruction::resulttype() {
@@ -326,13 +311,5 @@ void EmptyInstruction::find() {
 }
 
 Type* EmptyInstruction::resulttype() {
-	return ParseRes->voidType;
-}
-
-void DumpInstruction::find() {
-	ParseRes->dump(op);
-}
-
-Type* DumpInstruction::resulttype() {
 	return ParseRes->voidType;
 }

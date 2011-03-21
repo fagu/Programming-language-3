@@ -73,16 +73,6 @@ public:
 	Type* resulttype();
 };
 
-class PrintInstruction : public Instruction {
-private:
-	OPCODE op;
-	Instruction *a;
-public:
-	PrintInstruction(Location _loc, OPCODE _op, Instruction* _a) : Instruction(_loc), op(_op), a(_a) {}
-	void find();
-	Type* resulttype();
-};
-
 class DeclarationInstruction : public Instruction {
 public:
 	TypePointer *type;
@@ -162,7 +152,7 @@ public:
 class CallInstruction : public Instruction {
 private:
 	string *name;
-	FunctionDeclaration *dec;
+	Function *dec;
 	vector<Instruction*> *arguments;
 public:
 	CallInstruction(Location _loc, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), name(_name), arguments(_arguments) {}
@@ -203,15 +193,6 @@ public:
 class EmptyInstruction : public Instruction {
 public:
 	EmptyInstruction(Location _loc) : Instruction(_loc) {}
-	void find();
-	Type* resulttype();
-};
-
-class DumpInstruction : public Instruction {
-private:
-	OPCODE op;
-public:
-	DumpInstruction(Location _loc, OPCODE _op) : Instruction(_loc), op(_op) {}
 	void find();
 	Type* resulttype();
 };

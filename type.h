@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include "location.h"
+#include "opcodes.h"
 
 class Instruction;
 class BlockInstruction;
@@ -59,6 +60,13 @@ public:
 	~TypePointerArray();
 	void find();
 	
+};
+
+class TypePointerExplicit : public TypePointer {
+public:
+	TypePointerExplicit(Type *_type) : TypePointer(Location()) {type = _type;}
+	~TypePointerExplicit() {}
+	void find() {}
 };
 
 class VariableDeclaration {
@@ -125,17 +133,34 @@ private:
 	ArrayType(Location _loc, Type * _contenttype) : Type(_loc), contenttype(_contenttype) {}
 };
 
-class FunctionDeclaration {
+class Function {
+public:
+	string *name;
+	vector<DeclarationInstruction*> * parameters;
+	TypePointer * resulttype;
+	Function(string *_name, vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : name(_name), parameters(_parameters), resulttype(_resulttype) {}
+	virtual ~Function() {}
+	virtual char type() = 0;
+};
+
+class FunctionDeclaration : public Function {
 private:
 	BlockInstruction* instructions;
 public:
 	Location loc;
-	TypePointer * resulttype;
-	vector<DeclarationInstruction*> * parameters;
 	int num;
-	FunctionDeclaration(Location _loc, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : loc(_loc), parameters(_parameters), instructions(_instructions), resulttype(_resulttype) {}
+	FunctionDeclaration(Location _loc, string *_name, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_name, _parameters, _resulttype), loc(_loc), instructions(_instructions) {}
 	~FunctionDeclaration() {}
+	char type() {return 'D';}
 	int find();
+};
+
+class PrimitiveFunction : public Function {
+public:
+	OPCODE op;
+	PrimitiveFunction(string *_name, vector<DeclarationInstruction*> * _parameters, OPCODE _op, TypePointer * _resulttype) : Function(_name, _parameters, _resulttype), op(_op) {}
+	~PrimitiveFunction() {}
+	char type() {return 'V';}
 };
 
 #endif
