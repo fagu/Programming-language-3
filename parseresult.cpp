@@ -81,11 +81,6 @@ void ParseResult::charconst(char ch, int to) {
 	addnode(n);
 }
 
-void ParseResult::print(OPCODE o, int from) {
-	Node *n = new Node(o, new Arg(GETARG, from, o == PRINT_INT ? INTSIZE : CHARSIZE));
-	addnode(n);
-}
-
 void ParseResult::newRef(int len, int to) {
 	Node *n = new Node(ALLOC_HEAP_CONSTAMOUNT, new Arg(SETARG, to, POINTERSIZE), new Arg(INTARG, len));
 	addnode(n);
@@ -152,11 +147,6 @@ void ParseResult::call(Function* func, const std::vector< int >& args, int resul
 			n->args.push_back(new Arg(GETARG, args[i], (*func->parameters)[i]->type->real()->size()));
 		addnode(n);
 	}
-}
-
-void ParseResult::dump(OPCODE op) {
-	Node *n = new Node(op);
-	addnode(n);
 }
 
 int ParseResult::output() {

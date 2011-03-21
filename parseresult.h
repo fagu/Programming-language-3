@@ -46,7 +46,6 @@ public:
 	void binaryoperate(OPCODE o, int a, int b, int c);
 	void intconst(int nr, int to);
 	void charconst(char ch, int to);
-	void print(OPCODE o, int from);
 	void newRef(int len, int to);
 	void newArray(int unitsize, int sizepos, int to);
 	void getSub(int from, int varid, int to, int len);
@@ -58,7 +57,6 @@ public:
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
 	void call(Function *func, const std::vector< int >& args, int resultpos);
-	void dump(OPCODE op);
 	
 	int output();
 	
