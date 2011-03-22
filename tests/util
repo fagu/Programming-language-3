@@ -42,14 +42,14 @@ string string(int n) {
 			n = -n;
 		}
 		while(n > 0) {
-			return = plus(string(char('0'+ n%10)), return);
+			return = string(char('0'+ n%10)) + return;
 			n = n/10;
 		}
-		return = plus(pre, return);
+		return = pre + return;
 	}
 }
 
-string plus(string a, string b) {
+string operator+(string a, string b) {
 	return = new string;
 	return.c = new char[a.size+b.size];
 	return.size = a.size+b.size;

@@ -46,6 +46,19 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 	return IDENTIFIER;
 }
 
+"operator+" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator-" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator*" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator/" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator%" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator<" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator>" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator<=" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator>=" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator!=" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator&&" { yylval.name = new string(yytext); return IDENTIFIER; }
+"operator||" { yylval.name = new string(yytext); return IDENTIFIER; }
+
 "//".*"\n" {
 	yylloc.last_line++;
 	yylloc.last_column = 1;

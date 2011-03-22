@@ -3,7 +3,7 @@ void main() {
 /* hi /* hello */ test */
 	char[] ar = "he\"\\\\\tllo\n";
 	pr(string(ar));
-	pr(plus(string(-1234567890), string('\n')));
+	pr(string(-1234567890) + string('\n'));
 	pr(5);
 	pr('h');
 	pr('\n');
