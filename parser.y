@@ -101,10 +101,12 @@ statement:
 	$$ = new SetInstruction(@$, $1, $3);
 }
 	| exp PP ';' {
-	$$ = new SetInstruction(@$, $1, new BinaryOperatorInstruction(@$, PLUS, $1, new IntegerConstantInstruction(@$, 1)));
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back(new IntegerConstantInstruction(@$, 1));
+	$$ = new SetInstruction(@$, $1, new CallInstruction(@$, new string("operator+"), v));
 }
 	| exp MM ';' {
-	$$ = new SetInstruction(@$, $1, new BinaryOperatorInstruction(@$, MINUS, $1, new IntegerConstantInstruction(@$, 1)));
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back(new IntegerConstantInstruction(@$, 1));
+	$$ = new SetInstruction(@$, $1, new CallInstruction(@$, new string("operator-"), v));
 }
 	| '{' statements '}' {
 	$2->loc = @$;
@@ -225,52 +227,68 @@ narexp:
 	$$ = new CallInstruction(@$, $1, $3);
 }
 	| exp '+' exp {
-	$$ = new BinaryOperatorInstruction(@$, PLUS, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator+"), v);
 }
 	| exp '-' exp {
-	$$ = new BinaryOperatorInstruction(@$, MINUS, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator-"), v);
 }
 	| exp '*' exp {
-	$$ = new BinaryOperatorInstruction(@$, TIMES, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator*"), v);
 }
 	| exp '/' exp {
-	$$ = new BinaryOperatorInstruction(@$, DIV, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator/"), v);
 }
 	| exp '%' exp {
-	$$ = new BinaryOperatorInstruction(@$, MOD, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator%"), v);
 }
 	| exp EQ exp {
-	$$ = new BinaryOperatorInstruction(@$, EQUAL, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator=="), v);
 }
 	| exp '<' exp {
-	$$ = new BinaryOperatorInstruction(@$, LESS, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator<"), v);
 }
 	| exp '>' exp {
-	$$ = new BinaryOperatorInstruction(@$, GREATER, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator>"), v);
 }
 	| exp LE exp {
-	$$ = new BinaryOperatorInstruction(@$, LESSOREQUAL, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator<="), v);
 }
 	| exp GE exp {
-	$$ = new BinaryOperatorInstruction(@$, GREATEROREQUAL, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator>="), v);
 }
 	| exp NE exp {
-	$$ = new BinaryOperatorInstruction(@$, UNEQUAL, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator!="), v);
 }
 	| exp LAND exp {
-	$$ = new BinaryOperatorInstruction(@$, AND, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator&&"), v);
 }
 	| exp LOR exp {
-	$$ = new BinaryOperatorInstruction(@$, OR, $1, $3);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);
+	$$ = new CallInstruction(@$, new string("operator||"), v);
 }
 	| '+' exp %prec NEG {
-	$$ = new BinaryOperatorInstruction(@$, PLUS, new IntegerConstantInstruction(@$, 0), $2);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back(new IntegerConstantInstruction(@$, 0)); v->push_back($2);
+	$$ = new CallInstruction(@$, new string("operator+"), v);
 }
 	| '-' exp %prec NEG {
-	$$ = new BinaryOperatorInstruction(@$, MINUS, new IntegerConstantInstruction(@$, 0), $2);
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back(new IntegerConstantInstruction(@$, 0)); v->push_back($2);
+	$$ = new CallInstruction(@$, new string("operator-"), v);
 }
 	| '!' exp {
-	$$ = new BinaryOperatorInstruction(@$, UNEQUAL, $2, new IntegerConstantInstruction(@$, 0)); // TODO faster solution with unary operator
+	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back(new IntegerConstantInstruction(@$, 0)); v->push_back($2);
+	$$ = new CallInstruction(@$, new string("operator!="), v); // TODO faster solution with unary operator
 }
 
 type:

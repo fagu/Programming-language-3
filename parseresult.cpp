@@ -19,20 +19,41 @@ ParseResult::ParseResult() {
 	types["char"] = charType;
 	vector<DeclarationInstruction*> *ve;
 	PrimitiveFunction *fu;
-	ve = new vector<DeclarationInstruction*>();
-	ve->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(intType), new string("value")));
-	fu = new PrimitiveFunction(new string("print_int"), ve, PRINT_INT, new TypePointerExplicit(voidType));
-	addPrimitiveFunction(fu);
-	ve = new vector<DeclarationInstruction*>();
-	ve->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(charType), new string("value")));
-	fu = new PrimitiveFunction(new string("print_char"), ve, PRINT_CHAR, new TypePointerExplicit(voidType));
-	addPrimitiveFunction(fu);
-	ve = new vector<DeclarationInstruction*>();
-	fu = new PrimitiveFunction(new string("dump_stack"), ve, DUMP_STACK, new TypePointerExplicit(voidType));
-	addPrimitiveFunction(fu);
-	ve = new vector<DeclarationInstruction*>();
-	fu = new PrimitiveFunction(new string("dump_heap"), ve, DUMP_HEAP, new TypePointerExplicit(voidType));
-	addPrimitiveFunction(fu);
+	addPrim("print_int", PRINT_INT, intType, "a", voidType);
+	addPrim("print_char", PRINT_CHAR, charType, "a", voidType);
+	addPrim("dump_stack", DUMP_STACK, voidType);
+	addPrim("dump_heap", DUMP_HEAP, voidType);
+	addPrim("operator+", PLUS, intType, "a", intType, "b", intType);
+	addPrim("operator-", MINUS, intType, "a", intType, "b", intType);
+	addPrim("operator*", TIMES, intType, "a", intType, "b", intType);
+	addPrim("operator/", DIV, intType, "a", intType, "b", intType);
+	addPrim("operator%", MOD, intType, "a", intType, "b", intType);
+	addPrim("operator==", EQUAL, intType, "a", intType, "b", boolType);
+	addPrim("operator<", LESS, intType, "a", intType, "b", boolType);
+	addPrim("operator>", GREATER, intType, "a", intType, "b", boolType);
+	addPrim("operator<=", LESSOREQUAL, intType, "a", intType, "b", boolType);
+	addPrim("operator>=", GREATEROREQUAL, intType, "a", intType, "b", boolType);
+	addPrim("operator!=", UNEQUAL, intType, "a", intType, "b", boolType);
+	addPrim("operator&&", AND, boolType, "a", boolType, "b", boolType);
+	addPrim("operator||", OR, boolType, "a", boolType, "b", boolType);
+}
+
+void ParseResult::addPrim(string name, OPCODE op, Type* resulttype) {
+	vector<DeclarationInstruction*> *ve = new vector<DeclarationInstruction*>();
+	addPrimitiveFunction(new PrimitiveFunction(new string(name), ve, op, new TypePointerExplicit(resulttype)));
+}
+
+void ParseResult::addPrim(string name, OPCODE op, Type* at, string an, Type* resulttype) {
+	vector<DeclarationInstruction*> *ve = new vector<DeclarationInstruction*>();
+	ve->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(at), new string(an)));
+	addPrimitiveFunction(new PrimitiveFunction(new string(name), ve, op, new TypePointerExplicit(resulttype)));
+}
+
+void ParseResult::addPrim(string name, OPCODE op, Type* at, string an, Type* bt, string bn, Type* resulttype) {
+	vector<DeclarationInstruction*> *ve = new vector<DeclarationInstruction*>();
+	ve->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(at), new string(an)));
+	ve->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(bt), new string(bn)));
+	addPrimitiveFunction(new PrimitiveFunction(new string(name), ve, op, new TypePointerExplicit(resulttype)));
 }
 
 void ParseResult::addPrimitiveFunction(Function* func) {
@@ -63,11 +84,6 @@ int ParseResult::alloc(int len) {
 
 void ParseResult::copy(int from, int len, int to) {
 	Node *n = new Node(COPY_STACK, new Arg(GETARG, from, len), new Arg(INTARG, len), new Arg(SETARG, to, len));
-	addnode(n);
-}
-
-void ParseResult::binaryoperate(OPCODE o, int a, int b, int c) {
-	Node *n = new Node(o, new Arg(GETARG, a, INTSIZE), new Arg(GETARG, b, INTSIZE), new Arg(SETARG, c, INTSIZE));
 	addnode(n);
 }
 
@@ -141,10 +157,10 @@ void ParseResult::call(Function* func, const std::vector< int >& args, int resul
 		addnode(n);
 	} else {
 		Node *n = new Node(dynamic_cast<PrimitiveFunction*>(func)->op);
-		if (func->resulttype->real()->size())
-			n->args.push_back(new Arg(SETARG, resultpos, func->resulttype->real()->size()));
 		for (int i = 0; i < args.size(); i++)
 			n->args.push_back(new Arg(GETARG, args[i], (*func->parameters)[i]->type->real()->size()));
+		if (func->resulttype->real()->size())
+			n->args.push_back(new Arg(SETARG, resultpos, func->resulttype->real()->size()));
 		addnode(n);
 	}
 }

@@ -4,21 +4,6 @@
 #include "parseresult.h"
 #include "opcodes_compiler.h"
 
-void BinaryOperatorInstruction::find() {
-	a->find();
-	b->find();
-	if (a->resulttype()->distance(binaryinputtype(op)) == INFTY && b->resulttype()->distance(binaryinputtype(op)) == INFTY)
-		printerr("Wrong type in binary operator!\n");
-	Instruction *conva = a->resulttype()->convertTo(a, binaryinputtype(op));
-	Instruction *convb = b->resulttype()->convertTo(b, binaryinputtype(op));
-	pos = ParseRes->alloc(resulttype()->size());
-	ParseRes->binaryoperate(op, conva->pos, convb->pos, pos);
-}
-
-Type* BinaryOperatorInstruction::resulttype() {
-	return binaryresulttype(op);
-}
-
 void IntegerConstantInstruction::find() {
 	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->intconst(co, pos);

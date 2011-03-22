@@ -19,16 +19,6 @@ public:
 	virtual void findSet(Instruction *b) {fprintf(stderr, "This expression cannot be assigned a value!\n");};
 };
 
-class BinaryOperatorInstruction : public Instruction {
-private:
-	OPCODE op;
-	Instruction *a, *b;
-public:
-	BinaryOperatorInstruction(Location _loc, OPCODE _op, Instruction *_a, Instruction *_b) : Instruction(_loc), op(_op), a(_a), b(_b) {}
-	void find();
-	Type* resulttype();
-};
-
 class IntegerConstantInstruction : public Instruction {
 private:
 	int co;

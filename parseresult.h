@@ -36,6 +36,10 @@ public:
 	Type *boolType;
 	Type *charType;
 	
+	void addPrim(string name, OPCODE op, Type *resulttype);
+	void addPrim(string name, OPCODE op, Type *at, string an, Type *resulttype);
+	void addPrim(string name, OPCODE op, Type *at, string an, Type *bt, string bn, Type *resulttype);
+	
 	void addPrimitiveFunction(Function *func);
 	void addFunction(FunctionDeclaration *dec);
 	
@@ -43,7 +47,6 @@ public:
 	
 	int alloc(int len);
 	void copy(int from, int len, int to);
-	void binaryoperate(OPCODE o, int a, int b, int c);
 	void intconst(int nr, int to);
 	void charconst(char ch, int to);
 	void newRef(int len, int to);
