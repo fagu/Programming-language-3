@@ -61,12 +61,7 @@ void ParseResult::addPrim(string name, OPCODE op, Type* at, string an, Type* bt,
 }
 
 void ParseResult::addPrimitiveFunction(Function* func) {
-	Funcspec spec;
-	spec.first = *func->name;
-	for (int i = 0; i < func->parameters->size(); i++) {
-		spec.second.push_back((*func->parameters)[i]->type->real());
-	}
-	functions[spec] = func;
+	functions.addFunction(func);
 }
 
 void ParseResult::addFunction(FunctionDeclaration* dec) {
@@ -175,14 +170,7 @@ int ParseResult::output() {
 	int n = 0;
 	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
 		FunctionDeclaration *dec = *it;
-		Funcspec spec;
-		spec.first = *dec->name;
-		for (int i = 0; i < dec->parameters->size(); i++) {
-			spec.second.push_back((*dec->parameters)[i]->type->real());
-		}
-		if (functions.count(spec))
-			printsyntaxerr(dec->loc, "Multiple definition of function '%s'!\n", dec->name->c_str());
-		functions[spec] = dec;
+		functions.addFunction(dec);
 		dec->num = n++;
 	}
 	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {

@@ -6,6 +6,7 @@
 #include <vector>
 using namespace std;
 #include "opcodes.h"
+#include "function.h"
 
 #define INTSIZE 1
 #define CHARSIZE 1
@@ -15,12 +16,8 @@ using namespace std;
 class Type;
 class Graph;
 class Node;
-class Function;
-class FunctionDeclaration;
 class ClassType;
 class DeclarationInstruction;
-
-typedef pair<string,vector<Type*> > Funcspec;
 
 class ParseResult {
 private:
@@ -34,7 +31,7 @@ public:
 	bool haserror;
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;
-	map<Funcspec,Function*> functions;
+	FunctionSet functions;
 	stack<DeclarationInstruction*> varstack;
 	map<string,DeclarationInstruction*> vars;
 	Type *nullType;

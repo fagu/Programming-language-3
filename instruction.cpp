@@ -194,57 +194,18 @@ Type* WhileInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-typedef pair<Function*,vector<int> > Dist;
-
 void CallInstruction::find() {
-	for (int i = 0; i < arguments->size(); i++)
+	vector<Type*> argtypes;
+	for (int i = 0; i < arguments->size(); i++) {
 		(*arguments)[i]->find();
-	vector<Dist> dists;
-	for (map<Funcspec,Function*>::iterator it = ParseRes->functions.begin(); it != ParseRes->functions.end(); it++) {
-		if (it->first.first != *name) // TODO Store functions sorted by name to make this faster
-			continue;
-		Function * dec = it->second;
-		if (dec->parameters->size() != arguments->size())
-			continue;
-		dists.push_back(Dist(dec, vector<int>()));
-		vector<int> & dv = dists.back().second;
-		bool ok = true;
-		for (int i = 0; i < arguments->size(); i++) {
-			dv.push_back(((*arguments)[i])->resulttype()->distance(dec->parameters->at(i)->type->real()));
-			if (dv.back() == INFTY) {
-				ok = false;
-				break;
-			}
-		}
-		if (!ok)
-			dists.pop_back();
+		argtypes.push_back((*arguments)[i]->resulttype());
 	}
-	if (dists.empty())
+	FunctionSet::MESSAGE message;
+	dec = ParseRes->functions.findFunction(name, argtypes, message);
+	if (message == FunctionSet::NONEFOUND)
 		printerr("Function '%s' (with the specified argument types) does not exist!\n", name->c_str());
-	vector<int> smallest(arguments->size(), INFTY);
-	for (int i = 0; i < dists.size(); i++) {
-		for (int k = 0; k < arguments->size(); k++) {
-			smallest[k] = min(smallest[k], dists[i].second[k]);
-		}
-	}
-	dec = 0;
-	for (int i = 0; i < dists.size(); i++) {
-		bool ok = true;
-		for (int k = 0; k < arguments->size(); k++) {
-			if (smallest[k] != dists[i].second[k]) {
-				ok = false;
-				break;
-			}
-		}
-		if (ok) {
-			if (dec)
-				printerr("Function '%s' cannot be uniquely determined!\n", name->c_str());
-			else
-				dec = dists[i].first;
-		}
-	}
-	if (!dec)
-		printerr("Function '%s' cannot be uniquely determined!\n", name->c_str());
+	else if (message == FunctionSet::MULTIPLEFOUND)
+		printerr("Function '%s' (with the specified argument types) cannot be uniquely determined!\n", name->c_str());
 	vector<int> args;
 	for (int i = 0; i < arguments->size(); i++) {
 		Instruction * arg = (*arguments)[i];
