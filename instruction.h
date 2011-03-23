@@ -2,10 +2,15 @@
 #define INSTRUCTION_H
 
 #include <stdio.h>
+#include <vector>
+using namespace std;
 #include "location.h"
-#include "type.h"
 #include "opcodes.h"
 
+class Type;
+class TypePointer;
+class ClassType;
+class VariableDeclaration;
 class BlockInstruction;
 class Function;
 

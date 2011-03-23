@@ -3,17 +3,22 @@
 
 #include <map>
 #include <stack>
-#include "type.h"
-#include "instruction.h"
+#include <vector>
+using namespace std;
 #include "opcodes.h"
-#include "flowgraph.h"
 
 #define INTSIZE 1
 #define CHARSIZE 1
 #define BOOLSIZE 1
 #define POINTERSIZE 1
 
+class Type;
+class Graph;
+class Node;
+class Function;
 class FunctionDeclaration;
+class ClassType;
+class DeclarationInstruction;
 
 typedef pair<string,vector<Type*> > Funcspec;
 

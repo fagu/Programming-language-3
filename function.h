@@ -1,6 +1,13 @@
 #ifndef FUNCTION_H
 #define FUNCTION_H
 
+#include "location.h"
+#include "opcodes.h"
+
+class TypePointer;
+class DeclarationInstruction;
+class BlockInstruction;
+
 class Function {
 public:
 	string *name;

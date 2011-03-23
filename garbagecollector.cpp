@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <queue>
 #include "garbagecollector.h"
+#include "runner.h"
 
 //#define PRINTALLOC
 //#define PRINTGC

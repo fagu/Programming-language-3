@@ -1,8 +1,8 @@
 
 #ifndef GARBAGECOLLECTOR_H
 #define GARBAGECOLLECTOR_H
-#include "virtualmachine.h"
-#include "runner.h"
+
+struct state;
 
 void free(int i, state &st);
 int alloc(int len, state& st);

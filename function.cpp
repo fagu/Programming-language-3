@@ -1,5 +1,6 @@
 #include "parseresult.h"
 #include "function.h"
+#include "instruction.h"
 
 int FunctionDeclaration::find() {
 	int sizebefore = ParseRes->varstack.size();

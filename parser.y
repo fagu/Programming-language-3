@@ -6,6 +6,7 @@
 	#include "../instruction.h"
 	#include "../location.h"
 	#include "../function.h"
+	#include "../type.h"
 	#define YYLTYPE Location
 	using namespace std;
 	int yylex (void);

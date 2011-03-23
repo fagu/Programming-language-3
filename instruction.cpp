@@ -4,6 +4,7 @@
 #include "parseresult.h"
 #include "opcodes_compiler.h"
 #include "function.h"
+#include "type.h"
 
 void IntegerConstantInstruction::find() {
 	pos = ParseRes->alloc(ParseRes->intType->size());

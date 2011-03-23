@@ -4,6 +4,9 @@
 #include <sstream>
 #include "parseresult.h"
 #include "function.h"
+#include "type.h"
+#include "instruction.h"
+#include "flowgraph.h"
 
 ParseResult::ParseResult() {
 	haserror = false;
