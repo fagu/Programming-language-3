@@ -13,6 +13,8 @@
 #define BOOLSIZE 1
 #define POINTERSIZE 1
 
+class FunctionDeclaration;
+
 typedef pair<string,vector<Type*> > Funcspec;
 
 class ParseResult {

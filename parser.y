@@ -5,6 +5,7 @@
 	#include "../parseresult.h"
 	#include "../instruction.h"
 	#include "../location.h"
+	#include "../function.h"
 	#define YYLTYPE Location
 	using namespace std;
 	int yylex (void);
@@ -183,6 +184,9 @@ classcontents:
 classcontent:
 	  type IDENTIFIER ';' {
 	$$ = new VariableDeclaration(@$, $2, $1);
+}
+	| type IDENTIFIER '(' parameters ')' statement {
+	ParseRes->addFunction(new FunctionDeclaration(@$, new string("#"+*$2), $4, new BlockInstruction(@6, $6), $1));
 }
 
 exp:      narexp {

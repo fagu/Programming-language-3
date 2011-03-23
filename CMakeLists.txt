@@ -15,6 +15,7 @@ set(COMPILER_CPPFILES
 	opcodes.cpp
 	opcodes_compiler.cpp
 	flowgraph.cpp
+	function.cpp
 	runner.cpp
 	garbagecollector.cpp
 	bison_parser.cpp

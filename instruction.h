@@ -7,7 +7,8 @@
 #include "opcodes.h"
 
 class BlockInstruction;
-class BlockInstruction;
+class Function;
+
 class Instruction {
 public:
 	Location loc;

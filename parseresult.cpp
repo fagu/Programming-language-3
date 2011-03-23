@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <sstream>
 #include "parseresult.h"
+#include "function.h"
 
 ParseResult::ParseResult() {
 	haserror = false;
