@@ -220,6 +220,37 @@ Type* CallInstruction::resulttype() {
 	return dec->resulttype->real();
 }
 
+void ClassCallInstruction::find() {
+	a->find();
+	if (a->resulttype()->style() != 'C')
+		printerr("Expression is not a class!\n");
+	vector<Type*> argtypes;
+	argtypes.push_back(a->resulttype());
+	for (int i = 0; i < arguments->size(); i++) {
+		(*arguments)[i]->find();
+		argtypes.push_back((*arguments)[i]->resulttype());
+	}
+	FunctionSet::MESSAGE message;
+	dec = ((ClassType*)a->resulttype())->functions.findFunction(name, argtypes, message);
+	if (message == FunctionSet::NONEFOUND)
+		printerr("Member function '%s' (with the specified argument types) does not exist!\n", name->c_str());
+	else if (message == FunctionSet::MULTIPLEFOUND)
+		printerr("Member function '%s' (with the specified argument types) cannot be uniquely determined!\n", name->c_str());
+	vector<int> args;
+	args.push_back(a->pos);
+	for (int i = 0; i < arguments->size(); i++) {
+		Instruction * arg = (*arguments)[i];
+		Instruction * convarg = arg->resulttype()->convertTo(arg, (*dec->parameters)[i]->type->real());
+		args.push_back(convarg->pos);
+	}
+	pos = ParseRes->alloc((*dec->resulttype)->size());
+	ParseRes->call(dec, args, pos);
+}
+
+Type* ClassCallInstruction::resulttype() {
+	return dec->resulttype->real();
+}
+
 void CreateArrayInstruction::find() {
 	size->find();
 	pos = ParseRes->alloc(ParseRes->intType->size());

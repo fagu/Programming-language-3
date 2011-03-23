@@ -42,9 +42,8 @@ public:
 };
 
 class FunctionSet {
-private:
-	multimap<string,Function*> functions;
 public:
+	multimap<string,Function*> functions;
 	void addFunction(Function *func);
 	enum MESSAGE {OK, NONEFOUND, MULTIPLEFOUND};
 	Function * findFunction(string *name, const vector<Type*> &argtypes, MESSAGE &message);

@@ -6,6 +6,7 @@
 #include <map>
 #include "location.h"
 #include "opcodes.h"
+#include "function.h"
 
 class Instruction;
 class BlockInstruction;
@@ -19,6 +20,7 @@ private:
 	ArrayType * array;
 public:
 	Location loc;
+	Type() {array = 0;}
 	Type(Location _loc) : loc(_loc) {array = 0;}
 	virtual ~Type() {}
 	virtual void find() {}
@@ -92,8 +94,11 @@ private:
 	int m_size;
 public:
 	string *name;
-	ClassType(Location _loc, string *_name, VariableDeclarations *_declarations) : Type(_loc), name(_name), declarations(_declarations), m_size(-1) {}
+	FunctionSet functions;
+	ClassType() : Type(), m_size(-1) {declarations = new VariableDeclarations();}
 	~ClassType();
+	void addVariable(VariableDeclaration *dec);
+	void addFunction(Function *func);
 	void find();
 	int size();
 	int hashsize();

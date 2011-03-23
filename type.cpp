@@ -26,6 +26,16 @@ ClassType::~ClassType() {
 	delete declarations;
 }
 
+void ClassType::addVariable(VariableDeclaration* dec) {
+	if ((*declarations)[*dec->name])
+		fprintf(stderr, "Multiple declaration of '%s'!\n", dec->name->c_str());
+	(*declarations)[*dec->name] = dec;
+}
+
+void ClassType::addFunction(Function* func) {
+	functions.addFunction(func);
+}
+
 void ClassType::find() {
 	int size = 0;
 	for (VariableDeclarations::iterator it = declarations->begin(); it != declarations->end(); it++) {

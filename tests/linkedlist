@@ -2,15 +2,37 @@
 class punkt {
 	int eintrag;
 	punkt next;
-}
-
-void push(punkt p, int n) {
-	while(p.next)
-		p = p.next;
-	punkt neu = new punkt;
-	neu.eintrag = n;
-	neu.next = null;
-	p.next = neu;
+	void removestart(int i) {
+		for (int k = 0; k < i; k++;)
+			this.next = this.next.next;
+	}
+	punkt at(int i) {
+		punkt p = this;
+		for (int k = 0; k < i; k++;)
+			p = p.next;
+		return=p;
+	}
+	int size() {
+		punkt p = this;
+		for(return = -1; p; return++;)
+			p = p.next;
+	}
+	void insert(int i) {
+		punkt s = this.next;
+		punkt n = new punkt;
+		n.eintrag = i;
+		this.next = n;
+		n.next = s;
+	}
+	void push(int n) {
+		punkt p = this;
+		while(p.next)
+			p = p.next;
+		punkt neu = new punkt;
+		neu.eintrag = n;
+		neu.next = null;
+		p.next = neu;
+	}
 }
 
 void print(punkt p) {
@@ -20,40 +42,14 @@ void print(punkt p) {
 	}
 }
 
-void removestart(punkt p, int i) {
-	for (int k = 0; k < i; k++;)
-		p.next = p.next.next;
-}
-
-void insert(punkt p, int i) {
-	punkt s = p.next;
-	punkt n = new punkt;
-	n.eintrag = i;
-	p.next = n;
-	n.next = s;
-}
-
-punkt at(punkt p, int i) {
-	for (int k = 0; k < i; k++;)
-		p = p.next;
-	return=p;
-}
-
-int size(punkt p) {
-	int s;
-	for(s = -1; p; s++;)
-		p = p.next;
-	return=s;
-}
-
 void main() {
 	punkt list = new punkt;
 	list.next = null;
 	for (int i = -10; i != 10; i++;)
-		push(list, i);
-	removestart(list, 3);
-	insert(at(list,3), 20);
-	insert(at(list, size(list)), 21);
+		list.push(i);
+	list.removestart(3);
+	list.at(3).insert(20);
+	list.at(list.size()).insert(21);
 	print(list);
-	pr(size(list));
+	pr(list.size());
 }

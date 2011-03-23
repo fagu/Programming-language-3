@@ -156,6 +156,18 @@ public:
 	Type* resulttype();
 };
 
+class ClassCallInstruction : public Instruction {
+private:
+	Instruction *a;
+	string *name;
+	Function *dec;
+	vector<Instruction*> *arguments;
+public:
+	ClassCallInstruction(Location _loc, Instruction *_a, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), a(_a), name(_name), arguments(_arguments) {}
+	void find();
+	Type* resulttype();
+};
+
 class CreateArrayInstruction : public Instruction {
 private:
 	TypePointer * contenttype;

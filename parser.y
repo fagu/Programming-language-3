@@ -17,8 +17,9 @@
 %token <character> CHARACTER
 %token <name> STRING
 %token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY
-%type <classcontents> classcontents;
-%type <classcontent> classcontent;
+%type <classtype> classcontents;
+%type <vardec> variabledeclaration;
+%type <funcdec> functiondeclaration;
 %type <instruction> exp narexp statement;
 %type <statements> statements;
 %type <params> parameters neparameters;
@@ -36,8 +37,9 @@
 	string *name;
 	int num;
 	char character;
-	VariableDeclarations *classcontents;
-	VariableDeclaration *classcontent;
+	ClassType *classtype;
+	VariableDeclaration *vardec;
+	FunctionDeclaration *funcdec;
 	Instruction *instruction;
 	BlockInstruction *statements;
 	vector<DeclarationInstruction*> * params;
@@ -59,16 +61,13 @@ outerstatements:
 }
 
 outerstatement:
-	  type IDENTIFIER '(' parameters ')' statement {
-	ParseRes->addFunction(new FunctionDeclaration(@$, $2, $4, new BlockInstruction(@6, $6), $1));
+	  functiondeclaration {
+	ParseRes->addFunction($1);
 }
 	| CLASS IDENTIFIER '{' classcontents '}' {
-	ClassType *type = new ClassType(@$, $2, $4);
-	ParseResult::self()->classtypes.push_back(type);
-	if (ParseResult::self()->types.count(*$2))
-		printsyntaxerr(@$, "Multiple definition of type '%s'!\n", $2->c_str());
-	else
-		ParseResult::self()->types[*$2] = type;
+	$4->loc = @$;
+	$4->name = $2;
+	ParseRes->addClass($4);
 }
 	| error {
 	printsyntaxerr(@$, "Syntax error!\n");
@@ -173,21 +172,27 @@ nearguments:
 
 classcontents:
 	    {
-	$$ = new VariableDeclarations();
+	$$ = new ClassType();
 }
-	| classcontents classcontent {
-	if ($1->count(*$2->name))
-		fprintf(stderr, "Multiple declaration of '%s'!\n", $2->name->c_str());
-	(*$1)[*$2->name] = $2;
+	| classcontents variabledeclaration {
+	$1->addVariable($2);
+	$$ = $1;
+}
+	| classcontents functiondeclaration {
+	$2->parameters->insert($2->parameters->begin(), new DeclarationInstruction(@2, new TypePointerExplicit($1), new string("this")));
+	$1->addFunction($2);
+	$2->thisClass = $1;
 	$$ = $1;
 }
 
-classcontent:
+variabledeclaration:
 	  type IDENTIFIER ';' {
 	$$ = new VariableDeclaration(@$, $2, $1);
 }
-	| type IDENTIFIER '(' parameters ')' statement {
-	ParseRes->addFunction(new FunctionDeclaration(@$, new string("#"+*$2), $4, new BlockInstruction(@6, $6), $1));
+
+functiondeclaration:
+	  type IDENTIFIER '(' parameters ')' statement {
+	$$ = new FunctionDeclaration(@$, $2, $4, new BlockInstruction(@6, $6), $1);
 }
 
 exp:      narexp {
@@ -230,6 +235,9 @@ narexp:
 }
 	| IDENTIFIER '(' arguments ')' {
 	$$ = new CallInstruction(@$, $1, $3);
+}
+	| exp '.' IDENTIFIER '(' arguments ')' {
+	$$ = new ClassCallInstruction(@$, $1, $3, $5);
 }
 	| exp '+' exp {
 	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);

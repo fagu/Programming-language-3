@@ -47,6 +47,8 @@ public:
 	void addPrimitiveFunction(Function *func);
 	void addFunction(FunctionDeclaration *dec);
 	
+	void addClass(ClassType *cl);
+	
 	void addnode(Node *n);
 	
 	int alloc(int len);

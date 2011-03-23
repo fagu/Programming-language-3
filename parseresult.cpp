@@ -21,8 +21,6 @@ ParseResult::ParseResult() {
 	types["int"] = intType;
 	types["bool"] = boolType;
 	types["char"] = charType;
-	vector<DeclarationInstruction*> *ve;
-	PrimitiveFunction *fu;
 	addPrim("print_int", PRINT_INT, intType, "a", voidType);
 	addPrim("print_char", PRINT_CHAR, charType, "a", voidType);
 	addPrim("dump_stack", DUMP_STACK, voidType);
@@ -66,6 +64,18 @@ void ParseResult::addPrimitiveFunction(Function* func) {
 
 void ParseResult::addFunction(FunctionDeclaration* dec) {
 	funcdecs.push_back(dec);
+	functions.addFunction(dec);
+}
+
+void ParseResult::addClass(ClassType* cl) {
+	classtypes.push_back(cl);
+	if (types.count(*cl->name))
+		printsyntaxerr(cl->loc, "Multiple definition of type '%s'!\n", cl->name->c_str());
+	else
+		types[*cl->name] = cl;
+	for (multimap<string,Function*>::iterator it = cl->functions.functions.begin(); it != cl->functions.functions.end(); it++) {
+		funcdecs.push_back(dynamic_cast<FunctionDeclaration*>(it->second));
+	}
 }
 
 void ParseResult::addnode(Node* n) {
@@ -170,7 +180,6 @@ int ParseResult::output() {
 	int n = 0;
 	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
 		FunctionDeclaration *dec = *it;
-		functions.addFunction(dec);
 		dec->num = n++;
 	}
 	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
