@@ -6,7 +6,7 @@
 #include "function.h"
 #include "type.h"
 
-void IntegerConstantInstruction::find() {
+void IntegerConstantInstruction::find(Environment* e) {
 	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->intconst(co, pos);
 }
@@ -15,7 +15,7 @@ Type* IntegerConstantInstruction::resulttype() {
 	return ParseRes->intType;
 }
 
-void CharacterConstantInstruction::find() {
+void CharacterConstantInstruction::find(Environment* e) {
 	pos = ParseRes->alloc(ParseRes->charType->size());
 	ParseRes->charconst(co, pos);
 }
@@ -24,7 +24,7 @@ Type* CharacterConstantInstruction::resulttype() {
 	return ParseRes->charType;
 }
 
-void StringConstantInstruction::find() {
+void StringConstantInstruction::find(Environment* e) {
 	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->newRef(ParseRes->charType->size()*(co->length()+1), pos);
 	int charpos = ParseRes->alloc(ParseRes->charType->size());
@@ -40,7 +40,7 @@ Type* StringConstantInstruction::resulttype() {
 	return ParseRes->charType->arrayType();
 }
 
-void NullInstruction::find() {
+void NullInstruction::find(Environment* e) {
 	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->intconst(0, pos);
 }
@@ -49,7 +49,7 @@ Type* NullInstruction::resulttype() {
 	return ParseRes->nullType;
 }
 
-void NewInstruction::find() {
+void NewInstruction::find(Environment* e) {
 	if (!ParseRes->types.count(*name))
 		printerr("Type '%s' does not exist!\n", name->c_str());
 	Type *t = ParseRes->types[*name];
@@ -64,11 +64,8 @@ Type* NewInstruction::resulttype() {
 	return type;
 }
 
-void DeclarationInstruction::find() {
-	if (ParseRes->vars.count(*name))
-		printerr("Multiple definition of variable '%s'!\n", name->c_str());
-	ParseRes->vars[*name] = this;
-	ParseRes->varstack.push(this);
+void DeclarationInstruction::find(Environment* e) {
+	e->addVariable(this);
 	pos = ParseRes->alloc((*type)->size());
 }
 
@@ -76,18 +73,16 @@ Type* DeclarationInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-void SetInstruction::find() {
-	a->findSet(b);
+void SetInstruction::find(Environment* e) {
+	a->findSet(e, b);
 }
 
 Type* SetInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-void VariableInstruction::find() {
-	if (!ParseRes->vars[*name])
-		printerr("Variable '%s' does not exist!\n", name->c_str());
-	dec = ParseRes->vars[*name];
+void VariableInstruction::find(Environment* e) {
+	dec = e->findVariable(*name);
 	pos = dec->pos;
 }
 
@@ -95,16 +90,16 @@ Type* VariableInstruction::resulttype() {
 	return dec->type->real();
 }
 
-void VariableInstruction::findSet(Instruction* b) {
-	find();
-	b->find();
+void VariableInstruction::findSet(Environment* e, Instruction* b) {
+	find(e);
+	b->find(e);
 	if (b->resulttype()->distance(resulttype()) == INFTY)
 		printerr("Types do not match!\n");
 	ParseRes->copy(b->pos, b->resulttype()->size(), pos);
 }
 
-void AccessInstruction::find() {
-	a->find();
+void AccessInstruction::find(Environment* e) {
+	a->find(e);
 	if (a->resulttype()->style() != 'C')
 		printerr("Expression is not a class!\n");
 	dec = ((ClassType*)a->resulttype())->var(*name);
@@ -118,22 +113,22 @@ Type* AccessInstruction::resulttype() {
 	return dec->type->real();
 }
 
-void AccessInstruction::findSet(Instruction* b) {
-	a->find();
+void AccessInstruction::findSet(Environment* e, Instruction* b) {
+	a->find(e);
 	if (a->resulttype()->style() != 'C')
 		printerr("Expression is not a class!\n");
 	dec = ((ClassType*)a->resulttype())->var(*name);
 	if (!dec)
 		printerr("Class does not have a Variable called '%s'!\n", name->c_str());
-	b->find();
+	b->find(e);
 	if (b->resulttype()->distance(resulttype()) == INFTY)
 		printerr("Types do not match!\n");
 	ParseRes->copySub(b->pos, a->pos, dec->pos, dec->type->real()->size());
 }
 
-void AccessArrayInstruction::find() {
-	a->find();
-	b->find();
+void AccessArrayInstruction::find(Environment* e) {
+	a->find(e);
+	b->find(e);
 	if (a->resulttype()->style() != 'A')
 		printerr("Expression is not an array!\n");
 	int unitsize = ((ArrayType*)a->resulttype())->contenttype->size();
@@ -145,30 +140,30 @@ Type* AccessArrayInstruction::resulttype() {
 	return ((ArrayType*)a->resulttype())->contenttype;
 }
 
-void AccessArrayInstruction::findSet(Instruction* c) {
-	a->find();
-	b->find();
+void AccessArrayInstruction::findSet(Environment* e, Instruction* c) {
+	a->find(e);
+	b->find(e);
 	if (a->resulttype()->style() != 'A')
 		printerr("Expression is not an array!\n");
 	int unitsize = ((ArrayType*)a->resulttype())->contenttype->size();
-	c->find();
+	c->find(e);
 	if (c->resulttype()->distance(resulttype()) == INFTY)
 		printerr("Types do not match!\n");
 	ParseRes->setArray(unitsize, c->pos, a->pos, b->pos);
 }
 
-void IfInstruction::find() {
-	cond->find();
+void IfInstruction::find(Environment* e) {
+	cond->find(e);
 	if (cond->resulttype()->distance(ParseRes->boolType) == INFTY)
 		printerr("Types do not match!\n");
 	Instruction *convcond = cond->resulttype()->convertTo(cond, ParseRes->boolType);
 	int elsepos = ParseRes->newStop();
 	int end = ParseRes->newStop();
 	ParseRes->jumpIf(convcond->pos, elsepos);
-	then->find();
+	then->find(e);
 	ParseRes->jump(end);
 	ParseRes->hereStop(elsepos);
-	Else->find();
+	Else->find(e);
 	ParseRes->hereStop(end);
 }
 
@@ -176,16 +171,16 @@ Type* IfInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-void WhileInstruction::find() {
+void WhileInstruction::find(Environment* e) {
 	int start = ParseRes->newStop();
 	ParseRes->hereStop(start);
-	cond->find();
+	cond->find(e);
 	if (cond->resulttype()->distance(ParseRes->boolType) == INFTY)
 		printerr("Types do not match!\n");
 	Instruction *convcond = cond->resulttype()->convertTo(cond, ParseRes->boolType);
 	int end = ParseRes->newStop();
 	ParseRes->jumpIf(convcond->pos, end);
-	then->find();
+	then->find(e);
 	ParseRes->jump(start);
 	ParseRes->hereStop(end);
 }
@@ -194,17 +189,17 @@ Type* WhileInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-void CallInstruction::find() {
+void CallInstruction::find(Environment* e) {
 	vector<Type*> argtypes;
 	for (int i = 0; i < arguments->size(); i++) {
-		(*arguments)[i]->find();
+		(*arguments)[i]->find(e);
 		argtypes.push_back((*arguments)[i]->resulttype());
 	}
-	FunctionSet::MESSAGE message;
-	dec = ParseRes->functions.findFunction(name, argtypes, message);
-	if (message == FunctionSet::NONEFOUND)
+	Environment::MESSAGE message;
+	dec = e->findFunction(name, argtypes, message);
+	if (message == Environment::NONEFOUND)
 		printerr("Function '%s' (with the specified argument types) does not exist!\n", name->c_str());
-	else if (message == FunctionSet::MULTIPLEFOUND)
+	else if (message == Environment::MULTIPLEFOUND)
 		printerr("Function '%s' (with the specified argument types) cannot be uniquely determined!\n", name->c_str());
 	vector<int> args;
 	for (int i = 0; i < arguments->size(); i++) {
@@ -220,21 +215,21 @@ Type* CallInstruction::resulttype() {
 	return dec->resulttype->real();
 }
 
-void ClassCallInstruction::find() {
-	a->find();
+void ClassCallInstruction::find(Environment* e) {
+	a->find(e);
 	if (a->resulttype()->style() != 'C')
 		printerr("Expression is not a class!\n");
 	vector<Type*> argtypes;
 	argtypes.push_back(a->resulttype());
 	for (int i = 0; i < arguments->size(); i++) {
-		(*arguments)[i]->find();
+		(*arguments)[i]->find(e);
 		argtypes.push_back((*arguments)[i]->resulttype());
 	}
-	FunctionSet::MESSAGE message;
-	dec = ((ClassType*)a->resulttype())->functions.findFunction(name, argtypes, message);
-	if (message == FunctionSet::NONEFOUND)
+	Environment::MESSAGE message;
+	dec = ((ClassType*)a->resulttype())->env->findFunction(name, argtypes, message);
+	if (message == Environment::NONEFOUND)
 		printerr("Member function '%s' (with the specified argument types) does not exist!\n", name->c_str());
-	else if (message == FunctionSet::MULTIPLEFOUND)
+	else if (message == Environment::MULTIPLEFOUND)
 		printerr("Member function '%s' (with the specified argument types) cannot be uniquely determined!\n", name->c_str());
 	vector<int> args;
 	args.push_back(a->pos);
@@ -251,8 +246,8 @@ Type* ClassCallInstruction::resulttype() {
 	return dec->resulttype->real();
 }
 
-void CreateArrayInstruction::find() {
-	size->find();
+void CreateArrayInstruction::find(Environment* e) {
+	size->find(e);
 	pos = ParseRes->alloc(ParseRes->intType->size());
 	ParseRes->newArray(contenttype->real()->size(), size->pos, pos);
 }
@@ -261,24 +256,21 @@ Type* CreateArrayInstruction::resulttype() {
 	return contenttype->real()->arrayType();
 }
 
-void BlockInstruction::find() {
-	int sizebefore = ParseRes->varstack.size();
+void BlockInstruction::find(Environment* e) {
+	e->enterBlock();
 	for (int i = 0; i < instructions.size(); i++) {
-		instructions[i]->find();
+		instructions[i]->find(e);
 	}
-	while(ParseRes->varstack.size() > sizebefore) {
-		ParseRes->vars.erase(ParseRes->vars.find(*ParseRes->varstack.top()->name));
-		ParseRes->varstack.pop();
-	}
+	e->exitBlock();
 }
 
 Type* BlockInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-void CompoundInstruction::find() {
+void CompoundInstruction::find(Environment* e) {
 	for (int i = 0; i < instructions->size(); i++) {
-		(*instructions)[i]->find();
+		(*instructions)[i]->find(e);
 	}
 }
 
@@ -286,7 +278,7 @@ Type* CompoundInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
-void EmptyInstruction::find() {
+void EmptyInstruction::find(Environment* e) {
 }
 
 Type* EmptyInstruction::resulttype() {

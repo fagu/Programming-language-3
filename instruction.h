@@ -6,6 +6,7 @@
 using namespace std;
 #include "location.h"
 #include "opcodes.h"
+#include "environment.h"
 
 class Type;
 class TypePointer;
@@ -20,9 +21,9 @@ public:
 	int pos;
 	Instruction(Location _loc) : loc(_loc) {}
 	virtual ~Instruction() {}
-	virtual void find() = 0;
+	virtual void find(Environment *e) = 0;
 	virtual Type *resulttype() = 0;
-	virtual void findSet(Instruction *b) {fprintf(stderr, "This expression cannot be assigned a value!\n");};
+	virtual void findSet(Environment *e, Instruction *b) {fprintf(stderr, "This expression cannot be assigned a value!\n");};
 };
 
 class IntegerConstantInstruction : public Instruction {
@@ -30,7 +31,7 @@ private:
 	int co;
 public:
 	IntegerConstantInstruction(Location _loc, int _co) : Instruction(_loc), co(_co) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -39,7 +40,7 @@ private:
 	char co;
 public:
 	CharacterConstantInstruction(Location _loc, char _co) : Instruction(_loc), co(_co) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -48,14 +49,14 @@ private:
 	string *co;
 public:
 	StringConstantInstruction(Location _loc, string *_co) : Instruction(_loc), co(_co) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
 class NullInstruction : public Instruction {
 public:
 	NullInstruction(Location _loc) : Instruction(_loc) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -65,7 +66,7 @@ private:
 	ClassType *type;
 public:
 	NewInstruction(Location _loc, string *_name) : Instruction(_loc), name(_name) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -76,7 +77,7 @@ public:
 	int pos;
 public:
 	DeclarationInstruction(Location _loc, TypePointer *_type, string *_name) : Instruction(_loc), type(_type), name(_name) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -86,7 +87,7 @@ private:
 	Instruction *b;
 public:
 	SetInstruction(Location _loc, Instruction *_a, Instruction *_b) : Instruction(_loc), a(_a), b(_b) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -96,9 +97,9 @@ private:
 	DeclarationInstruction *dec;
 public:
 	VariableInstruction(Location _loc, string *_name) : Instruction(_loc), name(_name) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
-	void findSet(Instruction* b);
+	void findSet(Environment *e, Instruction* b);
 };
 
 class AccessInstruction : public Instruction {
@@ -108,9 +109,9 @@ private:
 	Instruction *a;
 public:
 	AccessInstruction(Location _loc, Instruction *_a, string *_name) : Instruction(_loc), a(_a), name(_name) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
-	void findSet(Instruction* b);
+	void findSet(Environment *e, Instruction* b);
 };
 
 class AccessArrayInstruction : public Instruction {
@@ -119,9 +120,9 @@ private:
 	Instruction * b;
 public:
 	AccessArrayInstruction(Location _loc, Instruction * _a, Instruction * _b) : Instruction(_loc), a(_a), b(_b) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
-	void findSet(Instruction* b);
+	void findSet(Environment *e, Instruction* c);
 };
 
 class IfInstruction : public Instruction {
@@ -131,7 +132,7 @@ private:
 	BlockInstruction *Else;
 public:
 	IfInstruction(Location _loc, Instruction *_cond, BlockInstruction *_then, BlockInstruction *_else) : Instruction(_loc), cond(_cond), then(_then), Else(_else) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -141,7 +142,7 @@ private:
 	BlockInstruction *then;
 public:
 	WhileInstruction(Location _loc, Instruction *_cond, BlockInstruction *_then) : Instruction(_loc), cond(_cond), then(_then) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -152,7 +153,7 @@ private:
 	vector<Instruction*> *arguments;
 public:
 	CallInstruction(Location _loc, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), name(_name), arguments(_arguments) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -164,7 +165,7 @@ private:
 	vector<Instruction*> *arguments;
 public:
 	ClassCallInstruction(Location _loc, Instruction *_a, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), a(_a), name(_name), arguments(_arguments) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -174,7 +175,7 @@ private:
 	Instruction * size;
 public:
 	CreateArrayInstruction(Location _loc, TypePointer * _contenttype, Instruction *_size) : Instruction(_loc), contenttype(_contenttype), size(_size) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -185,7 +186,7 @@ public:
 public:
 	BlockInstruction(Location _loc) : Instruction(_loc) {}
 	BlockInstruction(Location _loc, Instruction* _i) : Instruction(_loc) {instructions.push_back(_i);}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
@@ -194,14 +195,14 @@ private:
 	vector<Instruction*> * instructions;
 public:
 	CompoundInstruction(Location _loc, vector<Instruction*> *_instructions) : Instruction(_loc), instructions(_instructions) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 
 class EmptyInstruction : public Instruction {
 public:
 	EmptyInstruction(Location _loc) : Instruction(_loc) {}
-	void find();
+	void find(Environment *e);
 	Type* resulttype();
 };
 

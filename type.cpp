@@ -19,11 +19,17 @@ ArrayType* Type::arrayType() {
 	return array;
 }
 
+ClassType::ClassType() : Type(), m_size(-1) {
+	declarations = new VariableDeclarations();
+	env = new Environment;
+}
+
 ClassType::~ClassType() {
 	for (VariableDeclarations::iterator it = declarations->begin(); it != declarations->end(); it++) {
 		delete it->second;
 	}
 	delete declarations;
+	delete env;
 }
 
 void ClassType::addVariable(VariableDeclaration* dec) {
@@ -33,7 +39,7 @@ void ClassType::addVariable(VariableDeclaration* dec) {
 }
 
 void ClassType::addFunction(Function* func) {
-	functions.addFunction(func);
+	env->addFunction(func);
 }
 
 void ClassType::find() {

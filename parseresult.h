@@ -18,6 +18,7 @@ class Graph;
 class Node;
 class ClassType;
 class DeclarationInstruction;
+class Environment;
 
 class ParseResult {
 private:
@@ -26,14 +27,12 @@ private:
 	Node *prevnode;
 	vector<Node*> stops;
 	vector<FunctionDeclaration*> funcdecs;
+	Environment *env;
 public:
 	bool printgraphs;
 	bool haserror;
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;
-	FunctionSet functions;
-	stack<DeclarationInstruction*> varstack;
-	map<string,DeclarationInstruction*> vars;
 	Type *nullType;
 	Type *voidType;
 	Type *intType;

@@ -7,6 +7,7 @@
 #include "location.h"
 #include "opcodes.h"
 #include "function.h"
+#include "environment.h"
 
 class Instruction;
 class BlockInstruction;
@@ -61,7 +62,6 @@ public:
 	TypePointerArray(Location _loc, TypePointer * _contenttype) : TypePointer(_loc), contenttype(_contenttype) {}
 	~TypePointerArray();
 	void find();
-	
 };
 
 class TypePointerExplicit : public TypePointer {
@@ -94,8 +94,8 @@ private:
 	int m_size;
 public:
 	string *name;
-	FunctionSet functions;
-	ClassType() : Type(), m_size(-1) {declarations = new VariableDeclarations();}
+	Environment *env;
+	ClassType();
 	~ClassType();
 	void addVariable(VariableDeclaration *dec);
 	void addFunction(Function *func);

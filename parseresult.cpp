@@ -7,10 +7,12 @@
 #include "type.h"
 #include "instruction.h"
 #include "flowgraph.h"
+#include "environment.h"
 
 ParseResult::ParseResult() {
 	haserror = false;
 	printgraphs = false;
+	env = new Environment;
 	nullType = new NullType(Location());
 	voidType = new PrimitiveType(Location(), 0);
 	intType = new PrimitiveType(Location(), INTSIZE);
@@ -59,12 +61,12 @@ void ParseResult::addPrim(string name, OPCODE op, Type* at, string an, Type* bt,
 }
 
 void ParseResult::addPrimitiveFunction(Function* func) {
-	functions.addFunction(func);
+	env->addFunction(func);
 }
 
 void ParseResult::addFunction(FunctionDeclaration* dec) {
 	funcdecs.push_back(dec);
-	functions.addFunction(dec);
+	env->addFunction(dec);
 }
 
 void ParseResult::addClass(ClassType* cl) {
@@ -73,7 +75,7 @@ void ParseResult::addClass(ClassType* cl) {
 		printsyntaxerr(cl->loc, "Multiple definition of type '%s'!\n", cl->name->c_str());
 	else
 		types[*cl->name] = cl;
-	for (multimap<string,Function*>::iterator it = cl->functions.functions.begin(); it != cl->functions.functions.end(); it++) {
+	for (multimap<string,Function*>::iterator it = cl->env->functions.begin(); it != cl->env->functions.end(); it++) {
 		funcdecs.push_back(dynamic_cast<FunctionDeclaration*>(it->second));
 	}
 }
@@ -186,7 +188,7 @@ int ParseResult::output() {
 		graphs.push_back(new Graph());
 		prevnode = graphs.back()->start;
 		FunctionDeclaration *dec = *it;
-		int retpos = dec->find();
+		int retpos = dec->find(env);
 		Node *returnnode;
 		if (dec->resulttype->real()->size() > 0)
 			returnnode = new Node(RETURN, new Arg(GETARG, retpos));

@@ -10,6 +10,7 @@ class Type;
 class TypePointer;
 class DeclarationInstruction;
 class BlockInstruction;
+class Environment;
 
 class Function {
 public:
@@ -30,7 +31,7 @@ public:
 	FunctionDeclaration(Location _loc, string *_name, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_name, _parameters, _resulttype), loc(_loc), instructions(_instructions) {}
 	~FunctionDeclaration() {}
 	char type() {return 'D';}
-	int find();
+	int find(Environment* e);
 };
 
 class PrimitiveFunction : public Function {
@@ -39,14 +40,6 @@ public:
 	PrimitiveFunction(string *_name, vector<DeclarationInstruction*> * _parameters, OPCODE _op, TypePointer * _resulttype) : Function(_name, _parameters, _resulttype), op(_op) {}
 	~PrimitiveFunction() {}
 	char type() {return 'V';}
-};
-
-class FunctionSet {
-public:
-	multimap<string,Function*> functions;
-	void addFunction(Function *func);
-	enum MESSAGE {OK, NONEFOUND, MULTIPLEFOUND};
-	Function * findFunction(string *name, const vector<Type*> &argtypes, MESSAGE &message);
 };
 
 #endif // FUNCTION_H
