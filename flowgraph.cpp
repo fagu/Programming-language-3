@@ -3,6 +3,8 @@
 #include "flowgraph.h"
 #include "runner.h"
 
+// FIXME There are bugs concerning arguments of length 0 (for example the return value of a void function)
+
 void Node::init(OPCODE _op) {
 	op = _op;
 	inrem = false;
@@ -114,6 +116,7 @@ void Node::compress() {
 	}
 }
 
+// FIXME There is a bug when a variable is set and get in the same instruction
 void Graph::convertToSSA() {
 	vars.resize(varnum);
 	for (int i = 0; i < varnum; i++)
@@ -327,8 +330,7 @@ void Node::eval(Graph& g, queue<Node*> &qu) {
 
 void Graph::deadCodeElimination() {
 	for (int i = 0; i < vars.size(); i++) {
-		vars[i]->numberofgetters.clear();
-		vars[i]->numberofgetters.resize(vars[i]->nextsub, 0);
+		vars[i]->numberofgetters.assign(vars[i]->nextsub, 0);
 	}
 	for (int k = 0; k < nodes.size(); k++) {
 		Node *a = nodes[k];

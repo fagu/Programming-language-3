@@ -321,3 +321,16 @@ void VariableAccessorHeap::findSet(Environment* e, Expression* par, Expression* 
 	sn->find(e);
 	ParseRes->copySub(sn->pos, par->pos, posin, type->size());
 }
+
+void VariableAccessorStatic::find(Environment* e, Expression* par) {
+	pos = ParseRes->alloc(type->size());
+	ParseRes->getStatic(globpos, type->size(), pos);
+}
+
+void VariableAccessorStatic::findSet(Environment* e, Expression* par, Expression* s) {
+	if (s->resulttype()->distance(type) == INFTY)
+		fprintf(stderr, "Types do not match!\n");
+	Instruction *sn = s->resulttype()->convertTo(s, type);
+	sn->find(e);
+	ParseRes->setStatic(sn->pos, type->size(), globpos);
+}

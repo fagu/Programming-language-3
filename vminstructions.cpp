@@ -2,6 +2,7 @@
 INSTRUCTION(VIRTUAL_START,0,false,)
 INSTRUCTION(VIRTUAL_PHI,0,true,)
 INSTRUCTION(VIRTUAL_DELETED,0,false,)
+INSTRUCTION(ALLOC_STATIC,0,false,)
 INSTRUCTION(FUNC,0,false,)
 INSTRUCTION(FUNC_MAIN,0,false,)
 INSTRUCTION(HERE_STOP,0,false,)
@@ -171,6 +172,20 @@ INSTRUCTION(CALL,1,false,
 	printf("\n");*/
 	se.aktpos+=2;
 	goto stackup;
+)
+
+INSTRUCTION(GET_STATIC,3,false,
+	posa=li[aktpos]; len=li[aktpos+1]; posb=li[aktpos+2];
+	for (int i = 0; i < len; i++)
+		st[posb+i] = stat.stati[posa+i];
+	nextpos = aktpos+3;
+)
+
+INSTRUCTION(SET_STATIC,3,false,
+	posa=li[aktpos]; len=li[aktpos+1]; posb=li[aktpos+2];
+	for (int i = 0; i < len; i++)
+		stat.stati[posb+i] = st[posa+i];
+	nextpos = aktpos+3;
 )
 
 // Dump stack

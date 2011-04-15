@@ -19,6 +19,7 @@ struct state {
 	vector<int> hash;
 	vector<bool> hashispointer;
 	vector<vector<int> > freeblocks; // TODO this is very inefficient!!!
+	vector<int> stati;
 };
 
 void run(vector<int> &resultpos, vector<int> &resultsize, vector<vector<int> > &liste, vector<vector<int> > &stops, vector<vector<int> > &argsizes, state &stat);

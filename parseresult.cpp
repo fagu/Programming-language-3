@@ -80,6 +80,10 @@ void ParseResult::addClass(ClassType* cl) {
 	}
 }
 
+void ParseResult::addVariable(VariableDeclaration* dec) {
+	vars.push_back(dec);
+}
+
 void ParseResult::addnode(Node* n) {
 	if (prevnode)
 		prevnode->suc.push_back(n);
@@ -176,9 +180,26 @@ void ParseResult::call(Function* func, const std::vector< int >& args, int resul
 	}
 }
 
+void ParseResult::getStatic(int from, int len, int to) {
+	Node *n = new Node(GET_STATIC, new Arg(INTARG, from), new Arg(INTARG, len), new Arg(SETARG, to, len));
+	addnode(n);
+}
+
+void ParseResult::setStatic(int from, int len, int to) {
+	Node *n = new Node(SET_STATIC, new Arg(GETARG, from, len), new Arg(INTARG, len), new Arg(INTARG, to));
+	addnode(n);
+}
+
 int ParseResult::output() {
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->find();
+	int globalsize = 0;
+	for (vector<VariableDeclaration*>::iterator it = vars.begin(); it != vars.end(); it++) {
+		(*it)->pos = globalsize;
+		globalsize += (*it)->type->real()->size();
+		env->addVariable(new VariableAccessorStatic((*it)->name, (*it)->type->real(), (*it)->pos));
+	}
+	printf("%d;%d;\n", ALLOC_STATIC, globalsize);
 	int n = 0;
 	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
 		FunctionDeclaration *dec = *it;
@@ -197,9 +218,9 @@ int ParseResult::output() {
 		addnode(returnnode);
 		graphs.back()->removeOldStops();
 		graphs.back()->buildDomTree();
-		graphs.back()->convertToSSA();
-		graphs.back()->constantPropagation();
-		graphs.back()->deadCodeElimination();
+		//graphs.back()->convertToSSA();
+		//graphs.back()->constantPropagation();
+		//graphs.back()->deadCodeElimination();
 		//graphs.back()->livenessAnalysis();
 		graphs.back()->addNewStops();
 		

@@ -6,6 +6,7 @@ using namespace std;
 #define INFTY 2000000000
 
 enum OPCODE {
+	ALLOC_STATIC,
 	FUNC,
 	FUNC_MAIN,
 	HERE_STOP,
@@ -25,6 +26,8 @@ enum OPCODE {
 	JUMPIF,
 	JUMP,
 	CALL,
+	GET_STATIC,
+	SET_STATIC,
 	DUMP_STACK,
 	DUMP_HEAP,
 	PLUS,
@@ -49,5 +52,6 @@ enum OPCODE {
 void init();
 string opname(OPCODE op);
 bool opconst(OPCODE op);
+int oplength(OPCODE op);
 
 #endif // OPCODES_H

@@ -3,6 +3,18 @@
 #include "garbagecollector.h"
 #include <stdio.h>
 
+//#define PRINTCOMMAND
+//#define PRINTSTACK
+//#define PRINTHEAP
+#ifndef PRINTCOMMAND
+#ifdef PRINTSTACK
+#define PRINTCOMMAND
+#endif
+#ifdef PRINTHEAP
+#define PRINTCOMMAND
+#endif
+#endif
+
 #define BOOLREF(x) (x)
 #define CHARREF(x) (x)
 #define INTREF(x) (x)
@@ -45,8 +57,8 @@ void run(vector<int> &resultpos, vector<int> &resultsize, vector<vector<int> > &
 			int nextpos;
 			aktpos++;
 #ifdef PRINTCOMMAND
-			printf("\033[31m%2d %s (", stat.stac.back()->funcnum, opname[op].c_str());
-			int oplen = oplength[op];
+			printf("\033[31m%2d %s (", stat.stac.back()->funcnum, opname((OPCODE)op).c_str());
+			int oplen = oplength((OPCODE)op);
 			if (op == CALL)
 				oplen = 2+argsizes[li[aktpos]].size();
 			for (int i = 0; i < oplen; i++) {

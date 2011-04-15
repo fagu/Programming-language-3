@@ -1,0 +1,14 @@
+
+int bla() {
+	return=test;
+	test++;
+}
+
+void main() {
+	test=1234443;
+	pr(bla());
+	pr(bla());
+	pr(bla());
+}
+
+int test;

@@ -17,8 +17,8 @@ class Type;
 class Graph;
 class Node;
 class ClassType;
-class DeclarationInstruction;
 class Environment;
+class VariableDeclaration;
 
 class ParseResult {
 private:
@@ -27,6 +27,7 @@ private:
 	Node *prevnode;
 	vector<Node*> stops;
 	vector<FunctionDeclaration*> funcdecs;
+	vector<VariableDeclaration*> vars;
 	Environment *env;
 public:
 	bool printgraphs;
@@ -48,6 +49,8 @@ public:
 	
 	void addClass(ClassType *cl);
 	
+	void addVariable(VariableDeclaration *dec);
+	
 	void addnode(Node *n);
 	
 	int alloc(int len);
@@ -65,6 +68,8 @@ public:
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
 	void call(Function *func, const std::vector< int >& args, int resultpos);
+	void getStatic(int from, int len, int to);
+	void setStatic(int from, int len, int to);
 	
 	int output();
 	

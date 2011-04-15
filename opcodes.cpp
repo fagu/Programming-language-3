@@ -5,12 +5,16 @@
 
 string opnames[NUMBEROFOPCODES];
 bool opconsts[NUMBEROFOPCODES];
+int oplengths[NUMBEROFOPCODES];
 
 void init() {
 #define INSTRUCTION(c,n,const,code) opnames[c]=string(#c);
 #include "vminstructions.cpp"
 #undef INSTRUCTION
 #define INSTRUCTION(c,n,const,code) opconsts[c]=const;
+#include "vminstructions.cpp"
+#undef INSTRUCTION
+#define INSTRUCTION(c,n,const,code) oplengths[c]=n;
 #include "vminstructions.cpp"
 #undef INSTRUCTION
 	for (int i = 0; i < NUMBEROFOPCODES; i++) {
@@ -24,4 +28,8 @@ string opname(OPCODE op) {
 
 bool opconst(OPCODE op) {
 	return opconsts[op];
+}
+
+int oplength(OPCODE op) {
+	return oplengths[op];
 }

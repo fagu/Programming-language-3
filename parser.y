@@ -71,6 +71,9 @@ outerstatement:
 	$4->name = $2;
 	ParseRes->addClass($4);
 }
+	| type IDENTIFIER ';' {
+	ParseRes->addVariable(new VariableDeclaration(@$, $2, $1));
+}
 	| error {
 	printsyntaxerr(@$, "Syntax error!\n");
 }

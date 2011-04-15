@@ -259,4 +259,13 @@ public:
 	void findSet(Environment* e, Expression* par, Expression *s);
 };
 
+class VariableAccessorStatic : public VariableAccessor {
+private:
+	int globpos;
+public:
+	VariableAccessorStatic(string *_name, Type *_type, int _globpos) : VariableAccessor(_name, _type), globpos(_globpos) {}
+	void find(Environment* e, Expression* par);
+	void findSet(Environment* e, Expression* par, Expression* s);
+};
+
 #endif

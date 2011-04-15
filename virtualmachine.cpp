@@ -8,18 +8,6 @@
 
 #define VIRTUALMACHINE
 
-//#define PRINTCOMMAND
-//#define PRINTSTACK
-//#define PRINTHEAP
-#ifndef PRINTCOMMAND
-#ifdef PRINTSTACK
-#define PRINTCOMMAND
-#endif
-#ifdef PRINTHEAP
-#define PRINTCOMMAND
-#endif
-#endif
-
 bool showinput = false;
 bool dorun = true;
 
@@ -32,12 +20,6 @@ vector<vector<int> > liste;
 
 vector<vector<int> > stops;
 vector<vector<int> > argsizes;
-
-#define INSTRUCTION(c,n,const,code) n,
-int oplength[] = {
-#include "vminstructions.cpp"
-};
-#undef INSTRUCTION
 
 state stat;
 
@@ -78,6 +60,8 @@ int main(int argc, char *argv[]) {
 	}
 	input[L] = '\0';
 	
+	int staticsize = -1;
+	
 	char *codepos = input;
 	while(*codepos != '\0') {
 		int op;
@@ -113,7 +97,9 @@ int main(int argc, char *argv[]) {
 				printf("%2d ", args[i]);
 			printf("\n");
 		}
-		if (op == FUNC || op == FUNC_MAIN) {
+		if (op == ALLOC_STATIC) {
+			staticsize = args[0];
+		} else if (op == FUNC || op == FUNC_MAIN) {
 			if (op == FUNC_MAIN)
 				mainfunc = liste.size();
 			liste.push_back(vector<int>());
@@ -150,6 +136,8 @@ int main(int argc, char *argv[]) {
 	stat.stac.back()->aktpos = 0;
 	stat.stac.back()->funcnum = mainfunc;
 	stat.stac.back()->copyresultto = -1;
+	
+	stat.stati.reserve(staticsize);
 	
 	run(resultpos, resultsize, liste, stops, argsizes, stat);
 	
