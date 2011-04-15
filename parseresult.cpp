@@ -211,7 +211,8 @@ int ParseResult::output() {
 			fclose(fi);
 			char command[1000];
 			sprintf(command, "dot graphs/%s-%d.dot -Tpng -o graphs/%s-%d.png", dec->name->c_str(), dec->num, dec->name->c_str(), dec->num);
-			system(command);
+			if (system(command))
+				fprintf(stderr, "Error creating the flowgraph (is 'dot' installed?)\n");
 		}
 		
 		stringstream str;

@@ -47,11 +47,25 @@ int main(int argc, char *argv[]) {
 		switch (option) {
 			case 's': showinput = true; break;
 			case 'n': dorun = false; break;
-			case 'o': freopen(optarg, "w", stdout); break;
+			case 'o':
+				if (!freopen(optarg, "w", stdout)) {
+					fprintf(stderr, "Error opening output file '%s'!\n", optarg);
+					return 1;
+				}
+				break;
 		}
 	}
-	if (optind < argc)
-		freopen(argv[optind], "r", stdin);
+	if (optind < argc) {
+		if (!freopen(argv[optind], "r", stdin)) {
+			fprintf(stderr, "Error opening input file '%s'!\n", argv[optind]);
+			return 1;
+		}
+		optind++;
+	}
+	if (optind < argc) {
+		fprintf(stderr, "Too many arguments!\n");
+		return 1;
+	}
 	
 	init();
 	

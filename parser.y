@@ -16,7 +16,7 @@
 %token <num> NUMBER
 %token <character> CHARACTER
 %token <name> STRING
-%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY
+%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY LFUNC
 %type <classtype> classcontents;
 %type <vardec> variabledeclaration;
 %type <funcdec> functiondeclaration;
@@ -25,6 +25,7 @@
 %type <params> parameters neparameters;
 %type <instructions> arguments nearguments;
 %type <type> type ttype;
+%type <typelist> typelist netypelist;
 %left LAND LOR
 %left '!'
 %left EQ LE GE '<' '>' NE
@@ -45,6 +46,7 @@
 	vector<DeclarationInstruction*> * params;
 	vector<Instruction*> *instructions;
 	TypePointer * type;
+	vector<TypePointer*> * typelist;
 }
 
 %expect 3
@@ -206,6 +208,9 @@ exp:      narexp {
 	| NEW IDENTIFIER {
 	$$ = new NewInstruction(@$, $2);
 }
+/*	| DEF type '(' parameters ')' statement {
+	
+}*/
 
 narexp:
 	  '(' exp ')' {
@@ -309,11 +314,31 @@ type:
 }
 	| ttype {
 	$$ = $1;
+}	| LFUNC type '(' typelist ')' {
+	$$ = new TypePointerFunction(@$, $2, $4);
 }
 
 ttype:
 	  type ARRAY {
 	$$ = new TypePointerArray(@$, $1);
+}
+
+typelist:
+	    {
+	$$ = new vector<TypePointer*>();
+}
+	| netypelist {
+	$$ = $1;
+}
+
+netypelist:
+	  type {
+	$$ = new vector<TypePointer*>();
+	$$->push_back($1);
+}
+	| netypelist ',' type {
+	$1->push_back($3);
+	$$ = $1;
 }
 
 %%

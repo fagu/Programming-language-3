@@ -26,6 +26,7 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 "else" {return ELSE;}
 "while" {return WHILE;}
 "for" {return FOR;}
+"func" {return LFUNC;}
 "==" {return EQ;}
 "<=" {return LE;}
 ">=" {return GE;}

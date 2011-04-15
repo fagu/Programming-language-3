@@ -179,6 +179,14 @@ public:
 	Type* resulttype();
 };
 
+/*class CreateFunctionInstruction : public Instruction {
+public:
+	vector<DeclarationInstruction*> * parameters;
+	TypePointer * resulttype;
+	Function(string *_name, vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : name(_name), parameters(_parameters), resulttype(_resulttype) {}
+	
+};*/
+
 class BlockInstruction : public Instruction {
 public:
 	vector<Instruction*> instructions;

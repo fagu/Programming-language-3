@@ -19,6 +19,10 @@ ArrayType* Type::arrayType() {
 	return array;
 }
 
+FunctionType::~FunctionType() {
+	delete argTypes;
+}
+
 ClassType::ClassType() : Type(), m_size(-1) {
 	declarations = new VariableDeclarations();
 	env = new Environment;
@@ -128,4 +132,18 @@ TypePointerArray::~TypePointerArray() {
 void TypePointerArray::find() {
 	contenttype->find();
 	type = contenttype->real()->arrayType();
+}
+
+TypePointerFunction::~TypePointerFunction() {
+	delete returnType;
+	for (int i = 0; i < (int)argTypes->size(); i++)
+		delete (*argTypes)[i];
+	delete argTypes;
+}
+
+void TypePointerFunction::find() {
+	vector<Type*> *args = new vector<Type*>(argTypes->size());
+	for (int i = 0; i < (int)argTypes->size(); i++)
+		(*args)[i] = (*argTypes)[i]->real();
+	type = new FunctionType(loc, returnType->real(), args);
 }

@@ -64,6 +64,16 @@ public:
 	void find();
 };
 
+class TypePointerFunction : public TypePointer {
+private:
+	TypePointer * returnType;
+	vector<TypePointer*> * argTypes;
+public:
+	TypePointerFunction(Location _loc, TypePointer * _returnType, vector<TypePointer*> * _argTypes) : TypePointer(_loc), returnType(_returnType), argTypes(_argTypes) {}
+	~TypePointerFunction();
+	void find();
+};
+
 class TypePointerExplicit : public TypePointer {
 public:
 	TypePointerExplicit(Type *_type) : TypePointer(Location()) {type = _type;}
@@ -136,6 +146,16 @@ public:
 	char style() {return 'A';}
 private:
 	ArrayType(Location _loc, Type * _contenttype) : Type(_loc), contenttype(_contenttype) {}
+};
+
+class FunctionType : public Type {
+public:
+	Type * returnType;
+	vector<Type*> * argTypes;
+	FunctionType(Location _loc, Type * _returnType, vector<Type*> * _argTypes) : Type(_loc), returnType(_returnType), argTypes(_argTypes) {}
+	~FunctionType();
+	int size() {return 1;}
+	char style() {return 'F';}
 };
 
 #endif
