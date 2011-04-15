@@ -9,16 +9,16 @@ using namespace std;
 
 class Environment;
 class Type;
-class DeclarationInstruction;
+class VariableAccessor;
 class Function;
 
 class Environment {
 private:
-	map<string,DeclarationInstruction*> vars;
+	map<string,VariableAccessor*> vars;
 	map<string,Type*> types;
 	vector<Environment*> parents;
 	
-	vector<DeclarationInstruction*> addedvars;
+	vector<VariableAccessor*> addedvars;
 	vector<Function*> addedfunctions;
 	vector<pair<string,Type*> > addedtypes;
 	stack<int> varnum;
@@ -30,15 +30,16 @@ public:
 	Environment();
 	Environment(Environment *par);
 	
-	void addVariable(DeclarationInstruction *var);
+	void addVariable(VariableAccessor *var);
 	//void addType(const string &name, Type *type);
 	void addFunction(Function *func);
+	void addParent(Environment *env);
 	
 	void enterBlock();
 	void exitBlock();
 	
 	enum MESSAGE {OK, NONEFOUND, MULTIPLEFOUND};
-	DeclarationInstruction * findVariable(const string &name);
+	VariableAccessor * findVariable(const string &name);
 	//Type * findType(const string &name);
 	Function * findFunction(string *name, const vector<Type*> &argtypes, MESSAGE &message);
 };

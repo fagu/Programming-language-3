@@ -9,8 +9,8 @@ int Type::distance(Type* t) {
 		return INFTY;
 }
 
-Instruction* Type::convertTo(Instruction* a, Type* t) {
-	return a;
+Instruction* Type::convertTo(Expression* a, Type* t) {
+	return new StupidConvert(a, t);
 }
 
 ArrayType* Type::arrayType() {
@@ -50,6 +50,7 @@ void ClassType::find() {
 	int size = 0;
 	for (VariableDeclarations::iterator it = declarations->begin(); it != declarations->end(); it++) {
 		it->second->pos = size;
+		env->addVariable(new VariableAccessorHeap(it->second->name, it->second->type->real(), it->second->pos));
 		size += (*it->second->type)->size();
 	}
 	m_size = size;

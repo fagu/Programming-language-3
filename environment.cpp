@@ -10,7 +10,7 @@ Environment::Environment(Environment* par) {
 	parents.push_back(par);
 }
 
-void Environment::addVariable(DeclarationInstruction* var) {
+void Environment::addVariable(VariableAccessor* var) {
 	if (vars.count(*var->name))
 		fprintf(stderr, "Variable '%s' already exists!\n", var->name->c_str());
 	vars[*var->name] = var;
@@ -27,6 +27,10 @@ void Environment::addVariable(DeclarationInstruction* var) {
 void Environment::addFunction(Function* func) {
 	functions.insert(make_pair(*func->name, func));
 	addedfunctions.push_back(func);
+}
+
+void Environment::addParent(Environment* env) {
+	parents.push_back(env);
 }
 
 void Environment::enterBlock() {
@@ -64,11 +68,11 @@ void Environment::exitBlock() {
 	parnum.pop();
 }
 
-DeclarationInstruction * Environment::findVariable(const std::string& name) {
+VariableAccessor * Environment::findVariable(const std::string& name) {
 	if (vars.count(name))
 		return vars[name];
 	for (int i = parents.size()-1; i >= 0; i--) {
-		DeclarationInstruction * r = parents[i]->findVariable(name);
+		VariableAccessor * r = parents[i]->findVariable(name);
 		if (r)
 			return r;
 	}

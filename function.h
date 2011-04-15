@@ -27,11 +27,12 @@ private:
 	BlockInstruction* instructions;
 public:
 	Location loc;
+	Environment *env;
 	int num;
-	FunctionDeclaration(Location _loc, string *_name, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_name, _parameters, _resulttype), loc(_loc), instructions(_instructions) {}
+	FunctionDeclaration(Location _loc, string *_name, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_name, _parameters, _resulttype), loc(_loc), instructions(_instructions), env(0) {}
 	~FunctionDeclaration() {}
 	char type() {return 'D';}
-	int find(Environment* e);
+	int find(Environment *e);
 };
 
 class PrimitiveFunction : public Function {

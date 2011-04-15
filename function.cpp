@@ -5,6 +5,8 @@
 
 int FunctionDeclaration::find(Environment *e) {
 	e->enterBlock();
+	if (env)
+		e->addParent(env);
 	for (int i = 0; i < parameters->size(); i++) {
 		(*parameters)[i]->find(e);
 	}

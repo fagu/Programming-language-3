@@ -4,34 +4,31 @@ class punkt {
 	punkt next;
 	void removestart(int i) {
 		for (int k = 0; k < i; k++;)
-			this.next = this.next.next;
+			next = next.next;
 	}
 	punkt at(int i) {
-		punkt p = this;
 		for (int k = 0; k < i; k++;)
-			p = p.next;
-		return=p;
+			this = next;
+		return=this;
 	}
 	int size() {
-		punkt p = this;
-		for(return = -1; p; return++;)
-			p = p.next;
+		for(return = -1; this; return++;)
+			this = next;
 	}
 	void insert(int i) {
-		punkt s = this.next;
+		punkt s = next;
 		punkt n = new punkt;
 		n.eintrag = i;
-		this.next = n;
+		next = n;
 		n.next = s;
 	}
 	void push(int n) {
-		punkt p = this;
-		while(p.next)
-			p = p.next;
+		while(next)
+			this = next;
 		punkt neu = new punkt;
 		neu.eintrag = n;
 		neu.next = null;
-		p.next = neu;
+		next = neu;
 	}
 }
 

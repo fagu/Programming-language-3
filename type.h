@@ -8,8 +8,8 @@
 #include "opcodes.h"
 #include "function.h"
 #include "environment.h"
+#include "instruction.h"
 
-class Instruction;
 class BlockInstruction;
 class DeclarationInstruction;
 using namespace std;
@@ -28,7 +28,7 @@ public:
 	virtual int size()=0;
 	virtual char style()=0;
 	virtual int distance(Type *t) ;
-	virtual Instruction * convertTo(Instruction *a, Type *t);
+	virtual Instruction * convertTo(Expression *a, Type *t);
 	ArrayType * arrayType();
 };
 

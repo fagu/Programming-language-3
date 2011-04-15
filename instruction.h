@@ -15,14 +15,19 @@ class VariableDeclaration;
 class BlockInstruction;
 class Function;
 
-class Instruction {
+class Expression {
+public:
+	int pos;
+	virtual ~Expression() {}
+	virtual Type *resulttype() = 0;
+};
+
+class Instruction : public Expression {
 public:
 	Location loc;
-	int pos;
 	Instruction(Location _loc) : loc(_loc) {}
 	virtual ~Instruction() {}
 	virtual void find(Environment *e) = 0;
-	virtual Type *resulttype() = 0;
 	virtual void findSet(Environment *e, Instruction *b) {fprintf(stderr, "This expression cannot be assigned a value!\n");};
 };
 
@@ -79,6 +84,7 @@ public:
 	DeclarationInstruction(Location _loc, TypePointer *_type, string *_name) : Instruction(_loc), type(_type), name(_name) {}
 	void find(Environment *e);
 	Type* resulttype();
+	int getPos(Environment* e, Instruction* par);
 };
 
 class SetInstruction : public Instruction {
@@ -94,7 +100,7 @@ public:
 class VariableInstruction : public Instruction {
 private:
 	string *name;
-	DeclarationInstruction *dec;
+	VariableAccessor *acc;
 public:
 	VariableInstruction(Location _loc, string *_name) : Instruction(_loc), name(_name) {}
 	void find(Environment *e);
@@ -105,7 +111,7 @@ public:
 class AccessInstruction : public Instruction {
 private:
 	string *name;
-	VariableDeclaration *dec;
+	VariableAccessor *acc;
 	Instruction *a;
 public:
 	AccessInstruction(Location _loc, Instruction *_a, string *_name) : Instruction(_loc), a(_a), name(_name) {}
@@ -212,6 +218,45 @@ public:
 	EmptyInstruction(Location _loc) : Instruction(_loc) {}
 	void find(Environment *e);
 	Type* resulttype();
+};
+
+class StupidConvert : public Instruction {
+private:
+	Type *type;
+public:
+	StupidConvert(Expression *a, Type *t) : Instruction(Location()), type(t) {pos=a->pos;}
+	void find(Environment* e) {}
+	Type* resulttype() {return type;}
+};
+
+
+
+class VariableAccessor : public Expression {
+protected:
+	Type *type;
+public:
+	string *name;
+	VariableAccessor(string *_name, Type *_type) : name(_name), type(_type) {}
+	virtual ~VariableAccessor() {}
+	virtual void find(Environment *e, Expression *par) = 0;
+	virtual void findSet(Environment *e, Expression *par, Expression *s) = 0;
+	Type *resulttype() {return type;}
+};
+
+class VariableAccessorStack : public VariableAccessor {
+public:
+	VariableAccessorStack(string *_name, Type *_type, int _pos) : VariableAccessor(_name, _type) {pos=_pos;}
+	void find(Environment* e, Expression* par) {}
+	void findSet(Environment* e, Expression* par, Expression *s);
+};
+
+class VariableAccessorHeap : public VariableAccessor {
+private:
+	int posin;
+public:
+	VariableAccessorHeap(string *_name, Type *_type, int _posin) : VariableAccessor(_name, _type), posin(_posin) {}
+	void find(Environment* e, Expression* par);
+	void findSet(Environment* e, Expression* par, Expression *s);
 };
 
 #endif

@@ -183,6 +183,7 @@ classcontents:
 	| classcontents functiondeclaration {
 	$2->parameters->insert($2->parameters->begin(), new DeclarationInstruction(@2, new TypePointerExplicit($1), new string("this")));
 	$1->addFunction($2);
+	$2->env = $$->env;
 	$$ = $1;
 }
 
