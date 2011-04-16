@@ -1,4 +1,0 @@
-#ifndef OPCODES_COMPILER_H
-#define OPCODES_COMPILER_H
-
-#endif // OPCODES_COMPILER_H

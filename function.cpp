@@ -4,15 +4,16 @@
 #include "type.h"
 
 int FunctionDeclaration::find(Environment *e) {
-	e->enterBlock();
+	Environment *ne = new Environment;
+	ne->addParent(e);
 	if (env)
-		e->addParent(env);
+		ne->addParent(env);
 	for (int i = 0; i < parameters->size(); i++) {
-		(*parameters)[i]->find(e);
+		(*parameters)[i]->find(ne);
 	}
 	DeclarationInstruction * returndec = new DeclarationInstruction(Location(), resulttype, new string("return")); // TODO use real location
-	returndec->find(e);
-	instructions->find(e);
-	e->exitBlock();
-	return returndec->pos;
+	returndec->find(ne);
+	instructions->find(ne);
+	delete ne;
+	return returndec->varpos;
 }

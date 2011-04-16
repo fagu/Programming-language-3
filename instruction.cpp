@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "instruction.h"
 #include "parseresult.h"
-#include "opcodes_compiler.h"
 #include "function.h"
 #include "type.h"
 
@@ -53,7 +52,7 @@ void NewInstruction::find(Environment* e) {
 	if (!ParseRes->types.count(*name))
 		printerr("Type '%s' does not exist!\n", name->c_str());
 	Type *t = ParseRes->types[*name];
-	if (t->style() != 'C')
+	if (t->style() != Type::STYLE_CLASS)
 		printerr("Type '%s' is not a class!\n", name->c_str());
 	type = (ClassType*)t;
 	pos = ParseRes->alloc(ParseRes->intType->size());
@@ -65,8 +64,8 @@ Type* NewInstruction::resulttype() {
 }
 
 void DeclarationInstruction::find(Environment* e) {
-	pos = ParseRes->alloc((*type)->size());
-	e->addVariable(new VariableAccessorStack(name, type->real(), pos));
+	varpos = ParseRes->alloc((*type)->size());
+	e->addVariable(new VariableAccessorStack(name, type->real(), varpos));
 }
 
 Type* DeclarationInstruction::resulttype() {
@@ -108,7 +107,7 @@ void VariableInstruction::findSet(Environment* e, Instruction* b) {
 
 void AccessInstruction::find(Environment* e) {
 	a->find(e);
-	if (a->resulttype()->style() != 'C')
+	if (a->resulttype()->style() != Type::STYLE_CLASS)
 		printerr("Expression is not a class!\n");
 	acc = ((ClassType*)a->resulttype())->env->findVariable(*name);
 	if (!acc)
@@ -123,7 +122,7 @@ Type* AccessInstruction::resulttype() {
 
 void AccessInstruction::findSet(Environment* e, Instruction* b) {
 	a->find(e);
-	if (a->resulttype()->style() != 'C')
+	if (a->resulttype()->style() != Type::STYLE_CLASS)
 		printerr("Expression is not a class!\n");
 	acc = ((ClassType*)a->resulttype())->env->findVariable(*name);
 	if (!acc)
@@ -135,7 +134,7 @@ void AccessInstruction::findSet(Environment* e, Instruction* b) {
 void AccessArrayInstruction::find(Environment* e) {
 	a->find(e);
 	b->find(e);
-	if (a->resulttype()->style() != 'A')
+	if (a->resulttype()->style() != Type::STYLE_ARRAY)
 		printerr("Expression is not an array!\n");
 	int unitsize = ((ArrayType*)a->resulttype())->contenttype->size();
 	pos = ParseRes->alloc(unitsize);
@@ -149,7 +148,7 @@ Type* AccessArrayInstruction::resulttype() {
 void AccessArrayInstruction::findSet(Environment* e, Instruction* c) {
 	a->find(e);
 	b->find(e);
-	if (a->resulttype()->style() != 'A')
+	if (a->resulttype()->style() != Type::STYLE_ARRAY)
 		printerr("Expression is not an array!\n");
 	int unitsize = ((ArrayType*)a->resulttype())->contenttype->size();
 	c->find(e);
@@ -220,7 +219,7 @@ Type* CallInstruction::resulttype() {
 
 void ClassCallInstruction::find(Environment* e) {
 	a->find(e);
-	if (a->resulttype()->style() != 'C')
+	if (a->resulttype()->style() != Type::STYLE_CLASS)
 		printerr("Expression is not a class!\n");
 	vector<Type*> argtypes;
 	vector<Expression*> args;
@@ -285,7 +284,7 @@ Type* EmptyInstruction::resulttype() {
 
 void VariableAccessorStack::findSet(Environment* e, Expression* par, Expression *s) {
 	if (s->resulttype()->distance(type) == INFTY)
-		fprintf(stderr, "Types do not match!\n");
+		printheisenerr("Types do not match!\n");
 	Instruction *sn = s->resulttype()->convertTo(s, type);
 	sn->find(e);
 	ParseRes->copy(sn->pos, type->size(), pos);
@@ -309,7 +308,7 @@ void VariableAccessorHeap::findSet(Environment* e, Expression* par, Expression* 
 		par = th;
 	}
 	if (s->resulttype()->distance(type) == INFTY)
-		fprintf(stderr, "Types do not match!\n");
+		printheisenerr("Types do not match!\n");
 	Instruction *sn = s->resulttype()->convertTo(s, type);
 	sn->find(e);
 	ParseRes->copySub(sn->pos, par->pos, posin, type->size());
@@ -323,7 +322,7 @@ void VariableAccessorStatic::find(Environment* e, Expression* par) {
 
 void VariableAccessorStatic::findSet(Environment* e, Expression* par, Expression* s) {
 	if (s->resulttype()->distance(type) == INFTY)
-		fprintf(stderr, "Types do not match!\n");
+		printheisenerr("Types do not match!\n");
 	Instruction *sn = s->resulttype()->convertTo(s, type);
 	sn->find(e);
 	ParseRes->setStatic(sn->pos, type->size(), globpos);

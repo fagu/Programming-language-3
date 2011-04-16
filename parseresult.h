@@ -22,7 +22,6 @@ class VariableDeclaration;
 
 class ParseResult {
 private:
-	vector<string> funcspecs;
 	vector<Graph*> graphs;
 	Node *prevnode;
 	vector<Node*> stops;
@@ -30,11 +29,15 @@ private:
 	vector<FunctionDeclaration*> funcglob;
 	vector<VariableDeclaration*> vars;
 	Environment *env;
+	
+	void addnode(Node *n);
 public:
 	bool printgraphs;
 	bool haserror;
+	
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;
+	
 	Type *nullType;
 	Type *voidType;
 	Type *intType;
@@ -45,14 +48,9 @@ public:
 	void addPrim(string name, OPCODE op, Type *at, string an, Type *resulttype);
 	void addPrim(string name, OPCODE op, Type *at, string an, Type *bt, string bn, Type *resulttype);
 	
-	void addPrimitiveFunction(Function *func);
 	void addFunction(FunctionDeclaration *dec);
-	
 	void addClass(ClassType *cl);
-	
 	void addVariable(VariableDeclaration *dec);
-	
-	void addnode(Node *n);
 	
 	int alloc(int len);
 	void copy(int from, int len, int to);

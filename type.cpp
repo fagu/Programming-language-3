@@ -103,8 +103,11 @@ int PrimitiveType::distance(Type* t) {
 		return INFTY;
 }
 
-VariableDeclaration* ClassType::var(const std::string& name) {
-	return (*declarations)[name];
+int NullType::distance(Type* t) {
+	if (t->style() == Type::STYLE_CLASS)
+		return 1;
+	else
+		return INFTY;
 }
 
 Type& TypePointer::operator*() {

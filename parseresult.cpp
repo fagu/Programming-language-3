@@ -198,7 +198,6 @@ int ParseResult::output() {
 		globalsize += (*it)->type->real()->size();
 		env->addVariable(new VariableAccessorStatic((*it)->name, (*it)->type->real(), (*it)->pos));
 	}
-	printf("%d;%d;\n", ALLOC_STATIC, globalsize);
 	int n = 0;
 	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
 		FunctionDeclaration *dec = *it;
@@ -214,6 +213,7 @@ int ParseResult::output() {
 	}
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->findFuncs();
+	vector<string> funcspecs;
 	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
 		graphs.push_back(new Graph());
 		prevnode = graphs.back()->start;
@@ -261,6 +261,7 @@ int ParseResult::output() {
 	}
 	if (haserror)
 		return 1;
+	printf("%d;%d;\n", ALLOC_STATIC, globalsize);
 	for (int f = 0; f < funcspecs.size(); f++) {
 		printf("%s", funcspecs[f].c_str());
 		graphs[f]->start->print();

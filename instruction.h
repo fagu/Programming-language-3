@@ -15,19 +15,41 @@ class VariableDeclaration;
 class BlockInstruction;
 class Function;
 
+/**
+ * Expression is the base class for everything that returns a value (possibly void) and can in some cases be assigned values
+ **/
 class Expression {
 public:
+	/**
+	 * The stack reference position of the return value
+	 **/
 	int pos;
 	virtual ~Expression() {}
+	/**
+	 * The type of the return value
+	 **/
 	virtual Type *resulttype() = 0;
 };
 
+/**
+ * The base class for all expressions which can be called directly
+ **/
 class Instruction : public Expression {
 public:
 	Location loc;
 	Instruction(Location _loc) : loc(_loc) {}
 	virtual ~Instruction() {}
+	/**
+	 * Tries to calculate the value
+	 * 
+	 * Checks correctness (if functions exists, types match, ...) and writes opcodes to ParseRes afterwards
+	 **/
 	virtual void find(Environment *e) = 0;
+	/**
+	 * Tries to assign the return value of b
+	 * 
+	 * Checks correctness (if functions exists, types match, ...) and writes opcodes to ParseRes afterwards
+	 **/
 	virtual void findSet(Environment *e, Instruction *b) {fprintf(stderr, "This expression cannot be assigned a value!\n");};
 };
 
@@ -75,11 +97,14 @@ public:
 	Type* resulttype();
 };
 
+/**
+ * Instruction to declare a variable
+ **/
 class DeclarationInstruction : public Instruction {
 public:
 	TypePointer *type;
 	string *name;
-	int pos;
+	int varpos;
 public:
 	DeclarationInstruction(Location _loc, TypePointer *_type, string *_name) : Instruction(_loc), type(_type), name(_name) {}
 	void find(Environment *e);
@@ -87,6 +112,9 @@ public:
 	int getPos(Environment* e, Instruction* par);
 };
 
+/**
+ * Instruction to assign the value of b to a (calls findSet(e,b) on a)
+ **/
 class SetInstruction : public Instruction {
 private:
 	Instruction *a;
@@ -97,6 +125,9 @@ public:
 	Type* resulttype();
 };
 
+/**
+ * The value of a variable without explicitly given object
+ **/
 class VariableInstruction : public Instruction {
 private:
 	string *name;
@@ -108,6 +139,9 @@ public:
 	void findSet(Environment *e, Instruction* b);
 };
 
+/**
+ * The value of a member variable
+ **/
 class AccessInstruction : public Instruction {
 private:
 	string *name;
@@ -120,6 +154,9 @@ public:
 	void findSet(Environment *e, Instruction* b);
 };
 
+/**
+ * The value of an array entry
+ **/
 class AccessArrayInstruction : public Instruction {
 private:
 	Instruction * a;
@@ -152,6 +189,9 @@ public:
 	Type* resulttype();
 };
 
+/**
+ * The return value of a function call without explicitly given object
+ **/
 class CallInstruction : public Instruction {
 private:
 	string *name;
@@ -163,6 +203,9 @@ public:
 	Type* resulttype();
 };
 
+/**
+ * The return value of a member function call
+ **/
 class ClassCallInstruction : public Instruction {
 private:
 	Instruction *a;
@@ -192,6 +235,9 @@ public:
 	Function(string *_name, vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : name(_name), parameters(_parameters), resulttype(_resulttype) {}
 };*/
 
+/**
+ * Multiple instructions in the same scope which is inside the surrounding scope, returns void
+ **/
 class BlockInstruction : public Instruction {
 public:
 	vector<Instruction*> instructions;
@@ -203,6 +249,9 @@ public:
 	Type* resulttype();
 };
 
+/**
+ * Multiple instructions in the outer scope, returns void
+ **/
 class CompoundInstruction : public Instruction {
 private:
 	vector<Instruction*> * instructions;
@@ -212,6 +261,9 @@ public:
 	Type* resulttype();
 };
 
+/**
+ * Does nothing, returns void
+ **/
 class EmptyInstruction : public Instruction {
 public:
 	EmptyInstruction(Location _loc) : Instruction(_loc) {}
@@ -219,6 +271,9 @@ public:
 	Type* resulttype();
 };
 
+/**
+ * Returns the unmodified input, useful for conversions that do nothing
+ **/
 class StupidConvert : public Instruction {
 private:
 	Type *type;
@@ -230,6 +285,9 @@ public:
 
 
 
+/**
+ * Base class to access the value of a variable
+ **/
 class VariableAccessor : public Expression {
 protected:
 	Type *type;
@@ -237,11 +295,26 @@ public:
 	string *name;
 	VariableAccessor(string *_name, Type *_type) : name(_name), type(_type) {}
 	virtual ~VariableAccessor() {}
+	/**
+	 * Tries to calculate the value
+	 * 
+	 * Writes opcodes to ParseRes
+	 * @param par The "parent" object (0 if the variable is accessed directly)
+	 **/
 	virtual void find(Environment *e, Expression *par) = 0;
+	/**
+	 * Tries to assign the return value of s
+	 * 
+	 * Writes opcodes to ParseRes
+	 * @param par The "parent" object (0 if the variable is accessed directly)
+	 **/
 	virtual void findSet(Environment *e, Expression *par, Expression *s) = 0;
 	Type *resulttype() {return type;}
 };
 
+/**
+ * Stack (aka local) variables
+ **/
 class VariableAccessorStack : public VariableAccessor {
 public:
 	VariableAccessorStack(string *_name, Type *_type, int _pos) : VariableAccessor(_name, _type) {pos=_pos;}
@@ -249,6 +322,9 @@ public:
 	void findSet(Environment* e, Expression* par, Expression *s);
 };
 
+/**
+ * Heap (aka member) variables
+ **/
 class VariableAccessorHeap : public VariableAccessor {
 private:
 	int posin;
@@ -258,6 +334,9 @@ public:
 	void findSet(Environment* e, Expression* par, Expression *s);
 };
 
+/**
+ * Static (aka global) variables
+ **/
 class VariableAccessorStatic : public VariableAccessor {
 private:
 	int globpos;
@@ -269,18 +348,34 @@ public:
 
 
 
+/**
+ * Base class to run a function and access its return value
+ **/
 class FunctionAccessor : public Expression {
 protected:
 	Type *type;
 public:
 	string *name;
 	vector<Type*> *argtypes;
+	/**
+	 * @param _argtypes The types of the arguments (excluding the implicit 'this' argument)
+	 **/
 	FunctionAccessor(string *_name, Type *_type, vector<Type*> *_argtypes) : name(_name), type(_type), argtypes(_argtypes) {}
 	virtual ~FunctionAccessor() {}
+	/**
+	 * Tries to call the function
+	 * 
+	 * Writes opcodes to ParseRes
+	 * @param par The "parent" object (0 if the function is accessed directly), has to be converted to the expected type
+	 * @param args The arguments still have to be converted to the expected types
+	 **/
 	virtual void find(Environment *e, Expression *par, const vector<Expression*> &args) = 0;
 	Type *resulttype() {return type;}
 };
 
+/**
+ * Normal function
+ **/
 class FunctionAccessorNormal : public FunctionAccessor {
 private:
 	int funcnum;
@@ -290,6 +385,9 @@ public:
 	void find(Environment* e, Expression* par, const std::vector< Expression* >& args);
 };
 
+/**
+ * Primitive function that has its own opcode (e.g. operator+)
+ **/
 class FunctionAccessorPrimitive : public FunctionAccessor {
 private:
 	OPCODE op;

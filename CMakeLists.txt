@@ -13,7 +13,6 @@ set(COMPILER_CPPFILES
 	instruction.cpp
 	location.cpp
 	opcodes.cpp
-	opcodes_compiler.cpp
 	flowgraph.cpp
 	function.cpp
 	environment.cpp
@@ -44,3 +43,13 @@ ADD_TEST(linkedlist ../testcase.sh linkedlist)
 ADD_TEST(string ../testcase.sh string)
 ADD_TEST(vector ../testcase.sh vector)
 ADD_TEST(globals ../testcase.sh globals)
+
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+add_custom_target(doc
+${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+COMMENT "Generating API documentation with Doxygen" VERBATIM
+)
+endif(DOXYGEN_FOUND)
