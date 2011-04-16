@@ -105,11 +105,13 @@ private:
 public:
 	string *name;
 	Environment *env;
+	vector<FunctionDeclaration*> funcs;
 	ClassType();
 	~ClassType();
 	void addVariable(VariableDeclaration *dec);
-	void addFunction(Function *func);
+	void addFunction(FunctionDeclaration* func);
 	void find();
+	void findFuncs();
 	int size();
 	int hashsize();
 	VariableDeclaration *var(const string &name);

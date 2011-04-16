@@ -42,8 +42,8 @@ void ClassType::addVariable(VariableDeclaration* dec) {
 	(*declarations)[*dec->name] = dec;
 }
 
-void ClassType::addFunction(Function* func) {
-	env->addFunction(func);
+void ClassType::addFunction(FunctionDeclaration* func) {
+	funcs.push_back(func);
 }
 
 void ClassType::find() {
@@ -54,6 +54,17 @@ void ClassType::find() {
 		size += (*it->second->type)->size();
 	}
 	m_size = size;
+}
+
+void ClassType::findFuncs() {
+	for (vector<FunctionDeclaration*>::iterator it = funcs.begin(); it != funcs.end(); it++) {
+		FunctionDeclaration *func = *it;
+		vector<Type*> *argTypes = new vector<Type*>;
+		for (int i = 1; i < func->parameters->size(); i++)
+			argTypes->push_back((*func->parameters)[i]->type->real());
+		FunctionAccessorNormal *fa = new FunctionAccessorNormal(func->name, func->resulttype->real(), func->num, argTypes, (*func->parameters)[0]->type->real());
+		env->addFunction(fa);
+	}
 }
 
 int ClassType::size() {

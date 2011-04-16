@@ -155,7 +155,7 @@ public:
 class CallInstruction : public Instruction {
 private:
 	string *name;
-	Function *dec;
+	FunctionAccessor *acc;
 	vector<Instruction*> *arguments;
 public:
 	CallInstruction(Location _loc, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), name(_name), arguments(_arguments) {}
@@ -167,7 +167,7 @@ class ClassCallInstruction : public Instruction {
 private:
 	Instruction *a;
 	string *name;
-	Function *dec;
+	FunctionAccessor *acc;
 	vector<Instruction*> *arguments;
 public:
 	ClassCallInstruction(Location _loc, Instruction *_a, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), a(_a), name(_name), arguments(_arguments) {}
@@ -190,7 +190,6 @@ public:
 	vector<DeclarationInstruction*> * parameters;
 	TypePointer * resulttype;
 	Function(string *_name, vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : name(_name), parameters(_parameters), resulttype(_resulttype) {}
-	
 };*/
 
 class BlockInstruction : public Instruction {
@@ -266,6 +265,37 @@ public:
 	VariableAccessorStatic(string *_name, Type *_type, int _globpos) : VariableAccessor(_name, _type), globpos(_globpos) {}
 	void find(Environment* e, Expression* par);
 	void findSet(Environment* e, Expression* par, Expression* s);
+};
+
+
+
+class FunctionAccessor : public Expression {
+protected:
+	Type *type;
+public:
+	string *name;
+	vector<Type*> *argtypes;
+	FunctionAccessor(string *_name, Type *_type, vector<Type*> *_argtypes) : name(_name), type(_type), argtypes(_argtypes) {}
+	virtual ~FunctionAccessor() {}
+	virtual void find(Environment *e, Expression *par, const vector<Expression*> &args) = 0;
+	Type *resulttype() {return type;}
+};
+
+class FunctionAccessorNormal : public FunctionAccessor {
+private:
+	int funcnum;
+	Type *parType;
+public:
+	FunctionAccessorNormal(string *_name, Type *_type, int _funcnum, vector<Type*> *_argtypes, Type *_parType) : FunctionAccessor(_name, _type, _argtypes), funcnum(_funcnum), parType(_parType) {}
+	void find(Environment* e, Expression* par, const std::vector< Expression* >& args);
+};
+
+class FunctionAccessorPrimitive : public FunctionAccessor {
+private:
+	OPCODE op;
+public:
+	FunctionAccessorPrimitive(string *_name, Type *_type, OPCODE _op, vector<Type*> *_argtypes) : FunctionAccessor(_name, _type, _argtypes), op(_op) {}
+	void find(Environment* e, Expression* par, const std::vector< Expression* >& args);
 };
 
 #endif

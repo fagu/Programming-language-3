@@ -4,11 +4,22 @@ int bla() {
 	test++;
 }
 
+class testcla {
+	void hi() {
+		ha();
+	}
+	void ha() {
+		pr(777);
+	}
+}
+
 void main() {
 	test=1234443;
 	pr(bla());
 	pr(bla());
 	pr(bla());
+	testcla a = new testcla;
+	a.hi();
 }
 
 int test;

@@ -24,7 +24,7 @@ void Environment::addVariable(VariableAccessor* var) {
 	addedtypes.push_back(make_pair(name,type));
 }*/
 
-void Environment::addFunction(Function* func) {
+void Environment::addFunction(FunctionAccessor* func) {
 	functions.insert(make_pair(*func->name, func));
 	addedfunctions.push_back(func);
 }
@@ -52,9 +52,9 @@ void Environment::exitBlock() {
 	}
 	typenum.pop();
 	while(addedfunctions.size() > funcnum.top()) {
-		Function *func = addedfunctions.back();
-		pair<multimap<string,Function*>::iterator,multimap<string,Function*>::iterator> pa = functions.equal_range(*func->name);
-		for (multimap<string,Function*>::iterator it = pa.first; it != pa.second; it++) {
+		FunctionAccessor *func = addedfunctions.back();
+		pair<multimap<string,FunctionAccessor*>::iterator,multimap<string,FunctionAccessor*>::iterator> pa = functions.equal_range(*func->name);
+		for (multimap<string,FunctionAccessor*>::iterator it = pa.first; it != pa.second; it++) {
 			if (it->second == func) {
 				functions.erase(it);
 				break;
@@ -90,21 +90,21 @@ VariableAccessor * Environment::findVariable(const std::string& name) {
 	return 0;
 }*/
 
-typedef pair<Function*,vector<int> > Dist;
+typedef pair<FunctionAccessor*,vector<int> > Dist;
 
-Function* Environment::findFunction(string* name, const std::vector< Type* >& argtypes, Environment::MESSAGE& message) {
+FunctionAccessor* Environment::findFunction(string* name, const std::vector< Type* >& argtypes, Environment::MESSAGE& message) {
 	vector<Dist> dists;
-	pair<multimap<string,Function*>::iterator,multimap<string,Function*>::iterator> pa = functions.equal_range(*name);
-	for (multimap<string,Function*>::iterator it = pa.first; it != pa.second; it++) {
+	pair<multimap<string,FunctionAccessor*>::iterator,multimap<string,FunctionAccessor*>::iterator> pa = functions.equal_range(*name);
+	for (multimap<string,FunctionAccessor*>::iterator it = pa.first; it != pa.second; it++) {
 		// TODO This has bad asymptotic behaviour O(N) when there are N functions with the same name
-		Function * func = it->second;
-		if (func->parameters->size() != argtypes.size())
+		FunctionAccessor * func = it->second;
+		if (func->argtypes->size() != argtypes.size())
 			continue;
 		dists.push_back(Dist(func, vector<int>()));
 		vector<int> & dv = dists.back().second;
 		bool ok = true;
 		for (int i = 0; i < argtypes.size(); i++) {
-			dv.push_back(argtypes[i]->distance((*func->parameters)[i]->type->real()));
+			dv.push_back(argtypes[i]->distance((*func->argtypes)[i]));
 			if (dv.back() == INFTY) {
 				ok = false;
 				break;
@@ -114,6 +114,11 @@ Function* Environment::findFunction(string* name, const std::vector< Type* >& ar
 			dists.pop_back();
 	}
 	if (dists.empty()) {
+		for (int i = parents.size()-1; i >= 0; i--) {
+			FunctionAccessor * r = parents[i]->findFunction(name, argtypes, message);
+			if (message != NONEFOUND)
+				return r;
+		}
 		message = NONEFOUND;
 		return 0;
 	}
@@ -123,7 +128,7 @@ Function* Environment::findFunction(string* name, const std::vector< Type* >& ar
 			smallest[k] = min(smallest[k], dists[i].second[k]);
 		}
 	}
-	Function *func = 0;
+	FunctionAccessor *func = 0;
 	for (int i = 0; i < dists.size(); i++) {
 		bool ok = true;
 		for (int k = 0; k < argtypes.size(); k++) {

@@ -35,12 +35,4 @@ public:
 	int find(Environment *e);
 };
 
-class PrimitiveFunction : public Function {
-public:
-	OPCODE op;
-	PrimitiveFunction(string *_name, vector<DeclarationInstruction*> * _parameters, OPCODE _op, TypePointer * _resulttype) : Function(_name, _parameters, _resulttype), op(_op) {}
-	~PrimitiveFunction() {}
-	char type() {return 'V';}
-};
-
 #endif // FUNCTION_H

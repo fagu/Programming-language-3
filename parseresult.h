@@ -27,6 +27,7 @@ private:
 	Node *prevnode;
 	vector<Node*> stops;
 	vector<FunctionDeclaration*> funcdecs;
+	vector<FunctionDeclaration*> funcglob;
 	vector<VariableDeclaration*> vars;
 	Environment *env;
 public:
@@ -67,7 +68,8 @@ public:
 	void hereStop(int stop);
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
-	void call(Function *func, const std::vector< int >& args, int resultpos);
+	void call(int funcnum, const std::vector< int >& args, const vector<int> &argsizes, int resultpos, int resultsize);
+	void call(OPCODE op, const std::vector< int >& args, const vector<int> &argsizes, int resultpos, int resultsize);
 	void getStatic(int from, int len, int to);
 	void setStatic(int from, int len, int to);
 	

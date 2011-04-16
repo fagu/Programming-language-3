@@ -197,28 +197,25 @@ Type* WhileInstruction::resulttype() {
 
 void CallInstruction::find(Environment* e) {
 	vector<Type*> argtypes;
+	vector<Expression*> args;
 	for (int i = 0; i < arguments->size(); i++) {
-		(*arguments)[i]->find(e);
-		argtypes.push_back((*arguments)[i]->resulttype());
+		Instruction * arg = (*arguments)[i];
+		arg->find(e);
+		argtypes.push_back(arg->resulttype());
+		args.push_back(arg);
 	}
 	Environment::MESSAGE message;
-	dec = e->findFunction(name, argtypes, message);
+	acc = e->findFunction(name, argtypes, message);
 	if (message == Environment::NONEFOUND)
 		printerr("Function '%s' (with the specified argument types) does not exist!\n", name->c_str());
 	else if (message == Environment::MULTIPLEFOUND)
 		printerr("Function '%s' (with the specified argument types) cannot be uniquely determined!\n", name->c_str());
-	vector<int> args;
-	for (int i = 0; i < arguments->size(); i++) {
-		Instruction * arg = (*arguments)[i];
-		Instruction * convarg = arg->resulttype()->convertTo(arg, (*dec->parameters)[i]->type->real());
-		args.push_back(convarg->pos);
-	}
-	pos = ParseRes->alloc((*dec->resulttype)->size());
-	ParseRes->call(dec, args, pos);
+	acc->find(e, 0, args);
+	pos = acc->pos;
 }
 
 Type* CallInstruction::resulttype() {
-	return dec->resulttype->real();
+	return acc->resulttype();
 }
 
 void ClassCallInstruction::find(Environment* e) {
@@ -226,30 +223,25 @@ void ClassCallInstruction::find(Environment* e) {
 	if (a->resulttype()->style() != 'C')
 		printerr("Expression is not a class!\n");
 	vector<Type*> argtypes;
-	argtypes.push_back(a->resulttype());
+	vector<Expression*> args;
 	for (int i = 0; i < arguments->size(); i++) {
-		(*arguments)[i]->find(e);
-		argtypes.push_back((*arguments)[i]->resulttype());
+		Instruction * arg = (*arguments)[i];
+		arg->find(e);
+		argtypes.push_back(arg->resulttype());
+		args.push_back(arg);
 	}
 	Environment::MESSAGE message;
-	dec = ((ClassType*)a->resulttype())->env->findFunction(name, argtypes, message);
+	acc = ((ClassType*)a->resulttype())->env->findFunction(name, argtypes, message);
 	if (message == Environment::NONEFOUND)
 		printerr("Member function '%s' (with the specified argument types) does not exist!\n", name->c_str());
 	else if (message == Environment::MULTIPLEFOUND)
 		printerr("Member function '%s' (with the specified argument types) cannot be uniquely determined!\n", name->c_str());
-	vector<int> args;
-	args.push_back(a->pos);
-	for (int i = 0; i < arguments->size(); i++) {
-		Instruction * arg = (*arguments)[i];
-		Instruction * convarg = arg->resulttype()->convertTo(arg, (*dec->parameters)[i]->type->real());
-		args.push_back(convarg->pos);
-	}
-	pos = ParseRes->alloc((*dec->resulttype)->size());
-	ParseRes->call(dec, args, pos);
+	acc->find(e, a, args);
+	pos = acc->pos;
 }
 
 Type* ClassCallInstruction::resulttype() {
-	return dec->resulttype->real();
+	return acc->resulttype();
 }
 
 void CreateArrayInstruction::find(Environment* e) {
@@ -297,6 +289,7 @@ void VariableAccessorStack::findSet(Environment* e, Expression* par, Expression 
 	Instruction *sn = s->resulttype()->convertTo(s, type);
 	sn->find(e);
 	ParseRes->copy(sn->pos, type->size(), pos);
+	delete sn;
 }
 
 void VariableAccessorHeap::find(Environment* e, Expression* par) {
@@ -320,6 +313,7 @@ void VariableAccessorHeap::findSet(Environment* e, Expression* par, Expression* 
 	Instruction *sn = s->resulttype()->convertTo(s, type);
 	sn->find(e);
 	ParseRes->copySub(sn->pos, par->pos, posin, type->size());
+	delete sn;
 }
 
 void VariableAccessorStatic::find(Environment* e, Expression* par) {
@@ -333,4 +327,51 @@ void VariableAccessorStatic::findSet(Environment* e, Expression* par, Expression
 	Instruction *sn = s->resulttype()->convertTo(s, type);
 	sn->find(e);
 	ParseRes->setStatic(sn->pos, type->size(), globpos);
+	delete sn;
+}
+
+
+
+void FunctionAccessorNormal::find(Environment* e, Expression* par, const std::vector< Expression* >& args) {
+	pos = ParseRes->alloc(type->size());
+	vector<int> argposes;
+	vector<int> argsizes;
+	if (parType) {
+		if (!par) {
+			VariableAccessor *th = e->findVariable("this");
+			th->find(e, 0);
+			par = th;
+		}
+		Instruction *convPar = par->resulttype()->convertTo(par, parType);
+		convPar->find(e);
+		argposes.push_back(convPar->pos);
+		argsizes.push_back(parType->size());
+		delete convPar;
+	}
+	for (int i = 0; i < args.size(); i++) {
+		Expression * arg = args[i];
+		Instruction * convarg = arg->resulttype()->convertTo(arg, (*argtypes)[i]);
+		convarg->find(e);
+		argposes.push_back(convarg->pos);
+		argsizes.push_back((*argtypes)[i]->size());
+		delete convarg;
+	}
+	pos = ParseRes->alloc(type->size());
+	ParseRes->call(funcnum, argposes, argsizes, pos, type->size());
+}
+
+void FunctionAccessorPrimitive::find(Environment* e, Expression* par, const std::vector< Expression* >& args) {
+	pos = ParseRes->alloc(type->size());
+	vector<int> argposes;
+	vector<int> argsizes;
+	for (int i = 0; i < args.size(); i++) {
+		Expression * arg = args[i];
+		Instruction * convarg = arg->resulttype()->convertTo(arg, (*argtypes)[i]);
+		convarg->find(e);
+		argposes.push_back(convarg->pos);
+		argsizes.push_back((*argtypes)[i]->size());
+		delete convarg;
+	}
+	pos = ParseRes->alloc(type->size());
+	ParseRes->call(op, argposes, argsizes, pos, type->size());
 }

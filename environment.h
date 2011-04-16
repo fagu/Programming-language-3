@@ -10,29 +10,29 @@ using namespace std;
 class Environment;
 class Type;
 class VariableAccessor;
-class Function;
+class FunctionAccessor;
 
 class Environment {
 private:
 	map<string,VariableAccessor*> vars;
+	multimap<string,FunctionAccessor*> functions;
 	map<string,Type*> types;
 	vector<Environment*> parents;
 	
 	vector<VariableAccessor*> addedvars;
-	vector<Function*> addedfunctions;
+	vector<FunctionAccessor*> addedfunctions;
 	vector<pair<string,Type*> > addedtypes;
 	stack<int> varnum;
 	stack<int> typenum;
 	stack<int> funcnum;
 	stack<int> parnum;
 public:
-	multimap<string,Function*> functions;
 	Environment();
 	Environment(Environment *par);
 	
 	void addVariable(VariableAccessor *var);
 	//void addType(const string &name, Type *type);
-	void addFunction(Function *func);
+	void addFunction(FunctionAccessor *func);
 	void addParent(Environment *env);
 	
 	void enterBlock();
@@ -41,7 +41,7 @@ public:
 	enum MESSAGE {OK, NONEFOUND, MULTIPLEFOUND};
 	VariableAccessor * findVariable(const string &name);
 	//Type * findType(const string &name);
-	Function * findFunction(string *name, const vector<Type*> &argtypes, MESSAGE &message);
+	FunctionAccessor* findFunction(string* name, const std::vector< Type* >& argtypes, Environment::MESSAGE& message);
 };
 
 #endif // ENVIRONMENT_H
