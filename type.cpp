@@ -42,7 +42,7 @@ void ClassType::addVariable(VariableDeclaration* dec) {
 	(*declarations)[*dec->name] = dec;
 }
 
-void ClassType::addFunction(FunctionDeclaration* func) {
+void ClassType::addFunction(FunctionDefinition* func) {
 	funcs.push_back(func);
 }
 
@@ -57,8 +57,8 @@ void ClassType::find() {
 }
 
 void ClassType::findFuncs() {
-	for (vector<FunctionDeclaration*>::iterator it = funcs.begin(); it != funcs.end(); it++) {
-		FunctionDeclaration *func = *it;
+	for (vector<FunctionDefinition*>::iterator it = funcs.begin(); it != funcs.end(); it++) {
+		FunctionDefinition *func = *it;
 		vector<Type*> *argTypes = new vector<Type*>;
 		for (int i = 1; i < func->parameters->size(); i++)
 			argTypes->push_back((*func->parameters)[i]->type->real());
@@ -108,6 +108,25 @@ int NullType::distance(Type* t) {
 		return 1;
 	else
 		return INFTY;
+}
+
+int FunctionType::distance(Type* t) {
+	if (t->style() != Type::STYLE_FUNCTION)
+		return INFTY;
+	FunctionType *ft = dynamic_cast<FunctionType*>(t);
+	if (returnType->distance(ft->returnType) != 0)
+		return INFTY;
+	if (argTypes->size() != ft->argTypes->size())
+		return INFTY;
+	if ((parType == 0) != (ft->parType == 0))
+		return INFTY;
+	if (parType && parType->distance(ft->parType) != 0)
+		return INFTY;
+	for (int i = 0; i < argTypes->size(); i++) {
+		if ((*argTypes)[i]->distance((*ft->argTypes)[i]) != 0)
+			return INFTY;
+	}
+	return 0;
 }
 
 Type& TypePointer::operator*() {

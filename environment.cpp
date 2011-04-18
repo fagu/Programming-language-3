@@ -11,10 +11,13 @@ Environment::Environment(Environment* par) {
 }
 
 void Environment::addVariable(VariableAccessor* var) {
-	if (vars.count(*var->name))
-		fprintf(stderr, "Variable '%s' already exists!\n", var->name->c_str());
-	vars[*var->name] = var;
+	vars.insert(make_pair(*var->name, var));
 	addedvars.push_back(var);
+	if (var->resulttype()->style() == Type::STYLE_FUNCTION) {
+		FunctionType *ft = dynamic_cast<FunctionType*>(var->resulttype());
+		FunctionAccessorPointer *fa = new FunctionAccessorPointer(var->name, ft->returnType, var, ft->argTypes, 0); // TODO replace 0 by the real parType
+		addFunction(fa);
+	}
 }
 
 /*void Environment::addType(const string &name, Type* type) {
@@ -68,15 +71,23 @@ void Environment::exitBlock() {
 	parnum.pop();
 }
 
-VariableAccessor * Environment::findVariable(const std::string& name) {
-	if (vars.count(name))
-		return vars[name];
-	for (int i = parents.size()-1; i >= 0; i--) {
-		VariableAccessor * r = parents[i]->findVariable(name);
-		if (r)
-			return r;
+VariableAccessor * Environment::findVariable(const std::string& name, Environment::MESSAGE& message) {
+	int count = vars.count(name);
+	if (count == 1) {
+		message = OK;
+		return vars.find(name)->second;
+	} else if (count >= 2) {
+		message = MULTIPLEFOUND;
+		return 0;
+	} else {
+		for (int i = parents.size()-1; i >= 0; i--) {
+			VariableAccessor * r = parents[i]->findVariable(name, message);
+			if (message != NONEFOUND)
+				return r;
+		}
+		message = NONEFOUND;
+		return 0;
 	}
-	return 0;
 }
 
 /*Type * Environment::findType(const std::string& name) {

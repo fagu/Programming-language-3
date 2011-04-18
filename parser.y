@@ -16,7 +16,7 @@
 %token <num> NUMBER
 %token <character> CHARACTER
 %token <name> STRING
-%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY LFUNC
+%token NUL CLASS NEW IF ELSE WHILE FOR EQ LE GE NE PP MM ARRAY LFUNC DEF
 %type <classtype> classcontents;
 %type <vardec> variabledeclaration;
 %type <funcdec> functiondeclaration;
@@ -40,7 +40,7 @@
 	char character;
 	ClassType *classtype;
 	VariableDeclaration *vardec;
-	FunctionDeclaration *funcdec;
+	FunctionDefinition *funcdec;
 	Instruction *instruction;
 	BlockInstruction *statements;
 	vector<DeclarationInstruction*> * params;
@@ -64,7 +64,13 @@ outerstatements:
 
 outerstatement:
 	  functiondeclaration {
-	ParseRes->addFunction($1);
+	//ParseRes->addFunction($1);
+	// ParseRes->staticBlock.push_back(new SetInstruction(@$, ));
+	//DeclarationInstruction *di = new DeclarationInstruction(@$, $1->funcType(), $1->name);
+	VariableDeclaration *vd = new VariableDeclaration(@$, $1->name, $1->funcType());
+	ParseRes->addVariable(vd);
+	FunctionDefinitionInstruction *fdi = new FunctionDefinitionInstruction(@$, $1);
+	ParseRes->staticBlock->instructions.push_back(new SetInstruction(@$, new ExplicitVariableInstruction(@$, new VariableAccessorStatic(vd->name, vd)), fdi));
 }
 	| CLASS IDENTIFIER '{' classcontents '}' {
 	$4->loc = @$;
@@ -186,7 +192,7 @@ classcontents:
 	| classcontents functiondeclaration {
 	$2->parameters->insert($2->parameters->begin(), new DeclarationInstruction(@2, new TypePointerExplicit($1), new string("this")));
 	$1->addFunction($2);
-	$2->env = $$->env;
+	$2->env = $1->env;
 	$$ = $1;
 }
 
@@ -197,7 +203,7 @@ variabledeclaration:
 
 functiondeclaration:
 	  type IDENTIFIER '(' parameters ')' statement {
-	$$ = new FunctionDeclaration(@$, $2, $4, new BlockInstruction(@6, $6), $1);
+	$$ = new FunctionDefinition(@$, $2, $4, new BlockInstruction(@6, $6), $1);
 }
 
 exp:      narexp {
@@ -212,9 +218,9 @@ exp:      narexp {
 	| NEW IDENTIFIER {
 	$$ = new NewInstruction(@$, $2);
 }
-/*	| DEF type '(' parameters ')' statement {
-	
-}*/
+	| DEF type '(' parameters ')' statement {
+	$$ = new FunctionDefinitionInstruction(@$, new FunctionDefinition(@$, $4, new BlockInstruction(@6, $6), $2));
+}
 
 narexp:
 	  '(' exp ')' {
@@ -241,11 +247,14 @@ narexp:
 	| exp '.' IDENTIFIER {
 	$$ = new AccessInstruction(@$, $1, $3);
 }
-	| IDENTIFIER '(' arguments ')' {
+/*	| IDENTIFIER '(' arguments ')' {
 	$$ = new CallInstruction(@$, $1, $3);
 }
 	| exp '.' IDENTIFIER '(' arguments ')' {
 	$$ = new ClassCallInstruction(@$, $1, $3, $5);
+}*/
+	| exp '(' arguments ')' {
+	$$ = new CallInstruction(@$, $1, $3);
 }
 	| exp '+' exp {
 	vector<Instruction*> *v = new vector<Instruction*>(); v->push_back($1); v->push_back($3);

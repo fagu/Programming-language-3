@@ -13,6 +13,8 @@ ParseResult::ParseResult() {
 	haserror = false;
 	printgraphs = false;
 	env = new Environment;
+	staticBlock = new BlockInstruction(Location());
+	funcnum = 0;
 	nullType = new NullType(Location());
 	voidType = new PrimitiveType(Location(), 0);
 	intType = new PrimitiveType(Location(), INTSIZE);
@@ -63,9 +65,10 @@ void ParseResult::addPrim(string name, OPCODE op, Type* at, string an, Type* bt,
 	env->addFunction(fa);
 }
 
-void ParseResult::addFunction(FunctionDeclaration* dec) {
+void ParseResult::addFunctionDefinition(FunctionDefinition* dec) {
 	funcdecs.push_back(dec);
-	funcglob.push_back(dec);
+	dec->num = funcnum;
+	funcnum++;
 }
 
 void ParseResult::addClass(ClassType* cl) {
@@ -74,7 +77,7 @@ void ParseResult::addClass(ClassType* cl) {
 		printsyntaxerr(cl->loc, "Multiple definition of type '%s'!\n", cl->name->c_str());
 	else
 		types[*cl->name] = cl;
-	for (vector<FunctionDeclaration*>::iterator it = cl->funcs.begin(); it != cl->funcs.end(); it++) {
+	for (vector<FunctionDefinition*>::iterator it = cl->funcs.begin(); it != cl->funcs.end(); it++) {
 		funcdecs.push_back(*it);
 	}
 }
@@ -162,7 +165,7 @@ void ParseResult::jump(int stop) {
 	prevnode = 0;
 }
 
-void ParseResult::call(int funcnum, const std::vector< int >& args, const vector<int> &argsizes, int resultpos, int resultsize) {
+void ParseResult::call(int funcnum, const vector<int>& args, const vector<int> &argsizes, int resultpos, int resultsize) {
 	Node *n = new Node(CALL, new Arg(INTARG, funcnum), new Arg(SETARG, resultpos, resultsize));
 	for (int i = 0; i < args.size(); i++) {
 		n->args.push_back(new Arg(GETARG, args[i], argsizes[i]));
@@ -170,12 +173,20 @@ void ParseResult::call(int funcnum, const std::vector< int >& args, const vector
 	addnode(n);
 }
 
-void ParseResult::call(OPCODE op, const std::vector< int >& args, const std::vector< int >& argsizes, int resultpos, int resultsize) {
+void ParseResult::call(OPCODE op, const vector<int>& args, const vector<int>& argsizes, int resultpos, int resultsize) {
 	Node *n = new Node(op);
 	for (int i = 0; i < args.size(); i++)
 		n->args.push_back(new Arg(GETARG, args[i], argsizes[i]));
 	if (resultsize)
 		n->args.push_back(new Arg(SETARG, resultpos, resultsize));
+	addnode(n);
+}
+
+void ParseResult::callPointer(int fppos, vector<int> args, vector<int> argsizes, int resultpos, int resultsize) {
+	Node *n = new Node(CALL_POINTER, new Arg(INTARG, fppos), new Arg(SETARG, resultpos, resultsize));
+	for (int i = 0; i < args.size(); i++) {
+		n->args.push_back(new Arg(GETARG, args[i], argsizes[i]));
+	}
 	addnode(n);
 }
 
@@ -190,34 +201,42 @@ void ParseResult::setStatic(int from, int len, int to) {
 }
 
 int ParseResult::output() {
+	FunctionDefinition *staticFunc = new FunctionDefinition(Location(), new vector<DeclarationInstruction*>, staticBlock, new TypePointerExplicit(voidType));
+	addFunctionDefinition(staticFunc);
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->find();
 	int globalsize = 0;
 	for (vector<VariableDeclaration*>::iterator it = vars.begin(); it != vars.end(); it++) {
 		(*it)->pos = globalsize;
 		globalsize += (*it)->type->real()->size();
-		env->addVariable(new VariableAccessorStatic((*it)->name, (*it)->type->real(), (*it)->pos));
+		env->addVariable(new VariableAccessorStatic((*it)->name, *it/*(*it)->pos)*/));
 	}
-	int n = 0;
-	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
-		FunctionDeclaration *dec = *it;
+	int n = 1;
+	for (vector<FunctionDefinition*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
+		FunctionDefinition *dec = *it;
 		dec->num = n++;
 	}
-	for (vector<FunctionDeclaration*>::iterator it = funcglob.begin(); it != funcglob.end(); it++) {
-		FunctionDeclaration *dec = *it;
+	/*for (vector<FunctionDefinition*>::iterator it = funcglob.begin(); it != funcglob.end(); it++) {
+		FunctionDefinition *dec = *it;
 		vector<Type*> *argTypes = new vector<Type*>;
 		for (int i = 0; i < dec->parameters->size(); i++)
 			argTypes->push_back((*dec->parameters)[i]->type->real());
-		FunctionAccessorNormal *fa = new FunctionAccessorNormal(dec->name, dec->resulttype->real(), dec->num, argTypes, 0);
+		// FunctionAccessorNormal *fa = new FunctionAccessorNormal(dec->name, dec->resulttype->real(), dec->num, argTypes, 0);
+		FunctionType *fpt = new FunctionType(Location(), dec->resulttype->real(), argTypes);
+		VariableAccessorStatic *fpa = new VariableAccessorStatic(dec->name, fpt, globalsize);
+		globalsize += fpt->size();
+		FunctionAccessorPointer *fa = new FunctionAccessorPointer(dec->name, dec->resulttype->real(), fpa, argTypes, 0);
 		env->addFunction(fa);
-	}
+	}*/
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->findFuncs();
 	vector<string> funcspecs;
-	for (vector<FunctionDeclaration*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
+	//for (vector<FunctionDefinition*>::iterator it = funcdecs.begin(); it != funcdecs.end(); it++) {
+	for (int i = 0; i < funcdecs.size(); i++) {
 		graphs.push_back(new Graph());
 		prevnode = graphs.back()->start;
-		FunctionDeclaration *dec = *it;
+		//FunctionDefinition *dec = *it;
+		FunctionDefinition *dec = funcdecs[i];
 		int retpos = dec->find(env);
 		Node *returnnode;
 		if (dec->resulttype->real()->size() > 0)
@@ -246,7 +265,7 @@ int ParseResult::output() {
 		}
 		
 		stringstream str;
-		if (*dec->name == "main")
+		if (*dec->name == "main" || dec == staticFunc)
 			str << FUNC_MAIN;
 		else
 			str << FUNC;

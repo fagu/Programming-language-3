@@ -174,6 +174,28 @@ INSTRUCTION(CALL,1,false,
 	goto stackup;
 )
 
+INSTRUCTION(CALL_POINTER,1,false,
+	co = st[li[aktpos]]; pos = li[aktpos+1];
+	stat.stac.push_back(new stackentry());
+	stat.stac.back()->aktpos = 0;
+	stat.stac.back()->funcnum = co;
+	stat.stac.back()->copyresultto = pos;
+	se.aktpos = aktpos;
+	for (int i = 0; i < argsizes[co].size(); i++) {
+		for (int k = 0; k < argsizes[co][i]; k++) {
+			stat.stac.back()->regs.push_back(st[li[aktpos+i+2]+k]);
+			stat.stac.back()->ispointer.push_back(ip[li[aktpos+i+2]+k]);
+		}
+		se.aktpos++;
+	}
+	/*printf("called: (%d): ", stat.stac.back()->regs.size());
+	for (int r = 0; r < stat.stac.back()->regs.size(); r++)
+		printf("%d ", stat.stac.back()->regs[r]);
+	printf("\n");*/
+	se.aktpos+=2;
+	goto stackup;
+)
+
 INSTRUCTION(GET_STATIC,3,false,
 	posa=li[aktpos]; len=li[aktpos+1]; posb=li[aktpos+2];
 	for (int i = 0; i < len; i++)

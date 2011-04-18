@@ -13,7 +13,7 @@ class TypePointer;
 class ClassType;
 class VariableDeclaration;
 class BlockInstruction;
-class Function;
+class FunctionDefinition;
 
 /**
  * Expression is the base class for everything that returns a value (possibly void) and can in some cases be assigned values
@@ -139,6 +139,16 @@ public:
 	void findSet(Environment *e, Instruction* b);
 };
 
+class ExplicitVariableInstruction : public Instruction {
+private:
+	VariableAccessor *acc;
+public:
+	ExplicitVariableInstruction(Location _loc, VariableAccessor *_acc) : Instruction(_loc), acc(_acc) {}
+	void find(Environment *e);
+	Type* resulttype();
+	void findSet(Environment *e, Instruction* b);
+};
+
 /**
  * The value of a member variable
  **/
@@ -241,7 +251,6 @@ public:
 class BlockInstruction : public Instruction {
 public:
 	vector<Instruction*> instructions;
-	int varsize;
 public:
 	BlockInstruction(Location _loc) : Instruction(_loc) {}
 	BlockInstruction(Location _loc, Instruction* _i) : Instruction(_loc) {instructions.push_back(_i);}
@@ -283,6 +292,15 @@ public:
 	Type* resulttype() {return type;}
 };
 
+class FunctionDefinitionInstruction : public Instruction {
+private:
+	FunctionDefinition *func;
+public:
+	FunctionDefinitionInstruction(Location _loc, FunctionDefinition *_func) : Instruction(_loc), func(_func) {}
+	void find(Environment* e);
+	Type* resulttype();
+};
+
 
 
 /**
@@ -290,10 +308,9 @@ public:
  **/
 class VariableAccessor : public Expression {
 protected:
-	Type *type;
 public:
 	string *name;
-	VariableAccessor(string *_name, Type *_type) : name(_name), type(_type) {}
+	VariableAccessor(string *_name) : name(_name) {}
 	virtual ~VariableAccessor() {}
 	/**
 	 * Tries to calculate the value
@@ -309,17 +326,20 @@ public:
 	 * @param par The "parent" object (0 if the variable is accessed directly)
 	 **/
 	virtual void findSet(Environment *e, Expression *par, Expression *s) = 0;
-	Type *resulttype() {return type;}
+	Type *resulttype() = 0;
 };
 
 /**
  * Stack (aka local) variables
  **/
 class VariableAccessorStack : public VariableAccessor {
+private:
+	Type *type;
 public:
-	VariableAccessorStack(string *_name, Type *_type, int _pos) : VariableAccessor(_name, _type) {pos=_pos;}
+	VariableAccessorStack(string *_name, Type *_type, int _pos) : VariableAccessor(_name), type(_type) {pos=_pos;}
 	void find(Environment* e, Expression* par) {}
 	void findSet(Environment* e, Expression* par, Expression *s);
+	Type *resulttype() {return type;}
 };
 
 /**
@@ -327,11 +347,13 @@ public:
  **/
 class VariableAccessorHeap : public VariableAccessor {
 private:
+	Type *type;
 	int posin;
 public:
-	VariableAccessorHeap(string *_name, Type *_type, int _posin) : VariableAccessor(_name, _type), posin(_posin) {}
+	VariableAccessorHeap(string *_name, Type *_type, int _posin) : VariableAccessor(_name), type(_type), posin(_posin) {}
 	void find(Environment* e, Expression* par);
 	void findSet(Environment* e, Expression* par, Expression *s);
+	Type *resulttype() {return type;}
 };
 
 /**
@@ -339,11 +361,13 @@ public:
  **/
 class VariableAccessorStatic : public VariableAccessor {
 private:
-	int globpos;
+	VariableDeclaration *dec;
+	//int globpos;
 public:
-	VariableAccessorStatic(string *_name, Type *_type, int _globpos) : VariableAccessor(_name, _type), globpos(_globpos) {}
+	VariableAccessorStatic(string *_name, VariableDeclaration *_dec/*int _globpos*/) : VariableAccessor(_name), dec(_dec)/*globpos(_globpos)*/ {}
 	void find(Environment* e, Expression* par);
 	void findSet(Environment* e, Expression* par, Expression* s);
+	Type *resulttype();
 };
 
 
@@ -393,6 +417,15 @@ private:
 	OPCODE op;
 public:
 	FunctionAccessorPrimitive(string *_name, Type *_type, OPCODE _op, vector<Type*> *_argtypes) : FunctionAccessor(_name, _type, _argtypes), op(_op) {}
+	void find(Environment* e, Expression* par, const std::vector< Expression* >& args);
+};
+
+class FunctionAccessorPointer : public FunctionAccessor {
+private:
+	VariableAccessor *fp;
+	Type *parType;
+public:
+	FunctionAccessorPointer(string* _name, Type* _type, VariableAccessor *_fp, std::vector< Type* >* _argtypes, Type *_parType) : FunctionAccessor(_name, _type, _argtypes), fp(_fp), parType(_parType) {}
 	void find(Environment* e, Expression* par, const std::vector< Expression* >& args);
 };
 

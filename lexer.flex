@@ -27,6 +27,7 @@ ID       [a-zA-Z_][a-zA-Z0-9_]*
 "while" {return WHILE;}
 "for" {return FOR;}
 "func" {return LFUNC;}
+"def" {return DEF;}
 "==" {return EQ;}
 "<=" {return LE;}
 ">=" {return GE;}

@@ -11,28 +11,31 @@ class TypePointer;
 class DeclarationInstruction;
 class BlockInstruction;
 class Environment;
+class TypePointerFunction;
 
 class Function {
 public:
-	string *name;
 	vector<DeclarationInstruction*> * parameters;
 	TypePointer * resulttype;
-	Function(string *_name, vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : name(_name), parameters(_parameters), resulttype(_resulttype) {}
+	Function(vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : parameters(_parameters), resulttype(_resulttype) {}
 	virtual ~Function() {}
 	virtual char type() = 0;
 };
 
-class FunctionDeclaration : public Function {
+class FunctionDefinition : public Function {
 private:
 	BlockInstruction* instructions;
 public:
+	string *name;
 	Location loc;
 	Environment *env;
 	int num;
-	FunctionDeclaration(Location _loc, string *_name, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_name, _parameters, _resulttype), loc(_loc), instructions(_instructions), env(0) {}
-	~FunctionDeclaration() {}
+	FunctionDefinition(Location _loc, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_parameters, _resulttype), loc(_loc), instructions(_instructions), env(0) {name=new string("func");}
+	FunctionDefinition(Location _loc, string *_name, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_parameters, _resulttype), loc(_loc), name(_name), instructions(_instructions), env(0) {}
+	~FunctionDefinition() {}
 	char type() {return 'D';}
 	int find(Environment *e);
+	TypePointerFunction *funcType();
 };
 
 #endif // FUNCTION_H

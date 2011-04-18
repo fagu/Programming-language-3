@@ -25,8 +25,9 @@ private:
 	vector<Graph*> graphs;
 	Node *prevnode;
 	vector<Node*> stops;
-	vector<FunctionDeclaration*> funcdecs;
-	vector<FunctionDeclaration*> funcglob;
+	vector<FunctionDefinition*> funcdecs;
+	int funcnum;
+	//vector<FunctionDeclaration*> funcglob;
 	vector<VariableDeclaration*> vars;
 	Environment *env;
 	
@@ -38,6 +39,8 @@ public:
 	vector<ClassType*> classtypes;
 	map<string,Type*> types;
 	
+	BlockInstruction * staticBlock;
+	
 	Type *nullType;
 	Type *voidType;
 	Type *intType;
@@ -48,7 +51,7 @@ public:
 	void addPrim(string name, OPCODE op, Type *at, string an, Type *resulttype);
 	void addPrim(string name, OPCODE op, Type *at, string an, Type *bt, string bn, Type *resulttype);
 	
-	void addFunction(FunctionDeclaration *dec);
+	void addFunctionDefinition(FunctionDefinition *dec);
 	void addClass(ClassType *cl);
 	void addVariable(VariableDeclaration *dec);
 	
@@ -66,8 +69,9 @@ public:
 	void hereStop(int stop);
 	void jumpIf(int cond, int stop);
 	void jump(int stop);
-	void call(int funcnum, const std::vector< int >& args, const vector<int> &argsizes, int resultpos, int resultsize);
-	void call(OPCODE op, const std::vector< int >& args, const vector<int> &argsizes, int resultpos, int resultsize);
+	void call(int funcnum, const vector<int>& args, const vector<int> &argsizes, int resultpos, int resultsize);
+	void call(OPCODE op, const vector<int>& args, const vector<int> &argsizes, int resultpos, int resultsize);
+	void callPointer(int fppos, vector<int> args, vector<int> argsizes, int resultpos, int resultsize);
 	void getStatic(int from, int len, int to);
 	void setStatic(int from, int len, int to);
 	

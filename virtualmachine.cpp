@@ -13,7 +13,8 @@ bool dorun = true;
 
 // FIXME Buffer overflow
 char input[1000000];
-int mainfunc = -1;
+//int mainfunc = -1;
+vector<int> mainfuncs;
 vector<int> resultpos;
 vector<int> resultsize;
 vector<vector<int> > liste;
@@ -101,7 +102,8 @@ int main(int argc, char *argv[]) {
 			staticsize = args[0];
 		} else if (op == FUNC || op == FUNC_MAIN) {
 			if (op == FUNC_MAIN)
-				mainfunc = liste.size();
+				mainfuncs.push_back(liste.size());
+				//mainfunc = liste.size();
 			liste.push_back(vector<int>());
 			stops.push_back(vector<int>());
 			argsizes.push_back(vector<int>());
@@ -124,22 +126,22 @@ int main(int argc, char *argv[]) {
 	if (!dorun)
 		return 0;
 	
-	if (mainfunc == -1) {
+	if (mainfuncs.size() != 2) {
 		fprintf(stderr, "No main function specified!\n");
 		return 1;
 	}
 	
 	stat.hash.push_back(0); // Phantom entry to ensure that every pointer is > 0
 	stat.hashispointer.push_back(false);
-	
-	stat.stac.push_back(new stackentry());
-	stat.stac.back()->aktpos = 0;
-	stat.stac.back()->funcnum = mainfunc;
-	stat.stac.back()->copyresultto = -1;
-	
 	stat.stati.reserve(staticsize);
-	
-	run(resultpos, resultsize, liste, stops, argsizes, stat);
+	for (int imain = 0; imain < mainfuncs.size(); imain++) {
+		stat.stac.push_back(new stackentry());
+		stat.stac.back()->aktpos = 0;
+		stat.stac.back()->funcnum = mainfuncs[imain];
+		stat.stac.back()->copyresultto = -1;
+		
+		run(resultpos, resultsize, liste, stops, argsizes, stat);
+	}
 	
 	return 0;
 }

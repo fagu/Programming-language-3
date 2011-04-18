@@ -1,0 +1,17 @@
+
+int hallo(bool bla) {
+	print_int(111);
+	return=5;
+}
+
+int hallo() {
+}
+
+void main() {
+	func int(bool) hi;
+	//hi = hallo;
+	//hi(1);
+	func char(int) conv = def char(int a) {return=a;};
+	conv = def char(int a) {return='/';};
+	print_char(conv(86));
+}

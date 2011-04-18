@@ -3,7 +3,7 @@
 #include "instruction.h"
 #include "type.h"
 
-int FunctionDeclaration::find(Environment *e) {
+int FunctionDefinition::find(Environment *e) {
 	Environment *ne = new Environment;
 	ne->addParent(e);
 	if (env)
@@ -16,4 +16,11 @@ int FunctionDeclaration::find(Environment *e) {
 	instructions->find(ne);
 	delete ne;
 	return returndec->varpos;
+}
+
+TypePointerFunction* FunctionDefinition::funcType() {
+	vector<TypePointer*> *argTypes = new vector<TypePointer*>;
+	for (vector<DeclarationInstruction*>::iterator it = parameters->begin(); it != parameters->end(); it++)
+		argTypes->push_back((*it)->type);
+	return new TypePointerFunction(loc, resulttype, argTypes);
 }

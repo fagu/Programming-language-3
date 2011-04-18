@@ -152,11 +152,11 @@ private:
 public:
 	string *name;
 	Environment *env;
-	vector<FunctionDeclaration*> funcs;
+	vector<FunctionDefinition*> funcs;
 	ClassType();
 	~ClassType();
 	void addVariable(VariableDeclaration *dec);
-	void addFunction(FunctionDeclaration* func);
+	void addFunction(FunctionDefinition* func);
 	/**
 	 * Visits the type to determine its heap size
 	 **/
@@ -212,10 +212,12 @@ class FunctionType : public Type {
 public:
 	Type * returnType;
 	vector<Type*> * argTypes;
-	FunctionType(Location _loc, Type * _returnType, vector<Type*> * _argTypes) : Type(_loc), returnType(_returnType), argTypes(_argTypes) {}
+	Type * parType;
+	FunctionType(Location _loc, Type * _returnType, vector<Type*> * _argTypes, Type *_parType = 0) : Type(_loc), returnType(_returnType), argTypes(_argTypes), parType(_parType) {}
 	~FunctionType();
 	int size() {return 1;}
 	STYLE style() {return STYLE_FUNCTION;}
+	int distance(Type* t);
 };
 
 #endif

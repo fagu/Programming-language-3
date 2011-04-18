@@ -86,9 +86,12 @@ Type* SetInstruction::resulttype() {
 }
 
 void VariableInstruction::find(Environment* e) {
-	acc = e->findVariable(*name);
-	if (!acc)
+	Environment::MESSAGE msg;
+	acc = e->findVariable(*name, msg);
+	if (msg == Environment::NONEFOUND)
 		printerr("Variable '%s' does not exist!\n", name->c_str());
+	else if (msg == Environment::MULTIPLEFOUND)
+		printerr("Variable '%s' exists multiple times!\n", name->c_str());
 	acc->find(e, 0);
 	pos = acc->pos;
 }
@@ -98,10 +101,25 @@ Type* VariableInstruction::resulttype() {
 }
 
 void VariableInstruction::findSet(Environment* e, Instruction* b) {
-	acc = e->findVariable(*name);
-	if (!acc)
+	Environment::MESSAGE msg;
+	acc = e->findVariable(*name, msg);
+	if (msg == Environment::NONEFOUND)
 		printerr("Variable '%s' does not exist!\n", name->c_str());
-	b->find(e);
+	else if (msg == Environment::MULTIPLEFOUND)
+		printerr("Variable '%s' exists multiple times!\n", name->c_str());
+	acc->findSet(e, 0, b);
+}
+
+void ExplicitVariableInstruction::find(Environment* e) {
+	acc->find(e, 0);
+	pos = acc->pos;
+}
+
+Type* ExplicitVariableInstruction::resulttype() {
+	return acc->resulttype();
+}
+
+void ExplicitVariableInstruction::findSet(Environment* e, Instruction* b) {
 	acc->findSet(e, 0, b);
 }
 
@@ -109,9 +127,12 @@ void AccessInstruction::find(Environment* e) {
 	a->find(e);
 	if (a->resulttype()->style() != Type::STYLE_CLASS)
 		printerr("Expression is not a class!\n");
-	acc = ((ClassType*)a->resulttype())->env->findVariable(*name);
-	if (!acc)
-		printerr("Class does not have a Variable called '%s'!\n", name->c_str());
+	Environment::MESSAGE msg;
+	acc = ((ClassType*)a->resulttype())->env->findVariable(*name, msg);
+	if (msg == Environment::NONEFOUND)
+		printerr("Variable '%s' does not exist!\n", name->c_str());
+	else if (msg == Environment::MULTIPLEFOUND)
+		printerr("Variable '%s' exists multiple times!\n", name->c_str());
 	acc->find(e, a);
 	pos = acc->pos;
 }
@@ -124,10 +145,12 @@ void AccessInstruction::findSet(Environment* e, Instruction* b) {
 	a->find(e);
 	if (a->resulttype()->style() != Type::STYLE_CLASS)
 		printerr("Expression is not a class!\n");
-	acc = ((ClassType*)a->resulttype())->env->findVariable(*name);
-	if (!acc)
-		printerr("Class does not have a Variable called '%s'!\n", name->c_str());
-	b->find(e);
+	Environment::MESSAGE msg;
+	acc = ((ClassType*)a->resulttype())->env->findVariable(*name, msg);
+	if (msg == Environment::NONEFOUND)
+		printerr("Variable '%s' does not exist!\n", name->c_str());
+	else if (msg == Environment::MULTIPLEFOUND)
+		printerr("Variable '%s' exists multiple times!\n", name->c_str());
 	acc->findSet(e, a, b);
 }
 
@@ -151,7 +174,6 @@ void AccessArrayInstruction::findSet(Environment* e, Instruction* c) {
 	if (a->resulttype()->style() != Type::STYLE_ARRAY)
 		printerr("Expression is not an array!\n");
 	int unitsize = ((ArrayType*)a->resulttype())->contenttype->size();
-	c->find(e);
 	if (c->resulttype()->distance(resulttype()) == INFTY)
 		printerr("Types do not match!\n");
 	ParseRes->setArray(unitsize, c->pos, a->pos, b->pos);
@@ -282,6 +304,18 @@ Type* EmptyInstruction::resulttype() {
 	return ParseRes->voidType;
 }
 
+void FunctionDefinitionInstruction::find(Environment* e) {
+	ParseRes->addFunctionDefinition(func);
+	pos = ParseRes->alloc(INTSIZE);
+	ParseRes->intconst(func->num, pos);
+}
+
+Type* FunctionDefinitionInstruction::resulttype() {
+	return func->funcType()->real();
+}
+
+
+
 void VariableAccessorStack::findSet(Environment* e, Expression* par, Expression *s) {
 	if (s->resulttype()->distance(type) == INFTY)
 		printheisenerr("Types do not match!\n");
@@ -293,7 +327,8 @@ void VariableAccessorStack::findSet(Environment* e, Expression* par, Expression 
 
 void VariableAccessorHeap::find(Environment* e, Expression* par) {
 	if (!par) {
-		VariableAccessor *th = e->findVariable("this");
+		Environment::MESSAGE msg;
+		VariableAccessor *th = e->findVariable("this", msg);
 		th->find(e, 0);
 		par = th;
 	}
@@ -303,7 +338,8 @@ void VariableAccessorHeap::find(Environment* e, Expression* par) {
 
 void VariableAccessorHeap::findSet(Environment* e, Expression* par, Expression* s) {
 	if (!par) {
-		VariableAccessor *th = e->findVariable("this");
+		Environment::MESSAGE msg;
+		VariableAccessor *th = e->findVariable("this", msg);
 		th->find(e, 0);
 		par = th;
 	}
@@ -316,17 +352,21 @@ void VariableAccessorHeap::findSet(Environment* e, Expression* par, Expression* 
 }
 
 void VariableAccessorStatic::find(Environment* e, Expression* par) {
-	pos = ParseRes->alloc(type->size());
-	ParseRes->getStatic(globpos, type->size(), pos);
+	pos = ParseRes->alloc(dec->type->real()->size());
+	ParseRes->getStatic(dec->pos/*globpos*/, dec->type->real()->size(), pos);
 }
 
 void VariableAccessorStatic::findSet(Environment* e, Expression* par, Expression* s) {
-	if (s->resulttype()->distance(type) == INFTY)
+	if (s->resulttype()->distance(dec->type->real()) == INFTY)
 		printheisenerr("Types do not match!\n");
-	Instruction *sn = s->resulttype()->convertTo(s, type);
+	Instruction *sn = s->resulttype()->convertTo(s, dec->type->real());
 	sn->find(e);
-	ParseRes->setStatic(sn->pos, type->size(), globpos);
+	ParseRes->setStatic(sn->pos, dec->type->real()->size(), dec->pos/*globpos*/);
 	delete sn;
+}
+
+Type* VariableAccessorStatic::resulttype() {
+	return dec->type->real();
 }
 
 
@@ -337,7 +377,8 @@ void FunctionAccessorNormal::find(Environment* e, Expression* par, const std::ve
 	vector<int> argsizes;
 	if (parType) {
 		if (!par) {
-			VariableAccessor *th = e->findVariable("this");
+			Environment::MESSAGE msg;
+			VariableAccessor *th = e->findVariable("this", msg);
 			th->find(e, 0);
 			par = th;
 		}
@@ -373,4 +414,33 @@ void FunctionAccessorPrimitive::find(Environment* e, Expression* par, const std:
 	}
 	pos = ParseRes->alloc(type->size());
 	ParseRes->call(op, argposes, argsizes, pos, type->size());
+}
+
+void FunctionAccessorPointer::find(Environment* e, Expression* par, const std::vector< Expression* >& args) {
+	vector<int> argposes;
+	vector<int> argsizes;
+	if (parType) {
+		if (!par) {
+			Environment::MESSAGE msg;
+			VariableAccessor *th = e->findVariable("this", msg);
+			th->find(e, 0);
+			par = th;
+		}
+		Instruction *convPar = par->resulttype()->convertTo(par, parType);
+		convPar->find(e);
+		argposes.push_back(convPar->pos);
+		argsizes.push_back(parType->size());
+		delete convPar;
+	}
+	fp->find(e, par);
+	for (int i = 0; i < args.size(); i++) {
+		Expression * arg = args[i];
+		Instruction * convarg = arg->resulttype()->convertTo(arg, (*argtypes)[i]);
+		convarg->find(e);
+		argposes.push_back(convarg->pos);
+		argsizes.push_back((*argtypes)[i]->size());
+		delete convarg;
+	}
+	pos = ParseRes->alloc(type->size());
+	ParseRes->callPointer(fp->pos, argposes, argsizes, pos, type->size());
 }

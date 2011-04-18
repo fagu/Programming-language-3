@@ -22,9 +22,9 @@ class FunctionAccessor;
  * 
  * @section VARS Variables
  * 
- * Inside an environment no two variables of the same name may be declared.
+ * Inside an environment multiple variables of the same name may be declared but they can not be accessed due to the ambiguity.
  * 
- * To find a variable the name is first looked up in this environment. If it does not exist it will be looked up in the parent environments in reverse order (the earlier a parents has been inserted the later it will be scanned) with the same procedure.
+ * To find a variable the name is first looked up in this environment. If it does not exist it will be looked up in the parent environments in reverse order (the earlier a parents has been inserted the later it will be scanned) with the same procedure. Whenever the name is found once in an environment this variable is returned. Whenever the name is found multiple times an ambiguity error will be returned.
  * 
  * @section FUNCS Functions
  * 
@@ -34,12 +34,12 @@ class FunctionAccessor;
  * 
  * Each such function is assigned a vector. The first coordinate in this vector is the depth of the environment this function was found in. The depth is the discovery time of the environment during a depth-first search in which parents are visited in reverse order (the earlier a parents has been inserted the later it will be visited). The other coordinates are the implicit conversion distances of the arguments to their expected types.
  * 
- * If there is a function such that its vector is strictly dominated by all other vectors (all coordinates of this vector are the smallest), then it will be returned. Otherwise an ambiguity has been detected (or no function has been found at all).
+ * If there is a function such that its vector is strictly dominated by all other vectors (all coordinates of this vector are the smallest and the vectors of the other functions are different from this vector), then it will be returned. Otherwise an ambiguity has been detected (or no function has been found at all).
  **/
 // TODO Produce an error whenever multiple functions with the same name and argument types are defined
 class Environment {
 private:
-	map<string,VariableAccessor*> vars;
+	multimap<string,VariableAccessor*> vars;
 	multimap<string,FunctionAccessor*> functions;
 	//map<string,Type*> types;
 	vector<Environment*> parents;
@@ -67,7 +67,7 @@ public:
 	void exitBlock();
 	
 	enum MESSAGE {OK, NONEFOUND, MULTIPLEFOUND};
-	VariableAccessor * findVariable(const string &name);
+	VariableAccessor * findVariable(const string &name, Environment::MESSAGE &message);
 	//Type * findType(const string &name);
 	// TODO This has bad asymptotic behaviour O(N) when there are N functions with the same name
 	FunctionAccessor* findFunction(string* name, const std::vector< Type* >& argtypes, Environment::MESSAGE& message);
