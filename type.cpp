@@ -57,14 +57,14 @@ void ClassType::find() {
 }
 
 void ClassType::findFuncs() {
-	for (vector<FunctionDefinition*>::iterator it = funcs.begin(); it != funcs.end(); it++) {
+	/*for (vector<FunctionDefinition*>::iterator it = funcs.begin(); it != funcs.end(); it++) {
 		FunctionDefinition *func = *it;
 		vector<Type*> *argTypes = new vector<Type*>;
 		for (int i = 1; i < func->parameters->size(); i++)
 			argTypes->push_back((*func->parameters)[i]->type->real());
 		FunctionAccessorNormal *fa = new FunctionAccessorNormal(func->name, func->resulttype->real(), func->num, argTypes, (*func->parameters)[0]->type->real());
 		env->addFunction(fa);
-	}
+	}*/
 }
 
 int ClassType::size() {

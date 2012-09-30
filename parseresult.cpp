@@ -45,24 +45,33 @@ ParseResult::ParseResult() {
 }
 
 void ParseResult::addPrim(string name, OPCODE op, Type* resulttype) {
-	vector<Type*> *argTypes = new vector<Type*>;
-	FunctionAccessorPrimitive *fa = new FunctionAccessorPrimitive(new string(name), resulttype, op, argTypes);
-	env->addFunction(fa);
+	vector<DeclarationInstruction*> *args = new vector<DeclarationInstruction*>;
+	FunctionDefinitionPrimitive *fd = new FunctionDefinitionPrimitive(Location(), new string(name), op, args, new TypePointerExplicit(resulttype));
+	VariableDeclaration *vd = new VariableDeclaration(Location(), new string(name), fd->funcType());
+	addVariable(vd);
+	FunctionDefinitionInstruction *fdi = new FunctionDefinitionInstruction(Location(), fd);
+	staticBlock->instructions.push_back(new SetInstruction(Location(), new ExplicitVariableInstruction(Location(), new VariableAccessorStatic(vd->name, vd)), fdi));
 }
 
 void ParseResult::addPrim(string name, OPCODE op, Type* at, string an, Type* resulttype) {
-	vector<Type*> *argTypes = new vector<Type*>;
-	argTypes->push_back(at);
-	FunctionAccessorPrimitive *fa = new FunctionAccessorPrimitive(new string(name), resulttype, op, argTypes);
-	env->addFunction(fa);
+	vector<DeclarationInstruction*> *args = new vector<DeclarationInstruction*>;
+	args->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(at), new string(an)));
+	FunctionDefinitionPrimitive *fd = new FunctionDefinitionPrimitive(Location(), new string(name), op, args, new TypePointerExplicit(resulttype));
+	VariableDeclaration *vd = new VariableDeclaration(Location(), new string(name), fd->funcType());
+	addVariable(vd);
+	FunctionDefinitionInstruction *fdi = new FunctionDefinitionInstruction(Location(), fd);
+	staticBlock->instructions.push_back(new SetInstruction(Location(), new ExplicitVariableInstruction(Location(), new VariableAccessorStatic(vd->name, vd)), fdi));
 }
 
 void ParseResult::addPrim(string name, OPCODE op, Type* at, string an, Type* bt, string bn, Type* resulttype) {
-	vector<Type*> *argTypes = new vector<Type*>;
-	argTypes->push_back(at);
-	argTypes->push_back(bt);
-	FunctionAccessorPrimitive *fa = new FunctionAccessorPrimitive(new string(name), resulttype, op, argTypes);
-	env->addFunction(fa);
+	vector<DeclarationInstruction*> *args = new vector<DeclarationInstruction*>;
+	args->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(at), new string(an)));
+	args->push_back(new DeclarationInstruction(Location(), new TypePointerExplicit(bt), new string(bn)));
+	FunctionDefinitionPrimitive *fd = new FunctionDefinitionPrimitive(Location(), new string(name), op, args, new TypePointerExplicit(resulttype));
+	VariableDeclaration *vd = new VariableDeclaration(Location(), new string(name), fd->funcType());
+	addVariable(vd);
+	FunctionDefinitionInstruction *fdi = new FunctionDefinitionInstruction(Location(), fd);
+	staticBlock->instructions.push_back(new SetInstruction(Location(), new ExplicitVariableInstruction(Location(), new VariableAccessorStatic(vd->name, vd)), fdi));
 }
 
 void ParseResult::addFunctionDefinition(FunctionDefinition* dec) {
@@ -201,7 +210,7 @@ void ParseResult::setStatic(int from, int len, int to) {
 }
 
 int ParseResult::output() {
-	FunctionDefinition *staticFunc = new FunctionDefinition(Location(), new vector<DeclarationInstruction*>, staticBlock, new TypePointerExplicit(voidType));
+	FunctionDefinition *staticFunc = new FunctionDefinitionCode(Location(), new vector<DeclarationInstruction*>, staticBlock, new TypePointerExplicit(voidType));
 	addFunctionDefinition(staticFunc);
 	for (vector<ClassType*>::iterator it = classtypes.begin(); it != classtypes.end(); it++)
 		(*it)->find();

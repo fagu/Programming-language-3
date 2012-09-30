@@ -204,6 +204,16 @@ public:
  **/
 class CallInstruction : public Instruction {
 private:
+	Instruction *f;
+	vector<Instruction*> *arguments;
+public:
+	CallInstruction(Location _loc, Instruction *_f, vector<Instruction*> *_arguments) : Instruction(_loc), f(_f), arguments(_arguments) {}
+	CallInstruction(Location _loc, string *_fname, vector<Instruction*> *_arguments) : Instruction(_loc), f(new VariableInstruction(_loc, _fname)), arguments(_arguments) {}
+	void find(Environment *e);
+	Type* resulttype();
+};
+/*class CallInstruction : public Instruction {
+private:
 	string *name;
 	FunctionAccessor *acc;
 	vector<Instruction*> *arguments;
@@ -211,12 +221,12 @@ public:
 	CallInstruction(Location _loc, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), name(_name), arguments(_arguments) {}
 	void find(Environment *e);
 	Type* resulttype();
-};
+};*/
 
 /**
  * The return value of a member function call
  **/
-class ClassCallInstruction : public Instruction {
+/*class ClassCallInstruction : public Instruction {
 private:
 	Instruction *a;
 	string *name;
@@ -226,7 +236,7 @@ public:
 	ClassCallInstruction(Location _loc, Instruction *_a, string *_name, vector<Instruction*> *_arguments) : Instruction(_loc), a(_a), name(_name), arguments(_arguments) {}
 	void find(Environment *e);
 	Type* resulttype();
-};
+};*/
 
 class CreateArrayInstruction : public Instruction {
 private:

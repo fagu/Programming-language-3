@@ -40,7 +40,7 @@
 	char character;
 	ClassType *classtype;
 	VariableDeclaration *vardec;
-	FunctionDefinition *funcdec;
+	FunctionDefinitionCode *funcdec;
 	Instruction *instruction;
 	BlockInstruction *statements;
 	vector<DeclarationInstruction*> * params;
@@ -203,7 +203,7 @@ variabledeclaration:
 
 functiondeclaration:
 	  type IDENTIFIER '(' parameters ')' statement {
-	$$ = new FunctionDefinition(@$, $2, $4, new BlockInstruction(@6, $6), $1);
+	$$ = new FunctionDefinitionCode(@$, $2, $4, new BlockInstruction(@6, $6), $1);
 }
 
 exp:      narexp {
@@ -219,7 +219,7 @@ exp:      narexp {
 	$$ = new NewInstruction(@$, $2);
 }
 	| DEF type '(' parameters ')' statement {
-	$$ = new FunctionDefinitionInstruction(@$, new FunctionDefinition(@$, $4, new BlockInstruction(@6, $6), $2));
+	$$ = new FunctionDefinitionInstruction(@$, new FunctionDefinitionCode(@$, $4, new BlockInstruction(@6, $6), $2));
 }
 
 narexp:

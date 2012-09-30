@@ -1,7 +1,7 @@
-
 #include <stdio.h>
 #include <string>
 #include <assert.h>
+#include <getopt.h>
 #include "opcodes.h"
 #include "virtualmachine.h"
 #include "runner.h"

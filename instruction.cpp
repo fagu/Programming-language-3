@@ -217,6 +217,47 @@ Type* WhileInstruction::resulttype() {
 }
 
 void CallInstruction::find(Environment* e) {
+	f->find(e);
+	if (f->resulttype()->style() != Type::STYLE_FUNCTION)
+		printerr("This is not a function!\n");
+	FunctionType *ft = dynamic_cast<FunctionType*>(f->resulttype());
+	for (int i = 0; i < arguments->size(); i++) {
+		(*arguments)[i]->find(e);
+		if ((*arguments)[i]->resulttype()->distance((*ft->argTypes)[i]) == INFTY)
+			printerr("Wrong argument type!\n");
+	}
+	vector<int> argposes;
+	vector<int> argsizes;
+	/*if (parType) {
+		if (!par) {
+			Environment::MESSAGE msg;
+			VariableAccessor *th = e->findVariable("this", msg);
+			th->find(e, 0);
+			par = th;
+		}
+		Instruction *convPar = par->resulttype()->convertTo(par, parType);
+		convPar->find(e);
+		argposes.push_back(convPar->pos);
+		argsizes.push_back(parType->size());
+		delete convPar;
+	}*/
+	for (int i = 0; i < arguments->size(); i++) {
+		Expression * arg = (*arguments)[i];
+		Instruction * convarg = arg->resulttype()->convertTo(arg, (*ft->argTypes)[i]);
+		convarg->find(e);
+		argposes.push_back(convarg->pos);
+		argsizes.push_back((*ft->argTypes)[i]->size());
+		delete convarg;
+	}
+	pos = ParseRes->alloc(ft->returnType->size());
+	ParseRes->callPointer(f->pos, argposes, argsizes, pos, ft->returnType->size());
+}
+
+Type* CallInstruction::resulttype() {
+	return dynamic_cast<FunctionType*>(f->resulttype())->returnType;
+}
+
+/*void CallInstruction::find(Environment* e) {
 	vector<Type*> argtypes;
 	vector<Expression*> args;
 	for (int i = 0; i < arguments->size(); i++) {
@@ -237,9 +278,9 @@ void CallInstruction::find(Environment* e) {
 
 Type* CallInstruction::resulttype() {
 	return acc->resulttype();
-}
+}*/
 
-void ClassCallInstruction::find(Environment* e) {
+/*void ClassCallInstruction::find(Environment* e) {
 	a->find(e);
 	if (a->resulttype()->style() != Type::STYLE_CLASS)
 		printerr("Expression is not a class!\n");
@@ -263,7 +304,7 @@ void ClassCallInstruction::find(Environment* e) {
 
 Type* ClassCallInstruction::resulttype() {
 	return acc->resulttype();
-}
+}*/
 
 void CreateArrayInstruction::find(Environment* e) {
 	size->find(e);
@@ -368,6 +409,7 @@ void VariableAccessorStatic::findSet(Environment* e, Expression* par, Expression
 Type* VariableAccessorStatic::resulttype() {
 	return dec->type->real();
 }
+
 
 
 

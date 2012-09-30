@@ -19,23 +19,36 @@ public:
 	TypePointer * resulttype;
 	Function(vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : parameters(_parameters), resulttype(_resulttype) {}
 	virtual ~Function() {}
-	virtual char type() = 0;
 };
 
 class FunctionDefinition : public Function {
-private:
-	BlockInstruction* instructions;
 public:
 	string *name;
 	Location loc;
-	Environment *env;
 	int num;
-	FunctionDefinition(Location _loc, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_parameters, _resulttype), loc(_loc), instructions(_instructions), env(0) {name=new string("func");}
-	FunctionDefinition(Location _loc, string *_name, vector<DeclarationInstruction*> * _parameters, BlockInstruction * _instructions, TypePointer * _resulttype) : Function(_parameters, _resulttype), loc(_loc), name(_name), instructions(_instructions), env(0) {}
+	FunctionDefinition(Location _loc, vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : Function(_parameters, _resulttype), loc(_loc) {name=new string("func");}
+	FunctionDefinition(Location _loc, string *_name, vector<DeclarationInstruction*> * _parameters, TypePointer * _resulttype) : Function(_parameters, _resulttype), loc(_loc), name(_name) {}
 	~FunctionDefinition() {}
-	char type() {return 'D';}
-	int find(Environment *e);
+	virtual int find(Environment *e) = 0;
 	TypePointerFunction *funcType();
+};
+
+class FunctionDefinitionPrimitive : public FunctionDefinition {
+private:
+	OPCODE opcode;
+public:
+	FunctionDefinitionPrimitive(Location _loc, string* _name, OPCODE _opcode, vector< DeclarationInstruction* >* _parameters, TypePointer* _resulttype) : FunctionDefinition(_loc, _name, _parameters, _resulttype), opcode(_opcode) {}
+	int find(Environment* e);
+};
+
+class FunctionDefinitionCode : public FunctionDefinition {
+private:
+	BlockInstruction* instructions;
+public:
+	Environment *env;
+	FunctionDefinitionCode(Location _loc, vector< DeclarationInstruction* >* _parameters, BlockInstruction *_instructions, TypePointer* _resulttype) : FunctionDefinition(_loc, _parameters, _resulttype), instructions(_instructions), env(0) {}
+	FunctionDefinitionCode(Location _loc, string *_name, vector< DeclarationInstruction* >* _parameters, BlockInstruction *_instructions, TypePointer* _resulttype) : FunctionDefinition(_loc, _name, _parameters, _resulttype), instructions(_instructions), env(0) {}
+	int find(Environment* e);
 };
 
 #endif // FUNCTION_H
