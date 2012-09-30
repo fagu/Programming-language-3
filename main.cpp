@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <stdio.h>
+#include <getopt.h>
 #include "type.h"
 #include "build/bison_parser.h"
 
