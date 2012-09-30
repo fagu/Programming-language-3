@@ -1,0 +1,7 @@
+*~
+*.code
+*.out
+.gdb_history
+build/
+graphs/
+.directory
